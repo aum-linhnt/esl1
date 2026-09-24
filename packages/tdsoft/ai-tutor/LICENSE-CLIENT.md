@@ -142,6 +142,16 @@ Timestamp bắt buộc YYYY-MM-DDTHH:MM:SSZ. Ký toàn bộ canonical document, 
 Xem CanonicalDocument.php để đồng bộ signer ở server. Không đặt signer/private key vào client.
 Public key chỉ được chọn từ cấu hình tin cậy; không nhận public key từ response.
 
+## Tích hợp layout quản trị
+
+Package mặc định dùng layout độc lập `ai-tutor::layouts.admin`. Website có thể đặt
+`ai-tutor.license.admin_layout` thành tên Blade layout của LMS và `admin_section`
+thành tên section nội dung (mặc định `content`), trong integration service provider.
+Layout cần có `@stack('styles')` trong head để nạp `asset_entries` qua Vite.
+`admin_theme` nhận `light`, `dark`, `system`; null dùng theme mặc định của package.
+Website này chọn `layouts.admin` và theme `dark`; package không phụ thuộc layout LMS.
+Không thay đổi kiểm tra quyền, route, CSRF hoặc chính sách license khi đổi layout.
+
 ## Các mã lỗi bổ sung
 
 LICENSE_NOT_ACTIVATED, LICENSE_MIGRATION_REQUIRED, LICENSE_INVALID,

@@ -35,6 +35,9 @@ return [
         'refresh_hours' => (int) env('AI_LICENSE_REFRESH_HOURS', 24),
         'grace_days' => (int) env('AI_LICENSE_GRACE_DAYS', 7),
         'admin_middleware' => ['web', 'auth'],
+        'admin_layout' => 'ai-tutor::layouts.admin',
+        'admin_section' => 'content',
+        'admin_theme' => null,
         'asset_entries' => [],
     ],
 ];

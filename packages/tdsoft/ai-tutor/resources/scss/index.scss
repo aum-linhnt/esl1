@@ -4,34 +4,53 @@
     --tai-panel: #fff;
     --tai-primary: #6654e8;
     --tai-text: #172033;
+    --tai-border: #d8deea;
+    --tai-muted: #526078;
 }
 
 [data-ai-tutor-theme='dark'] [data-ai-tutor-root],
 [data-ai-tutor-root][data-ai-tutor-theme='dark'] {
     --tai-background: #07111f;
-    --tai-panel: #0f1b2d;
+    --tai-panel: #0f172a;
     --tai-primary: #7c5cfc;
     --tai-text: #f5f7fb;
+    --tai-border: #334155;
+    --tai-muted: #94a3b8;
 }
 
 @media (prefers-color-scheme: dark) {
-    [data-ai-tutor-theme='system'] [data-ai-tutor-root] {
+    [data-ai-tutor-theme='system'] [data-ai-tutor-root],
+    [data-ai-tutor-root][data-ai-tutor-theme='system'] {
         --tai-background: #07111f;
         --tai-panel: #0f1b2d;
         --tai-primary: #a394ff;
         --tai-text: #f5f7fb;
+        --tai-border: #334155;
+        --tai-muted: #94a3b8;
     }
 }
 
 body[data-ai-tutor-root] { background: var(--tai-background); color: var(--tai-text); margin: 0; font: 1rem/1.6 system-ui, sans-serif; }
 .tai-license {
-    max-width: 900px; margin: auto; padding: 24px;
+    max-width: 1024px; margin: auto; color: var(--tai-text); line-height: 1.6;
+    h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 20px; }
+    h2 { font-size: 1.125rem; font-weight: 700; margin: 0 0 16px; }
+    h3 { font-size: 1rem; font-weight: 600; margin: 20px 0 8px; }
+    p { margin: 12px 0; }
+    [role='alert'] { padding: 12px 16px; border-left: 3px solid #f59e0b; background: var(--tai-panel); border-radius: 6px; }
+    [role='status'] { padding: 12px 16px; border-left: 3px solid #10b981; background: var(--tai-panel); border-radius: 6px; }
+    ul { padding-left: 20px; list-style: disc; }
     a { color: var(--tai-primary); }
-    section { background: var(--tai-panel); padding: 20px; margin: 20px 0; border: 1px solid currentColor; border-radius: 12px; }
-    dt { font-weight: 600; } dd { margin: 0 0 12px; overflow-wrap: anywhere; }
+    section { background: var(--tai-panel); padding: 24px; margin: 20px 0; border: 1px solid var(--tai-border); border-radius: 16px; }
+    dt { font-weight: 500; color: var(--tai-muted); } dd { margin: 0 0 12px; overflow-wrap: anywhere; min-width: 0; }
+    @media (min-width: 640px) {
+        dl { display: grid; grid-template-columns: minmax(180px, 1fr) 2fr; gap: 12px 24px; }
+        dd { margin: 0; }
+    }
     input, button { font: inherit; padding: 10px; border-radius: 6px; }
-    input { box-sizing: border-box; display: block; width: 100%; margin: 8px 0; color: inherit; background: var(--tai-background); border: 1px solid currentColor; }
+    input { box-sizing: border-box; display: block; width: 100%; margin: 8px 0; color: inherit; background: var(--tai-background); border: 1px solid var(--tai-border); }
     button { background: var(--tai-primary); color: #fff; border: 0; margin: 8px 0; cursor: pointer; }
     button:disabled { opacity: .5; cursor: not-allowed; }
     :focus-visible { outline: 3px solid var(--tai-primary); outline-offset: 3px; }
 }
+.tai-license-standalone { padding: 24px; }

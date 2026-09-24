@@ -1,16 +1,13 @@
-<!doctype html>
-<html lang="vi" data-ai-tutor-theme="{{ in_array(config('ai-tutor.theme.default'), ['light', 'dark']) ? config('ai-tutor.theme.default') : 'system' }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>License Gia sư AI</title>
+@extends(config('ai-tutor.license.admin_layout', 'ai-tutor::layouts.admin'), ['title' => 'License Gia sư AI'])
+
+@push('styles')
     @if(config('ai-tutor.license.asset_entries'))
         @vite(config('ai-tutor.license.asset_entries'))
     @endif
-</head>
-<body data-ai-tutor-root>
-<main class="tai-license">
-    <a href="{{ url('/admin') }}">← Quản trị</a>
+@endpush
+
+@section(config('ai-tutor.license.admin_section', 'content'))
+<div class="tai-license" data-ai-tutor-root data-ai-tutor-theme="{{ in_array(config('ai-tutor.license.admin_theme') ?? config('ai-tutor.theme.default'), ['light', 'dark']) ? (config('ai-tutor.license.admin_theme') ?? config('ai-tutor.theme.default')) : 'system' }}">
     <h1>License Gia sư AI</h1>
     @if(session('license_notice'))<p role="status">{{ session('license_notice') }}</p>@endif
     @if(session('license_error'))<p role="alert">{{ session('license_error') }}</p>@endif
@@ -56,6 +53,5 @@
             <li>{{ $attempt->started_at }} — {{ $attempt->operation }} — {{ $attempt->status }} @if($attempt->error_code)({{ $attempt->error_code }})@endif</li>
         @empty<li>Chưa có lần kiểm tra nào.</li>@endforelse</ul>
     </section>
-</main>
-</body>
-</html>
+</div>
+@endsection

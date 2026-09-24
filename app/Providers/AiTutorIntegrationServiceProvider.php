@@ -21,6 +21,10 @@ final class AiTutorIntegrationServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        config([
+            'ai-tutor.license.admin_layout' => 'layouts.admin',
+            'ai-tutor.license.admin_theme' => 'dark',
+        ]);
         if (! config('ai-tutor.license.asset_entries')) {
             config(['ai-tutor.license.asset_entries' => ['resources/scss/ai-tutor.scss']]);
         }
