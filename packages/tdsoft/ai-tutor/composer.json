@@ -5,11 +5,17 @@
     "license": "proprietary",
     "require": {
         "php": "^8.3",
+        "ext-sodium": "*",
+        "composer-runtime-api": "^2.2",
         "illuminate/support": "^13.17",
         "illuminate/database": "^13.17",
         "illuminate/contracts": "^13.17",
         "illuminate/console": "^13.17",
-        "illuminate/encryption": "^13.17"
+        "illuminate/encryption": "^13.17",
+        "illuminate/http": "^13.17",
+        "illuminate/queue": "^13.17",
+        "illuminate/routing": "^13.17",
+        "illuminate/view": "^13.17"
     },
     "autoload": {"psr-4": {"TDSoft\\AiTutor\\": "src/"}},
     "extra": {"laravel": {"providers": ["TDSoft\\AiTutor\\AiTutorServiceProvider"]}}

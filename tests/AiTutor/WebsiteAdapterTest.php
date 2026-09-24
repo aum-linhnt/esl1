@@ -3,6 +3,7 @@
 namespace Tests\AiTutor;
 
 use App\Integrations\AiTutor\WebsiteActorResolver;
+use App\Integrations\AiTutor\WebsiteLicenseAdministrator;
 use App\Integrations\AiTutor\WebsiteLmsAdapter;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
@@ -13,6 +14,19 @@ use TDSoft\AiTutor\Tests\FoundationTestCase;
 
 final class WebsiteAdapterTest extends FoundationTestCase
 {
+    public function test_only_active_website_admin_can_manage_license(): void
+    {
+        foreach ([['student', 'active', false], ['teacher', 'active', false], ['admin', 'blocked', false], ['admin', 'active', true]] as [$role, $status, $allowed]) {
+            $user = new User;
+            $user->role = $role;
+            $user->status = $status;
+            $auth = \Mockery::mock();
+            $auth->shouldReceive('user')->andReturn($user);
+            Auth::swap($auth);
+            $this->assertSame($allowed, (new WebsiteLicenseAdministrator)->allows());
+        }
+    }
+
     protected function setUp(): void
     {
         parent::setUp();

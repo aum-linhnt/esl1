@@ -4,8 +4,8 @@
 
 | Component | Constraint / verification |
 |---|---|
-| Package | Initial 0.1.0 foundation candidate, no release tag |
-| PHP | ^8.3; automated tests on PHP 8.3 |
+| Package | Initial 0.1.0 foundation + license candidate, no release tag |
+| PHP | ^8.3 + ext-sodium; automated tests on PHP 8.3 |
 | Laravel | ^13.17; repository lock 13.26.1 |
 | Database | MySQL 8+ target; SQLite :memory: automated tests |
 | Frontend | Website Vite 8, Node >=22.12, Sass |
@@ -35,6 +35,8 @@ php artisan ai-tutor:schema-check
 
 For this repository replace php with docker compose exec -T app php.
 Initial migration: 2026_09_24_000001_create_tutor_ai_foundation.php, six tutor_ai_* tables.
+Phase 2 adds 2026_09_24_000002_create_tutor_ai_license_tables.php (state and refresh attempts).
+Keep the already applied foundation migration intact; only the new migration is pending.
 Migration stops before DDL if any target already exists. Preflight with history accepts
 owned tables, checks required columns/unique indexes and reports drift.
 Investigate unrecorded partial installs; never drop or silently adopt them.
@@ -57,7 +59,8 @@ disabled and entitlement denies until provider/license phases complete.
 7. Run schema-check and reviewed migrations (--force only in authorized deployment).
    php artisan config:cache; rebuild views as release requires.
    php artisan queue:restart if this installation runs workers.
-   Phase 1 adds no scheduled task/worker and needs no new background service.
+   Phase 2 registers a queued license refresh check every minute. Configure the scheduler
+   and worker using your existing process manager; see LICENSE-CLIENT.md.
 8. Smoke check discovery, adapter binding, schema, existing LMS and assets.
 
 No admin HTTP Composer/migration action. Update availability is informational in V1.

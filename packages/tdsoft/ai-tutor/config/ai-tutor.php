@@ -24,4 +24,17 @@ return [
         'tts_playback' => 'ai_tutor_core',
     ],
     'theme' => ['default' => 'system', 'allow_user_switch' => true],
+    'license' => [
+        'server_url' => env('AI_LICENSE_SERVER_URL', ''),
+        'key' => env('AI_LICENSE_KEY', ''),
+        'installation_id' => env('AI_LICENSE_INSTALLATION_ID', ''),
+        'domain' => env('AI_LICENSE_DOMAIN', ''),
+        'public_keys' => [
+            env('AI_LICENSE_PUBLIC_KEY_ID', 'license-key-2026-01') => env('AI_LICENSE_PUBLIC_KEY_PATH', ''),
+        ],
+        'refresh_hours' => (int) env('AI_LICENSE_REFRESH_HOURS', 24),
+        'grace_days' => (int) env('AI_LICENSE_GRACE_DAYS', 7),
+        'admin_middleware' => ['web', 'auth'],
+        'asset_entries' => [],
+    ],
 ];

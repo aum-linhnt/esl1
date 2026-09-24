@@ -1,4 +1,4 @@
-# AI Tutor — Phase 1 Foundation
+# AI Tutor — Foundation và signed offline license
 
 Một Composer package tdsoft/ai-tutor, PHP ^8.3 / Laravel ^13.17. Tên phiên bản phát hành
 dự kiến đầu tiên là 0.1.0, độc lập với version 2.0.3 của đặc tả. Chưa tạo tag/release.
@@ -17,8 +17,10 @@ dự kiến đầu tiên là 0.1.0, độc lập với version 2.0.3 của đặ
 - Event Speaking/Writing skeleton phát sau commit; JS/SCSS entry qua Vite website.
 - Preflight schema phân biệt cài mới, installation hợp lệ, cài dở/xung đột.
 
-Chưa có HTTP endpoint, widget, provider API thật, trang quản trị credential, RAG,
-Speaking/Writing, signed-license client hay Vendor Gateway. Các luồng AI cũ của LMS
+Phase 2 đã có signed-license client, refresh nền và trang quản trị /admin/ai/license.
+Xem [LICENSE-CLIENT.md](LICENSE-CLIENT.md) để chạy khi chưa có License Server.
+Chưa có Tutor endpoint/widget, provider API thật, trang quản trị provider credential, RAG,
+Speaking/Writing hay Vendor Gateway. Các luồng AI cũ của LMS
 chưa chuyển sang package và không được xem là đã đạt tiêu chuẩn V2.
 
 ## Tích hợp
@@ -70,8 +72,8 @@ GEMINI_API_KEY=
 Config package: config/ai-tutor.php. Provider resolver chỉ dùng binding đã đăng ký;
 CredentialResolver chỉ đọc credential của provider được yêu cầu. Key không nằm trong
 request DTO, database request, ledger, job hoặc event. Runtime mock bị từ chối ngoài testing.
-Entitlement mặc định từ chối đến khi Phase 2 có verifier offline; không có allow-all production.
-Test bind fake entitlement riêng. Customer-key không cần Gateway config hoặc License HTTP.
+Entitlement verify signed license offline; không có license hợp lệ thì từ chối, không có allow-all production.
+Test bind fake entitlement riêng. Customer-key không cần Gateway config hoặc License HTTP theo từng request.
 
 ## Credit và pricing
 

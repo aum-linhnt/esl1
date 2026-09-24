@@ -13,3 +13,25 @@
     --tai-primary: #7c5cfc;
     --tai-text: #f5f7fb;
 }
+
+@media (prefers-color-scheme: dark) {
+    [data-ai-tutor-theme='system'] [data-ai-tutor-root] {
+        --tai-background: #07111f;
+        --tai-panel: #0f1b2d;
+        --tai-primary: #a394ff;
+        --tai-text: #f5f7fb;
+    }
+}
+
+body[data-ai-tutor-root] { background: var(--tai-background); color: var(--tai-text); margin: 0; font: 1rem/1.6 system-ui, sans-serif; }
+.tai-license {
+    max-width: 900px; margin: auto; padding: 24px;
+    a { color: var(--tai-primary); }
+    section { background: var(--tai-panel); padding: 20px; margin: 20px 0; border: 1px solid currentColor; border-radius: 12px; }
+    dt { font-weight: 600; } dd { margin: 0 0 12px; overflow-wrap: anywhere; }
+    input, button { font: inherit; padding: 10px; border-radius: 6px; }
+    input { box-sizing: border-box; display: block; width: 100%; margin: 8px 0; color: inherit; background: var(--tai-background); border: 1px solid currentColor; }
+    button { background: var(--tai-primary); color: #fff; border: 0; margin: 8px 0; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    :focus-visible { outline: 3px solid var(--tai-primary); outline-offset: 3px; }
+}

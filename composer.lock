@@ -6083,14 +6083,20 @@
             "dist": {
                 "type": "path",
                 "url": "packages/tdsoft/ai-tutor",
-                "reference": "11742f8c9120535fd7f71498a60c20dfc0c98437"
+                "reference": "bcf7b806ae2fa608adb693ec95b4a551f657bcc3"
             },
             "require": {
+                "composer-runtime-api": "^2.2",
+                "ext-sodium": "*",
                 "illuminate/console": "^13.17",
                 "illuminate/contracts": "^13.17",
                 "illuminate/database": "^13.17",
                 "illuminate/encryption": "^13.17",
+                "illuminate/http": "^13.17",
+                "illuminate/queue": "^13.17",
+                "illuminate/routing": "^13.17",
                 "illuminate/support": "^13.17",
+                "illuminate/view": "^13.17",
                 "php": "^8.3"
             },
             "type": "library",
