@@ -154,6 +154,9 @@
                 <span x-show="sidebarOpen">Cấu hình LMS</span>
             </a>
             @if(Route::has('ai-tutor.license.index') && app(\TDSoft\AiTutor\Contracts\LicenseAdministrator::class)->allows())
+                <a href="{{ route('ai-tutor.knowledge') }}" class="admin-sidebar-link {{ request()->routeIs('ai-tutor.knowledge') ? 'active' : '' }}">
+                    <span aria-hidden="true">📚</span><span x-show="sidebarOpen">Knowledge Gia sư AI</span>
+                </a>
                 <a href="{{ route('ai-tutor.license.index') }}" class="admin-sidebar-link">
                     <span aria-hidden="true">🔑</span><span x-show="sidebarOpen">License Gia sư AI</span>
                 </a>

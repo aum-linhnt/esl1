@@ -1,5 +1,14 @@
 # Changelog
 
+## Phase 3 — unreleased development candidate
+
+- Local Knowledge documents/versions/chunks and replaceable VectorStore.
+- Queue ingestion of text/Markdown/HTML, explicit publish and permission-filtered retrieval.
+- Conversation ownership, source links, teaching policies and idempotent paid requests.
+- OpenAI Responses/embedding driver, real POST SSE and read-only result reconnect.
+- Forward migration, basic Knowledge admin/full-page Tutor UI and mock-only tests.
+- See PHASE3.md for staging runbook and explicit remaining release limitations.
+
 ## 0.1.0 — unreleased
 
 - Phase 2: Ed25519 verification, canonical license document and persisted installation identity.
@@ -17,5 +26,6 @@
 - Versioned post-commit event skeleton, website Vite JS/SCSS pipeline.
 - Schema preflight, initial forward migration and upgrade documentation.
 
-No runtime provider, License Server implementation, Tutor HTTP API/UI, Knowledge,
-Speaking or Writing implemented in this foundation release.
+The original foundation did not include a runtime provider, Tutor or Knowledge.
+The unreleased Phase 3 changes above add those core paths; License Server, Speaking
+and Writing are still not implemented.

@@ -28,6 +28,10 @@ final class MockProvider implements ChatProviderInterface
             throw $this->failure;
         }
 
+        if ($request->feature === 'knowledge_embedding' && $this->response === null) {
+            return new AiResponse('', 'mock', 'mock-embedding', ['input_tokens' => 5], data: ['embedding' => [1, 0, 0]]);
+        }
+
         return $this->response ?? new AiResponse('Mock response', 'mock', 'mock-v1', ['input_tokens' => 10, 'output_tokens' => 5]);
     }
 }

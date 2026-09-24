@@ -11,7 +11,14 @@ return [
         'openai' => env('OPENAI_API_KEY'),
         'gemini' => env('GEMINI_API_KEY'),
     ],
-    'providers' => [],
+    'providers' => ['openai' => \TDSoft\AiTutor\Providers\OpenAiProvider::class],
+    'embedding_model' => env('AI_DEFAULT_EMBEDDING_MODEL', ''),
+    'knowledge' => [
+        'min_similarity' => 0.25,
+        'top_k' => 5,
+    ],
+    'tutor' => ['max_output_tokens' => 1200],
+    'ui' => ['asset_entries' => []],
     'features' => [
         'tutor_message' => 'ai_tutor_core',
         'tutor_image_question' => 'ai_tutor_core',

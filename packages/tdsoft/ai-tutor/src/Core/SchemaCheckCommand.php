@@ -25,7 +25,14 @@ final class SchemaCheckCommand extends Command
             $this->error($problem);
         }
 
-        return in_array($result['state'], ['fresh', 'installed'], true)
+        $phaseThree = app(\TDSoft\AiTutor\Knowledge\PhaseThreeSchema::class)->inspect();
+        $this->line('AI Tutor knowledge/conversations: '.$phaseThree['state']);
+        foreach ($phaseThree['problems'] as $problem) {
+            $this->error($problem);
+        }
+
+        return in_array($phaseThree['state'], ['pending', 'installed'], true)
+            && in_array($result['state'], ['fresh', 'installed'], true)
             && in_array($license['state'], ['pending', 'installed'], true) ? self::SUCCESS : self::FAILURE;
     }
 }

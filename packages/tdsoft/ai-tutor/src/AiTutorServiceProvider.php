@@ -26,6 +26,10 @@ final class AiTutorServiceProvider extends ServiceProvider
         $this->app->bindIf(LmsContextAdapter::class, MissingLmsAdapter::class);
         $this->app->bindIf(Entitlements::class, OfflineEntitlements::class);
         $this->app->bindIf(LicenseAdministrator::class, DenyLicenseAdministrator::class);
+        $this->app->bindIf(Contracts\KnowledgeAdministrator::class, Integrations\DenyKnowledgeAdministrator::class);
+        $this->app->bindIf(Contracts\VectorStore::class, Knowledge\LocalVectorStore::class);
+        $this->app->scoped(Core\StreamOutput::class);
+        $this->app->bindIf(Contracts\BackgroundActor::class, Integrations\MissingBackgroundActor::class);
     }
 
     public function boot(): void
@@ -37,6 +41,7 @@ final class AiTutorServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'ai-tutor');
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/tutor.php');
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->job(new RefreshLicenseJob)->everyMinute()->name('ai-tutor-license-refresh')
                 ->withoutOverlapping()->when(function () {

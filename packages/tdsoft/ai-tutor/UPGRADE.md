@@ -2,6 +2,11 @@
 
 ## Compatibility
 
+Phase 3 development candidate: read [PHASE3.md](PHASE3.md) before applying the new
+2026_09_25_000003_create_tutor_ai_knowledge_conversations.php migration. It does not
+alter previously published migrations, pricing rules, accounts or license state.
+Binary upload/OCR and the full lesson widget remain release limitations.
+
 | Component | Constraint / verification |
 |---|---|
 | Package | Initial 0.1.0 foundation + license candidate, no release tag |

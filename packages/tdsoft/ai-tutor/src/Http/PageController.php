@@ -1,0 +1,25 @@
+<?php
+
+namespace TDSoft\AiTutor\Http;
+
+use Illuminate\Http\Request;
+use TDSoft\AiTutor\Knowledge\Access;
+
+final class PageController
+{
+    public function tutor(Request $request, Access $access): mixed
+    {
+        $access->module('ai_tutor_core');
+        $data = $request->validate(['lesson_id' => 'required|string|max:191']);
+        $lesson = $access->lesson($data['lesson_id']);
+
+        return view('ai-tutor::tutor', ['lesson' => $lesson]);
+    }
+
+    public function knowledge(Access $access): mixed
+    {
+        $access->administrator();
+
+        return view('ai-tutor::knowledge');
+    }
+}

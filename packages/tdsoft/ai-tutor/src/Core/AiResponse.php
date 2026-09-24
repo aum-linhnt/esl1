@@ -13,6 +13,7 @@ final readonly class AiResponse
         array $usage = [],
         public ?string $providerRequestId = null,
         public ?string $remoteRequestId = null,
+        public array $data = [],
     ) {
         $normalized = [];
         foreach (['input_tokens', 'output_tokens', 'cached_tokens', 'audio_seconds', 'image_count', 'document_pages'] as $field) {

@@ -47,7 +47,13 @@ body[data-ai-tutor-root] { background: var(--tai-background); color: var(--tai-t
         dl { display: grid; grid-template-columns: minmax(180px, 1fr) 2fr; gap: 12px 24px; }
         dd { margin: 0; }
     }
-    input, button { font: inherit; padding: 10px; border-radius: 6px; }
+    input, button, textarea, select { font: inherit; padding: 10px; border-radius: 6px; }
+    textarea, select { color: var(--tai-text); background: var(--tai-background); border: 1px solid var(--tai-border); }
+    textarea { display: block; box-sizing: border-box; width: 100%; margin: 8px 0; resize: vertical; }
+    label { display: block; margin-top: 12px; }
+    [data-history] { min-height: 160px; max-height: 60vh; overflow-y: auto; }
+    [data-history] p { white-space: pre-wrap; overflow-wrap: anywhere; }
+    button[hidden] { display: none; }
     input { box-sizing: border-box; display: block; width: 100%; margin: 8px 0; color: inherit; background: var(--tai-background); border: 1px solid var(--tai-border); }
     button { background: var(--tai-primary); color: #fff; border: 0; margin: 8px 0; cursor: pointer; }
     button:disabled { opacity: .5; cursor: not-allowed; }
