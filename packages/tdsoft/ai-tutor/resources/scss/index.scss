@@ -1,0 +1,15 @@
+// Scoped tokens: importing the package does not change the LMS theme.
+[data-ai-tutor-root] {
+    --tai-background: #f5f7fb;
+    --tai-panel: #fff;
+    --tai-primary: #6654e8;
+    --tai-text: #172033;
+}
+
+[data-ai-tutor-theme='dark'] [data-ai-tutor-root],
+[data-ai-tutor-root][data-ai-tutor-theme='dark'] {
+    --tai-background: #07111f;
+    --tai-panel: #0f1b2d;
+    --tai-primary: #7c5cfc;
+    --tai-text: #f5f7fb;
+}

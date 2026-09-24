@@ -1,0 +1,15 @@
+{
+    "name": "tdsoft/ai-tutor",
+    "description": "Self-hosted AI Tutor foundation with LMS adapters and local billing",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3",
+        "illuminate/support": "^13.17",
+        "illuminate/database": "^13.17",
+        "illuminate/contracts": "^13.17",
+        "illuminate/encryption": "^13.17"
+    },
+    "autoload": {"psr-4": {"TDSoft\\AiTutor\\": "src/"}},
+    "extra": {"laravel": {"providers": ["TDSoft\\AiTutor\\AiTutorServiceProvider"]}}
+}
