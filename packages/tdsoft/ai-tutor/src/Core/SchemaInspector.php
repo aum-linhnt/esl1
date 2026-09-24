@@ -2,7 +2,8 @@
 
 namespace TDSoft\AiTutor\Core;
 
-use Illuminate\Support\Facades\{DB, Schema};
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 final class SchemaInspector
 {
@@ -28,6 +29,7 @@ final class SchemaInspector
         foreach (self::COLUMNS as $table => $columns) {
             if (! Schema::hasTable($table)) {
                 $problems[] = $table.' missing';
+
                 continue;
             }
             foreach (array_diff(['id', ...$columns], Schema::getColumnListing($table)) as $column) {
@@ -51,6 +53,7 @@ final class SchemaInspector
                 }
             }
         }
+
         return ['state' => $problems === [] ? 'installed' : 'schema_mismatch', 'problems' => $problems];
     }
 }

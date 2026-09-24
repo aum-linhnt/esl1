@@ -41,6 +41,7 @@ final class CreditCalculator
         foreach ($rule['blocks'] ?? [] as $metric => $block) {
             $units += intdiv(($usage[$metric] ?? 0) + $block['size'] - 1, $block['size']) * $block['units'];
         }
+
         // Explicit product ceiling, not a provider-cost ceiling. Usage is never truncated.
         return min($units, $rule['max_units_per_request']);
     }
@@ -62,6 +63,7 @@ final class CreditCalculator
             $denominator = str_ends_with($metric, '_tokens') ? 1000000 : 1;
             $micros += intdiv($quantity * ($rates[$metric] ?? 0) + $denominator - 1, $denominator);
         }
+
         return intdiv($micros, 1000000).'.'.str_pad((string) ($micros % 1000000), 6, '0', STR_PAD_LEFT);
     }
 }

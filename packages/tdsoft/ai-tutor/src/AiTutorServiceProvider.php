@@ -3,8 +3,11 @@
 namespace TDSoft\AiTutor;
 
 use Illuminate\Support\ServiceProvider;
-use TDSoft\AiTutor\Contracts\{ActorResolver, Entitlements, LmsContextAdapter};
-use TDSoft\AiTutor\Integrations\{MissingActorResolver, MissingLmsAdapter};
+use TDSoft\AiTutor\Contracts\ActorResolver;
+use TDSoft\AiTutor\Contracts\Entitlements;
+use TDSoft\AiTutor\Contracts\LmsContextAdapter;
+use TDSoft\AiTutor\Integrations\MissingActorResolver;
+use TDSoft\AiTutor\Integrations\MissingLmsAdapter;
 use TDSoft\AiTutor\Licensing\UnavailableEntitlements;
 
 final class AiTutorServiceProvider extends ServiceProvider

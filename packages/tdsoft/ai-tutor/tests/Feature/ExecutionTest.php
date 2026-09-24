@@ -2,10 +2,17 @@
 
 namespace TDSoft\AiTutor\Tests\Feature;
 
-use Illuminate\Support\Facades\{DB, Crypt};
-use TDSoft\AiTutor\Billing\{BillingManager, CreditLedger, VendorCreditBillingDriver};
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
+use TDSoft\AiTutor\Billing\BillingManager;
+use TDSoft\AiTutor\Billing\CreditLedger;
+use TDSoft\AiTutor\Billing\VendorCreditBillingDriver;
 use TDSoft\AiTutor\Contracts\Entitlements;
-use TDSoft\AiTutor\Core\{AiException, AiExecutionService, AiRequest, AiResponse, LearnerIdentity};
+use TDSoft\AiTutor\Core\AiException;
+use TDSoft\AiTutor\Core\AiExecutionService;
+use TDSoft\AiTutor\Core\AiRequest;
+use TDSoft\AiTutor\Core\AiResponse;
+use TDSoft\AiTutor\Core\LearnerIdentity;
 use TDSoft\AiTutor\Licensing\UnavailableEntitlements;
 use TDSoft\AiTutor\Tests\FoundationTestCase;
 

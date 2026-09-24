@@ -3,7 +3,8 @@
 namespace TDSoft\AiTutor\Integrations;
 
 use TDSoft\AiTutor\Contracts\ActorResolver;
-use TDSoft\AiTutor\Core\{AiException, LearnerIdentity};
+use TDSoft\AiTutor\Core\AiException;
+use TDSoft\AiTutor\Core\LearnerIdentity;
 
 final class MissingActorResolver implements ActorResolver
 {

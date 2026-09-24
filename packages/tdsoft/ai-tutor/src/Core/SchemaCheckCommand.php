@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 final class SchemaCheckCommand extends Command
 {
     protected $signature = 'ai-tutor:schema-check';
+
     protected $description = 'Read-only AI Tutor installation / schema preflight';
 
     public function handle(SchemaInspector $inspector): int
@@ -16,6 +17,7 @@ final class SchemaCheckCommand extends Command
         foreach ($result['problems'] as $problem) {
             $this->error($problem);
         }
+
         return in_array($result['state'], ['fresh', 'installed'], true) ? self::SUCCESS : self::FAILURE;
     }
 }

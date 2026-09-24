@@ -2,7 +2,8 @@
 
 namespace TDSoft\AiTutor\Contracts;
 
-use TDSoft\AiTutor\Core\{AiRequest, AiResponse};
+use TDSoft\AiTutor\Core\AiRequest;
+use TDSoft\AiTutor\Core\AiResponse;
 
 interface AiProvider
 {

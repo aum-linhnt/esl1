@@ -2,10 +2,11 @@
 
 namespace TDSoft\AiTutor\Billing;
 
-use Throwable;
 use TDSoft\AiTutor\Contracts\AiBillingDriver;
-use TDSoft\AiTutor\Core\{AiRequest, AiResponse};
+use TDSoft\AiTutor\Core\AiRequest;
+use TDSoft\AiTutor\Core\AiResponse;
 use TDSoft\AiTutor\Providers\ProviderManager;
+use Throwable;
 
 final class CustomerKeyBillingDriver implements AiBillingDriver
 {
@@ -14,6 +15,7 @@ final class CustomerKeyBillingDriver implements AiBillingDriver
     public function authorize(AiRequest $request): BillingAuthorization
     {
         $this->providers->driver();
+
         return $this->ledger->reserve($request);
     }
 

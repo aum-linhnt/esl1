@@ -19,7 +19,7 @@ schema and data preservation. Add previous-tag upgrade fixtures from the next re
 ## First installation
 
 Development uses the root Composer path repository. For distribution create a private
-repository, tag a reviewed version and replace path repository/@dev with the private
+repository, tag a reviewed version and replace path repository/0.1.x-dev with the private
 repository and stable constraint. Do not publish the development path lock.
 Download credentials belong to deployment secret storage.
 

@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
-use App\Integrations\AiTutor\{WebsiteActorResolver, WebsiteLmsAdapter};
+use App\Integrations\AiTutor\WebsiteActorResolver;
+use App\Integrations\AiTutor\WebsiteLmsAdapter;
 use Illuminate\Support\ServiceProvider;
-use TDSoft\AiTutor\Contracts\{ActorResolver, LmsContextAdapter};
+use TDSoft\AiTutor\Contracts\ActorResolver;
+use TDSoft\AiTutor\Contracts\LmsContextAdapter;
 
 final class AiTutorIntegrationServiceProvider extends ServiceProvider
 {

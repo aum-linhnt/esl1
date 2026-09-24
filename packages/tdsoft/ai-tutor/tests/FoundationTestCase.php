@@ -7,18 +7,26 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Encryption\Encrypter;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\{DB, Facade};
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Facade;
+use Illuminate\Support\Str;
 use PHPUnit\Framework\TestCase;
 use TDSoft\AiTutor\AiTutorServiceProvider;
-use TDSoft\AiTutor\Contracts\{ActorResolver, Entitlements, LmsContextAdapter};
-use TDSoft\AiTutor\Core\{AiException, AiRequest, LearnerIdentity};
+use TDSoft\AiTutor\Contracts\ActorResolver;
+use TDSoft\AiTutor\Contracts\Entitlements;
+use TDSoft\AiTutor\Contracts\LmsContextAdapter;
+use TDSoft\AiTutor\Core\AiException;
+use TDSoft\AiTutor\Core\AiRequest;
+use TDSoft\AiTutor\Core\LearnerIdentity;
 use TDSoft\AiTutor\Providers\MockProvider;
 use TDSoft\AiTutor\Tests\Fakes\FakeLmsAdapter;
 
 abstract class FoundationTestCase extends TestCase
 {
     protected Application $app;
+
     protected MockProvider $provider;
+
     protected FakeLmsAdapter $lms;
 
     protected function setUp(): void
@@ -45,11 +53,19 @@ abstract class FoundationTestCase extends TestCase
         config(['ai-tutor.enabled' => true, 'ai-tutor.provider' => 'mock', 'ai-tutor.providers.mock' => MockProvider::class]);
         $this->provider = new MockProvider;
         $this->app->instance(MockProvider::class, $this->provider);
-        $this->app->instance(ActorResolver::class, new class implements ActorResolver {
-            public function resolve(): LearnerIdentity { return new LearnerIdentity('learner-1'); }
+        $this->app->instance(ActorResolver::class, new class implements ActorResolver
+        {
+            public function resolve(): LearnerIdentity
+            {
+                return new LearnerIdentity('learner-1');
+            }
         });
-        $this->app->instance(Entitlements::class, new class implements Entitlements {
-            public function allows(string $module): bool { return true; }
+        $this->app->instance(Entitlements::class, new class implements Entitlements
+        {
+            public function allows(string $module): bool
+            {
+                return true;
+            }
         });
         $this->lms = new FakeLmsAdapter;
         $this->app->instance(LmsContextAdapter::class, $this->lms);
@@ -69,13 +85,17 @@ abstract class FoundationTestCase extends TestCase
     protected function request(string $key = 'test-key', array $payload = ['message' => 'Hello']): AiRequest
     {
         return new AiRequest('tutor_message', new LearnerIdentity('learner-1'), $payload,
-            (string) \Illuminate\Support\Str::uuid(), $key, 'course-1', 'lesson-1');
+            (string) Str::uuid(), $key, 'course-1', 'lesson-1');
     }
 
     protected function assertError(string $code, callable $action): void
     {
-        try { $action(); $this->fail('Expected '.$code); }
-        catch (AiException $error) { $this->assertSame($code, $error->errorCode); }
+        try {
+            $action();
+            $this->fail('Expected '.$code);
+        } catch (AiException $error) {
+            $this->assertSame($code, $error->errorCode);
+        }
     }
 
     protected function tearDown(): void

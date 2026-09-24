@@ -47,6 +47,7 @@ final readonly class AiRequest
                     $item = $canonicalize($item);
                 }
             }
+
             return $value;
         };
 

@@ -2,8 +2,10 @@
 
 namespace TDSoft\AiTutor\Billing;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use TDSoft\AiTutor\Core\{AiRequest, AiResponse};
+use TDSoft\AiTutor\Core\AiRequest;
+use TDSoft\AiTutor\Core\AiResponse;
 
 final class UsageRecorder
 {
@@ -20,7 +22,7 @@ final class UsageRecorder
             ...$response->usage, 'credit_units' => $this->calculator->units($rule, $response->usage),
             'estimated_cost' => $cost, 'currency' => $rule['currency'],
             'provider_request_id' => $response->providerRequestId, 'remote_request_id' => $response->remoteRequestId,
-            'latency_ms' => max(0, (int) \Illuminate\Support\Carbon::parse($record->started_at)->diffInMilliseconds(now())),
+            'latency_ms' => max(0, (int) Carbon::parse($record->started_at)->diffInMilliseconds(now())),
             'status' => 'completed', 'created_at' => now(), 'updated_at' => now(),
         ]);
         DB::table('tutor_ai_cost_snapshots')->insert([

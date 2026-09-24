@@ -17,6 +17,7 @@ final class ProviderManager
         if ($class === MockProvider::class && ! app()->environment('testing')) {
             throw new AiException('AI_PROVIDER_NOT_CONFIGURED');
         }
+
         return app($class);
     }
 }

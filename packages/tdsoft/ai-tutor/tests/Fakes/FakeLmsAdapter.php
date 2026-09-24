@@ -3,17 +3,25 @@
 namespace TDSoft\AiTutor\Tests\Fakes;
 
 use TDSoft\AiTutor\Contracts\LmsContextAdapter;
-use TDSoft\AiTutor\Core\{AiException, LessonContext, QuestionContext};
+use TDSoft\AiTutor\Core\AiException;
+use TDSoft\AiTutor\Core\LessonContext;
+use TDSoft\AiTutor\Core\QuestionContext;
 
 final class FakeLmsAdapter implements LmsContextAdapter
 {
     public bool $allowed = true;
 
-    public function canAccessLesson(string $userId, string $lessonId): bool { return $this->allowed; }
+    public function canAccessLesson(string $userId, string $lessonId): bool
+    {
+        return $this->allowed;
+    }
 
     public function getLessonContext(string $userId, string $lessonId): LessonContext
     {
-        if (! $this->allowed) { throw new AiException('AI_CONTEXT_FORBIDDEN'); }
+        if (! $this->allowed) {
+            throw new AiException('AI_CONTEXT_FORBIDDEN');
+        }
+
         return new LessonContext('course-1', $lessonId, 'Safe lesson context');
     }
 

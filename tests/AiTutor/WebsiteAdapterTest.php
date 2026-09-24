@@ -2,10 +2,13 @@
 
 namespace Tests\AiTutor;
 
-use App\Integrations\AiTutor\{WebsiteActorResolver, WebsiteLmsAdapter};
+use App\Integrations\AiTutor\WebsiteActorResolver;
+use App\Integrations\AiTutor\WebsiteLmsAdapter;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\{Auth, DB, Schema};
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use TDSoft\AiTutor\Tests\FoundationTestCase;
 
 final class WebsiteAdapterTest extends FoundationTestCase
@@ -14,24 +17,49 @@ final class WebsiteAdapterTest extends FoundationTestCase
     {
         parent::setUp();
         Schema::create('users', function (Blueprint $t) {
-            $t->id(); $t->string('role'); $t->string('status'); $t->string('current_level')->nullable();
+            $t->id();
+            $t->string('role');
+            $t->string('status');
+            $t->string('current_level')->nullable();
         });
-        Schema::create('courses', function (Blueprint $t) { $t->id(); $t->string('level')->nullable(); });
+        Schema::create('courses', function (Blueprint $t) {
+            $t->id();
+            $t->string('level')->nullable();
+        });
         Schema::create('lessons', function (Blueprint $t) {
-            $t->id(); $t->unsignedBigInteger('course_id'); $t->string('title'); $t->text('summary')->nullable();
-            $t->integer('order')->default(1); $t->boolean('is_free_trial')->default(false); $t->boolean('is_visible')->default(true);
+            $t->id();
+            $t->unsignedBigInteger('course_id');
+            $t->string('title');
+            $t->text('summary')->nullable();
+            $t->integer('order')->default(1);
+            $t->boolean('is_free_trial')->default(false);
+            $t->boolean('is_visible')->default(true);
         });
         Schema::create('activities', function (Blueprint $t) {
-            $t->id(); $t->unsignedBigInteger('lesson_id'); $t->string('type'); $t->json('content')->nullable();
-            $t->integer('order')->default(1); $t->boolean('is_free_trial')->default(false); $t->boolean('is_visible')->default(true);
+            $t->id();
+            $t->unsignedBigInteger('lesson_id');
+            $t->string('type');
+            $t->json('content')->nullable();
+            $t->integer('order')->default(1);
+            $t->boolean('is_free_trial')->default(false);
+            $t->boolean('is_visible')->default(true);
         });
         Schema::create('enrollments', function (Blueprint $t) {
-            $t->id(); $t->unsignedBigInteger('user_id'); $t->unsignedBigInteger('course_id');
-            $t->string('status'); $t->string('course_role')->default('student'); $t->timestamp('expires_at')->nullable();
+            $t->id();
+            $t->unsignedBigInteger('user_id');
+            $t->unsignedBigInteger('course_id');
+            $t->string('status');
+            $t->string('course_role')->default('student');
+            $t->timestamp('expires_at')->nullable();
         });
         Schema::create('question_banks', function (Blueprint $t) {
-            $t->id(); $t->unsignedBigInteger('course_id')->nullable(); $t->text('question_text');
-            $t->json('options'); $t->text('correct_answer'); $t->text('explanation'); $t->softDeletes();
+            $t->id();
+            $t->unsignedBigInteger('course_id')->nullable();
+            $t->text('question_text');
+            $t->json('options');
+            $t->text('correct_answer');
+            $t->text('explanation');
+            $t->softDeletes();
         });
         DB::table('users')->insert(['id' => 1, 'role' => 'student', 'status' => 'active']);
         DB::table('courses')->insert(['id' => 1, 'level' => 'A1']);

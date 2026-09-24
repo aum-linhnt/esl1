@@ -7,5 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 final class CreditRule extends Model
 {
     protected $table = 'tutor_ai_credit_rules';
+
     protected $guarded = ['*'];
 }

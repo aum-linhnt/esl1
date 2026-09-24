@@ -3,7 +3,9 @@
 namespace TDSoft\AiTutor\Integrations;
 
 use TDSoft\AiTutor\Contracts\LmsContextAdapter;
-use TDSoft\AiTutor\Core\{AiException, LessonContext, QuestionContext};
+use TDSoft\AiTutor\Core\AiException;
+use TDSoft\AiTutor\Core\LessonContext;
+use TDSoft\AiTutor\Core\QuestionContext;
 
 final class MissingLmsAdapter implements LmsContextAdapter
 {

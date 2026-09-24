@@ -2,22 +2,27 @@
 
 namespace TDSoft\AiTutor\Tests\Feature;
 
-use Illuminate\Support\Facades\{DB, Schema};
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use TDSoft\AiTutor\Core\SchemaInspector;
 use TDSoft\AiTutor\Tests\FoundationTestCase;
 
 final class SchemaTest extends FoundationTestCase
 {
     public function test_upgrade_preflight_accepts_recorded_installation_and_preserves_data(): void
     {
-        Schema::create('migrations', function (\Illuminate\Database\Schema\Blueprint $t) {
-            $t->id(); $t->string('migration'); $t->integer('batch');
+        Schema::create('migrations', function (Blueprint $t) {
+            $t->id();
+            $t->string('migration');
+            $t->integer('batch');
         });
-        $inspector = new \TDSoft\AiTutor\Core\SchemaInspector;
+        $inspector = new SchemaInspector;
         $this->assertSame('conflict_or_partial', $inspector->inspect()['state']);
         DB::table('migrations')->insert(['migration' => $inspector::MIGRATION, 'batch' => 1]);
         $this->assertSame('installed', $inspector->inspect()['state']);
         $this->assertSame(100, DB::table('tutor_ai_credit_accounts')->value('balance'));
-        Schema::table('tutor_ai_requests', fn (\Illuminate\Database\Schema\Blueprint $t) => $t->dropUnique('tai_req_key_uq'));
+        Schema::table('tutor_ai_requests', fn (Blueprint $t) => $t->dropUnique('tai_req_key_uq'));
         $this->assertSame('schema_mismatch', $inspector->inspect()['state']);
     }
 
@@ -36,7 +41,6 @@ final class SchemaTest extends FoundationTestCase
 
     public function test_rollback_is_explicitly_disabled(): void
     {
-        $this->assertError('AI_DESTRUCTIVE_ROLLBACK_DISABLED', fn () =>
-            (require __DIR__.'/../../database/migrations/2026_09_24_000001_create_tutor_ai_foundation.php')->down());
+        $this->assertError('AI_DESTRUCTIVE_ROLLBACK_DISABLED', fn () => (require __DIR__.'/../../database/migrations/2026_09_24_000001_create_tutor_ai_foundation.php')->down());
     }
 }

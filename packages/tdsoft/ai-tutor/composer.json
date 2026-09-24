@@ -8,6 +8,7 @@
         "illuminate/support": "^13.17",
         "illuminate/database": "^13.17",
         "illuminate/contracts": "^13.17",
+        "illuminate/console": "^13.17",
         "illuminate/encryption": "^13.17"
     },
     "autoload": {"psr-4": {"TDSoft\\AiTutor\\": "src/"}},

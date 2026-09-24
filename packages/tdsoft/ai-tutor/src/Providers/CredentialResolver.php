@@ -12,6 +12,7 @@ final class CredentialResolver
         if (! is_string($key) || trim($key) === '') {
             throw new AiException('AI_PROVIDER_NOT_CONFIGURED');
         }
+
         return $key;
     }
 }

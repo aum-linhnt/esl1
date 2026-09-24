@@ -2,8 +2,8 @@
 
 namespace TDSoft\AiTutor\Contracts;
 
-use TDSoft\AiTutor\Core\AiResponse;
 use TDSoft\AiTutor\Billing\GatewayRequest;
+use TDSoft\AiTutor\Core\AiResponse;
 
 interface VendorGateway
 {

@@ -2,7 +2,8 @@
 
 namespace TDSoft\AiTutor\Contracts;
 
-use TDSoft\AiTutor\Core\{LessonContext, QuestionContext};
+use TDSoft\AiTutor\Core\LessonContext;
+use TDSoft\AiTutor\Core\QuestionContext;
 
 interface LmsContextAdapter
 {

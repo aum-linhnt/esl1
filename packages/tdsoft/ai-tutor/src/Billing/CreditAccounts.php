@@ -18,6 +18,7 @@ final class CreditAccounts
             'daily_limit' => $dailyLimit ?? config('ai-tutor.daily_credits', 10),
             'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
         ]);
+
         return (int) DB::table('tutor_ai_credit_accounts')->where([
             'owner_type' => 'learner', 'owner_id' => $actorId, 'scope' => 'system',
         ])->value('id');

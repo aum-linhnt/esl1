@@ -3,7 +3,8 @@
 namespace TDSoft\AiTutor\Billing;
 
 use Illuminate\Support\Facades\DB;
-use TDSoft\AiTutor\Core\{AiException, AiRequest};
+use TDSoft\AiTutor\Core\AiException;
+use TDSoft\AiTutor\Core\AiRequest;
 
 final class CreditLedger
 {
@@ -46,6 +47,7 @@ final class CreditLedger
             $this->append($account, $request, 'reserve', $units, $after);
             DB::table('tutor_ai_credit_accounts')->where('id', $account->id)->update(['balance' => $after, 'updated_at' => now()]);
             DB::table('tutor_ai_requests')->where('id', $record->id)->update(['status' => 'authorized', 'reserved_units' => $units, 'updated_at' => now()]);
+
             return new BillingAuthorization($account->id, $units);
         }, 3);
     }
@@ -101,6 +103,7 @@ final class CreditLedger
                 if ((int) $existing->account_id !== (int) $account->id || (int) $existing->units !== $units) {
                     throw new AiException('AI_REQUEST_DUPLICATE');
                 }
+
                 return;
             }
             DB::table('tutor_ai_credit_transactions')->insert([

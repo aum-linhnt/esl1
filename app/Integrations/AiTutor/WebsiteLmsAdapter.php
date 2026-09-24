@@ -2,9 +2,13 @@
 
 namespace App\Integrations\AiTutor;
 
-use App\Models\{Lesson, QuestionBank, User};
+use App\Models\Lesson;
+use App\Models\QuestionBank;
+use App\Models\User;
 use TDSoft\AiTutor\Contracts\LmsContextAdapter;
-use TDSoft\AiTutor\Core\{AiException, LessonContext, QuestionContext};
+use TDSoft\AiTutor\Core\AiException;
+use TDSoft\AiTutor\Core\LessonContext;
+use TDSoft\AiTutor\Core\QuestionContext;
 
 final class WebsiteLmsAdapter implements LmsContextAdapter
 {
@@ -25,6 +29,7 @@ final class WebsiteLmsAdapter implements LmsContextAdapter
         if ($enrollment && ! $enrollment->hasValidAccess()) {
             return false;
         }
+
         return $enrollment ? $lesson->isUnlockedFor($user) : ($lesson->is_free_trial || $lesson->hasTrialActivities());
     }
 
@@ -42,6 +47,7 @@ final class WebsiteLmsAdapter implements LmsContextAdapter
         if ($fullAccess || $lesson->is_free_trial) {
             $content .= "\n".(string) $lesson->summary;
         }
+
         return new LessonContext((string) $lesson->course_id, (string) $lesson->id, $content,
             level: (string) ($lesson->course->level ?? ''), answerPolicy: 'hints_only');
     }
@@ -59,6 +65,7 @@ final class WebsiteLmsAdapter implements LmsContextAdapter
         $activities = Lesson::findOrFail($lessonId)->activities()->where('is_visible', true)->where('type', 'quiz')->get();
         $belongs = $activities->contains(function ($activity) use ($questionId, $fullAccess) {
             $content = $activity->content;
+
             return ($fullAccess || $activity->is_free_trial) && is_array($content)
                 && ($content['source_mode'] ?? '') === 'bank_manual'
                 && in_array($questionId, array_map('strval', $content['question_ids'] ?? []), true);
@@ -74,6 +81,7 @@ final class WebsiteLmsAdapter implements LmsContextAdapter
                 $options[] = $text;
             }
         }
+
         return new QuestionContext((string) $question->id, $context, (string) $question->question_text, $options);
     }
 }

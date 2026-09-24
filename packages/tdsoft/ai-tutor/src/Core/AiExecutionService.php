@@ -3,9 +3,14 @@
 namespace TDSoft\AiTutor\Core;
 
 use Illuminate\Database\UniqueConstraintViolationException;
-use Illuminate\Support\Facades\{Crypt, DB};
-use TDSoft\AiTutor\Billing\{BillingManager, CreditCalculator, CreditLedger};
-use TDSoft\AiTutor\Contracts\{ActorResolver, Entitlements, LmsContextAdapter};
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
+use TDSoft\AiTutor\Billing\BillingManager;
+use TDSoft\AiTutor\Billing\CreditCalculator;
+use TDSoft\AiTutor\Billing\CreditLedger;
+use TDSoft\AiTutor\Contracts\ActorResolver;
+use TDSoft\AiTutor\Contracts\Entitlements;
+use TDSoft\AiTutor\Contracts\LmsContextAdapter;
 use Throwable;
 
 final class AiExecutionService
@@ -84,6 +89,7 @@ final class AiExecutionService
             if (! $existing) {
                 throw new AiException('AI_REQUEST_DUPLICATE');
             }
+
             return $this->replay($request, $existing);
         }
 
@@ -114,6 +120,7 @@ final class AiExecutionService
                     'completed_at' => now(), 'updated_at' => now(),
                 ]);
             }, 3);
+
             return $response;
         } catch (Throwable $error) {
             // Only known no-result failures can release safely. Unknown transport failures,

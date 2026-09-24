@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "15fa20b93d7d8e6fa242ca8b89b98fdd",
+    "content-hash": "e499366c7385faaaab72429b86c44bed",
     "packages": [
         {
             "name": "brick/math",
@@ -6079,13 +6079,14 @@
         },
         {
             "name": "tdsoft/ai-tutor",
-            "version": "dev-feat/package-ai-tutor",
+            "version": "0.1.x-dev",
             "dist": {
                 "type": "path",
                 "url": "packages/tdsoft/ai-tutor",
-                "reference": "22c9f4df29cb9f345e30492b0452fef5df22a448"
+                "reference": "11742f8c9120535fd7f71498a60c20dfc0c98437"
             },
             "require": {
+                "illuminate/console": "^13.17",
                 "illuminate/contracts": "^13.17",
                 "illuminate/database": "^13.17",
                 "illuminate/encryption": "^13.17",
