@@ -155,6 +155,23 @@ final class KnowledgeTutorTest extends FoundationTestCase
         $this->assertError('AI_KNOWLEDGE_FORBIDDEN', fn () => $this->document());
     }
 
+    public function test_version_history_preserves_content_and_withdraw_hides_sources(): void
+    {
+        $service = $this->app->make(KnowledgeService::class);
+        $document = $this->document();
+        $original = $service->getVersion($document->version_id)->content;
+        $new = $service->version($document->id, 'New version content', 'text');
+        $this->assertCount(2, $service->versions($document->id)['versions']);
+        $this->assertSame($original, $service->getVersion($document->version_id)->content);
+        $service->process($new->id);
+        $service->publish($new->id);
+        $service->withdraw($document->id);
+        $context = $this->lms->getLessonContext('learner-1', 'lesson-1');
+        $this->assertSame([], $this->app->make(VectorStore::class)->search([1, 0, 0], 'mock-embedding', $context, 5));
+        $this->assertNull($service->document($document->id)->published_version_id);
+        $this->assertCount(2, $service->versions($document->id)['versions']);
+    }
+
     public function test_text_limits_html_and_unsupported_binary_format(): void
     {
         $chunker = new TextChunker;

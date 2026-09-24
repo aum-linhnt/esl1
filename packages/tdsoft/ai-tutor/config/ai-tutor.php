@@ -18,7 +18,17 @@ return [
         'top_k' => 5,
     ],
     'tutor' => ['max_output_tokens' => 1200],
-    'ui' => ['asset_entries' => []],
+    'retention' => [
+        'enabled' => (bool) env('AI_CONVERSATION_RETENTION_ENABLED', false),
+        'conversation_days' => (int) env('AI_CONVERSATION_RETENTION_DAYS', 365),
+    ],
+    'ui' => [
+        'asset_entries' => [],
+        'launcher_position' => env('AI_TUTOR_LAUNCHER_POSITION', 'bottom-right'),
+        'lesson_chat_mode' => env('AI_TUTOR_LESSON_CHAT_MODE', 'drawer'),
+        'desktop_panel_width' => (int) env('AI_TUTOR_DESKTOP_PANEL_WIDTH', 420),
+        'allow_expand_to_page' => (bool) env('AI_TUTOR_ALLOW_EXPAND_TO_PAGE', true),
+    ],
     'features' => [
         'tutor_message' => 'ai_tutor_core',
         'tutor_image_question' => 'ai_tutor_core',

@@ -35,12 +35,12 @@ function theme() {
 }
 function chat(root) {
     const api = root.dataset.api;
-    const lesson = root.dataset.lesson;
+    let lesson = root.dataset.lesson;
     const form = root.querySelector('[data-chat-form]');
     const history = root.querySelector('[data-history]');
     const retry = root.querySelector('[data-retry]');
     const mode = root.querySelector('[data-mode]');
-    const storageKey = 'tai-chat:' + lesson;
+    let storageKey = 'tai-chat:' + root.dataset.actor + ':' + lesson;
     let conversation = null, pending = null, busy = false;
     try {
         const saved = JSON.parse(sessionStorage.getItem(storageKey) ?? '{}');
@@ -59,6 +59,8 @@ function chat(root) {
         retry.hidden = pending === null;
         mode.disabled = state || conversation !== null;
         root.querySelector('[data-reload]').disabled = state;
+        root.querySelector('[data-export]').disabled = state || conversation === null;
+        root.querySelector('[data-delete]').disabled = state || conversation === null;
     };
     const sources = (message, parent) => {
         for (const source of message.sources ?? []) {
@@ -76,7 +78,8 @@ function chat(root) {
         }
     };
     async function reload() {
-        if (!conversation) return;
+        if (!conversation || busy) return;
+        controls(true);
         try {
             const data = await json(api + '/conversations/' + conversation);
             history.replaceChildren();
@@ -92,8 +95,8 @@ function chat(root) {
                 }
             }
             save();
-            controls(false);
         } catch (error) { status(root, error.message); }
+        finally { controls(false); }
     }
     async function send() {
         if (busy) return;
@@ -157,13 +160,162 @@ function chat(root) {
     form.addEventListener('submit', event => { event.preventDefault(); if (!pending) send(); });
     retry.addEventListener('click', send);
     root.querySelector('[data-reload]').addEventListener('click', reload);
+    root.querySelector('[data-export]').addEventListener('click', () => {
+        if (!busy && conversation) window.open(api + '/conversations/' + conversation + '/export', '_blank', 'noopener');
+    });
+    root.querySelector('[data-delete]').addEventListener('click', async () => {
+        if (busy || !conversation || !confirm('Xóa vĩnh viễn nội dung hội thoại này? Lịch sử credit/usage vẫn được giữ.')) return;
+        controls(true);
+        try {
+            await json(api + '/conversations/' + conversation, 'DELETE');
+            conversation = pending = null;
+            form.elements.message.value = '';
+            history.replaceChildren();
+            save();
+            status(root, 'Đã xóa nội dung hội thoại. Không thể khôi phục từ ứng dụng.');
+        } catch (error) { status(root, error.message); }
+        finally { controls(false); }
+    });
     controls(false);
-    reload();
+    const ready = reload();
+    return {
+        async ask(text) {
+            await ready;
+            if (busy || pending) throw new Error('AI_CONVERSATION_BUSY');
+            if (typeof text !== 'string' || !text.trim() || text.length > 4000) throw new Error('AI_MESSAGE_INVALID');
+            form.elements.message.value = text;
+            save();
+            return send();
+        },
+        async setContext({ lessonId }) {
+            await ready;
+            if (busy) throw new Error('AI_CONVERSATION_BUSY');
+            if (typeof lessonId !== 'string' || !lessonId || lessonId.length > 191) throw new Error('AI_CONTEXT_INVALID');
+            controls(true);
+            try {
+                await json(api + '/context?lesson_id=' + encodeURIComponent(lessonId));
+                save();
+                lesson = lessonId;
+                root.dataset.lesson = lesson;
+                storageKey = 'tai-chat:' + root.dataset.actor + ':' + lesson;
+                conversation = pending = null;
+                form.elements.message.value = '';
+                mode.value = 'hints_first';
+                try {
+                    const saved = JSON.parse(sessionStorage.getItem(storageKey) ?? '{}');
+                    conversation = saved.conversation ?? null;
+                    pending = saved.pending ?? null;
+                    form.elements.message.value = saved.draft ?? pending?.message ?? '';
+                } catch {}
+                root.querySelector('[data-lesson-label]').textContent = lesson;
+                history.replaceChildren();
+                status(root, 'Đã chuyển ngữ cảnh bài học.');
+            } finally { controls(false); }
+            return reload();
+        },
+    };
+}
+function widget(root, client) {
+    const panel = root.querySelector('[data-widget-panel]');
+    const launcher = root.querySelector('[data-widget-open]');
+    const expand = root.querySelector('[data-widget-expand]');
+    const open = () => {
+        panel.hidden = false;
+        launcher.setAttribute('aria-expanded', 'true');
+        panel.querySelector('button')?.focus();
+    };
+    const close = () => {
+        panel.hidden = true;
+        launcher.setAttribute('aria-expanded', 'false');
+        launcher.focus();
+        // Keep DOM, fetch and reader alive while collapsed.
+    };
+    launcher.addEventListener('click', () => panel.hidden ? open() : close());
+    root.querySelector('[data-widget-close]').addEventListener('click', close);
+    root.addEventListener('keydown', event => {
+        if (event.key === 'Escape') { close(); event.stopPropagation(); }
+    });
+    expand?.addEventListener('click', () => {
+        const expanded = root.classList.toggle('tai-widget--expanded');
+        expand.setAttribute('aria-pressed', String(expanded));
+        expand.textContent = expanded ? 'Về khung bài học' : 'Mở rộng';
+    });
+    return {
+        open, close,
+        ask: text => { open(); return client.ask(text); },
+        setContext: context => client.setContext(context),
+    };
 }
 function knowledge(root) {
     const api = root.dataset.api;
     const form = root.querySelector('[data-document-form]');
     const version = root.querySelector('[data-version]');
+    let selected = null;
+    const versionForm = root.querySelector('[data-version-form]');
+    const listForm = root.querySelector('[data-list-form]');
+    const withdraw = root.querySelector('[data-withdraw]');
+    const actionButton = (parent, label, work) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = label;
+        button.addEventListener('click', async () => {
+            button.disabled = true;
+            try { await work(); } catch (error) { status(root, error.message); }
+            finally { button.disabled = false; }
+        });
+        parent.append(button);
+    };
+    async function loadVersions(id) {
+        const data = await json(api + '/knowledge/documents/' + id + '/versions');
+        selected = id;
+        root.querySelector('[data-selected]').textContent = data.document.title;
+        versionForm.querySelector('button').disabled = false;
+        withdraw.disabled = !data.document.published_version_id;
+        const container = root.querySelector('[data-versions]');
+        container.replaceChildren();
+        for (const item of data.versions) {
+            actionButton(container, item.created_at + ' · ' + item.status + ' · ' + item.id, async () => {
+                version.value = item.id;
+                const preview = await json(api + '/knowledge/document-versions/' + item.id + '/content');
+                root.querySelector('[data-preview]').textContent = preview.content;
+                versionForm.elements.content.value = preview.content;
+                versionForm.elements.format.value = preview.format;
+                status(root, 'Đã chọn version. Nội dung chỉ được tạo thành bản mới, không ghi đè bản cũ.');
+            });
+        }
+    }
+    listForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        try {
+            const docs = await json(api + '/knowledge/documents?lesson_id=' + encodeURIComponent(listForm.elements.lesson_id.value));
+            const container = root.querySelector('[data-documents]');
+            container.replaceChildren();
+            for (const doc of docs) actionButton(container, doc.title + ' · ' + doc.visibility, () => loadVersions(doc.id));
+            if (!docs.length) paragraph(container, 'Chưa có tài liệu.');
+        } catch (error) { status(root, error.message); }
+    });
+    versionForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (!selected) return;
+        const button = versionForm.querySelector('button');
+        button.disabled = true;
+        try {
+            const created = await json(api + '/knowledge/documents/' + selected + '/versions', 'POST', Object.fromEntries(new FormData(versionForm)));
+            version.value = created.id;
+            await loadVersions(selected);
+            status(root, 'Đã tạo version mới. Cần xử lý vector trước khi publish.');
+        } catch (error) { status(root, error.message); }
+        finally { button.disabled = false; }
+    });
+    withdraw.addEventListener('click', async () => {
+        if (!selected || !confirm('Thu hồi tài liệu khỏi truy xuất của học viên?')) return;
+        withdraw.disabled = true;
+        try {
+            await json(api + '/knowledge/documents/' + selected + '/withdraw', 'POST');
+            await loadVersions(selected);
+            status(root, 'Đã thu hồi publish; lịch sử version vẫn được giữ.');
+        } catch (error) { status(root, error.message); withdraw.disabled = false; }
+    });
     form.addEventListener('submit', async event => {
         event.preventDefault();
         const button = form.querySelector('button');
@@ -185,6 +337,7 @@ function knowledge(root) {
             try {
                 const result = await json(api + '/knowledge/document-versions/' + encodeURIComponent(version.value.trim()) + action, method);
                 status(root, JSON.stringify(result));
+                if (selected) await loadVersions(selected);
             } catch (error) { status(root, error.message); }
             finally { button.disabled = false; }
         });
@@ -192,7 +345,11 @@ function knowledge(root) {
 }
 function boot() {
     theme();
-    document.querySelectorAll('[data-tai-chat]').forEach(chat);
+    document.querySelectorAll('[data-tai-chat]').forEach(root => {
+        const client = chat(root);
+        const shell = root.closest('[data-tai-widget]');
+        if (shell) window.AITutor = widget(shell, client);
+    });
     document.querySelectorAll('[data-tai-knowledge]').forEach(knowledge);
 }
 if (typeof document !== 'undefined') {

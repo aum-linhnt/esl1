@@ -37,12 +37,17 @@ final class AiTutorServiceProvider extends ServiceProvider
         $this->app['events']->listen(MigrationsStarted::class, [Core\MigrationPreflight::class, 'handle']);
         if ($this->app->runningInConsole()) {
             $this->commands([Core\SchemaCheckCommand::class, Licensing\LicenseCommand::class]);
+            $this->commands([Conversations\PurgeConversationsCommand::class]);
         }
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'ai-tutor');
+        $this->loadViewComponentsAs('ai-tutor', [Widget\Widget::class]);
+        $this->app->make('blade.compiler')->component(Widget\Widget::class, 'ai-tutor::widget');
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         $this->loadRoutesFrom(__DIR__.'/../routes/tutor.php');
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
+            $schedule->command('ai-tutor:purge-conversations --execute')->daily()->withoutOverlapping()
+                ->when(fn () => (bool) config('ai-tutor.retention.enabled', false));
             $schedule->job(new RefreshLicenseJob)->everyMinute()->name('ai-tutor-license-refresh')
                 ->withoutOverlapping()->when(function () {
                     if (! config('ai-tutor.license.server_url')) {

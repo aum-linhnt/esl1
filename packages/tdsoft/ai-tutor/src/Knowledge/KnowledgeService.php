@@ -136,6 +136,29 @@ final class KnowledgeService
         return $version;
     }
 
+    public function versions(string $documentId): array
+    {
+        $document = $this->document($documentId);
+
+        return ['document' => $document, 'versions' => DB::table('tutor_ai_knowledge_document_versions')
+            ->where('document_id', $documentId)->orderByDesc('created_at')->limit(100)
+            ->get(['id', 'status', 'format', 'checksum', 'created_by', 'created_at', 'published_at'])->all()];
+    }
+
+    public function withdraw(string $documentId): void
+    {
+        $this->document($documentId);
+        DB::transaction(function () use ($documentId) {
+            $document = DB::table('tutor_ai_knowledge_documents')->where('id', $documentId)->lockForUpdate()->first();
+            if ($document->published_version_id) {
+                DB::table('tutor_ai_knowledge_document_versions')->where('id', $document->published_version_id)
+                    ->update(['status' => 'ready', 'updated_at' => now()]);
+                DB::table('tutor_ai_knowledge_documents')->where('id', $documentId)
+                    ->update(['published_version_id' => null, 'updated_at' => now()]);
+            }
+        });
+    }
+
     public function publish(string $id): void
     {
         $version = $this->getVersion($id);

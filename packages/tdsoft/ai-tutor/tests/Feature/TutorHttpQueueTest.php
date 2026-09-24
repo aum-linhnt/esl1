@@ -26,7 +26,7 @@ final class TutorHttpQueueTest extends FoundationTestCase
         $router = new Router($this->app['events'], $this->app);
         Route::swap($router);
         require __DIR__.'/../../routes/tutor.php';
-        $this->assertCount(15, $router->getRoutes());
+        $this->assertCount(21, $router->getRoutes());
         foreach ($router->getRoutes() as $route) {
             $this->assertFalse(str_starts_with($route->uri(), 'api/'));
             $this->assertContains('web', $route->gatherMiddleware());

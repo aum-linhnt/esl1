@@ -43,6 +43,25 @@ final class KnowledgeController
         return new JsonResponse(['id' => $version->id, 'status' => $version->status], 201);
     }
 
+    public function versions(string $id): JsonResponse
+    {
+        return new JsonResponse($this->knowledge->versions($id));
+    }
+
+    public function preview(string $id): JsonResponse
+    {
+        $version = $this->knowledge->getVersion($id);
+
+        return new JsonResponse(['id' => $version->id, 'content' => $version->content, 'format' => $version->format]);
+    }
+
+    public function withdraw(string $id): JsonResponse
+    {
+        $this->knowledge->withdraw($id);
+
+        return new JsonResponse(['id' => $id, 'status' => 'unpublished']);
+    }
+
     public function process(string $id): JsonResponse
     {
         $this->knowledge->getVersion($id);

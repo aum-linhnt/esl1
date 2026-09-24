@@ -11,6 +11,23 @@
     <p>Hiện hỗ trợ nội dung Text, Markdown và HTML. Không nhập đáp án bài thi vào tài liệu cho học viên.</p>
     <p role="status" data-status>Sẵn sàng.</p>
     <section>
+        <h2>Tài liệu theo bài học</h2>
+        <form data-list-form>
+            <label>ID bài học <input name="lesson_id" maxlength="191" required></label>
+            <button type="submit">Tải danh sách</button>
+        </form>
+        <div data-documents></div>
+        <h3 data-selected>Chưa chọn tài liệu</h3>
+        <div data-versions></div>
+        <button type="button" data-withdraw disabled>Thu hồi publish</button>
+        <form data-version-form>
+            <label>Định dạng bản mới <select name="format"><option value="text">Text</option><option value="markdown">Markdown</option><option value="html">HTML</option></select></label>
+            <label>Nội dung bản mới <textarea name="content" rows="6" maxlength="200000" required></textarea></label>
+            <button type="submit" disabled>Tạo version mới cho tài liệu đã chọn</button>
+        </form>
+        <pre data-preview class="tai-preview"></pre>
+    </section>
+    <section>
         <h2>Tài liệu mới</h2>
         <form data-document-form>
             <label>Tiêu đề <input name="title" maxlength="191" required></label>

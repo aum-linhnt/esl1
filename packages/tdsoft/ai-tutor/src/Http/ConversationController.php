@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use TDSoft\AiTutor\Conversations\ConversationRetention;
 use TDSoft\AiTutor\Conversations\ConversationService;
 use TDSoft\AiTutor\Core\AiException;
 use TDSoft\AiTutor\Core\StreamOutput;
@@ -50,6 +51,30 @@ final class ConversationController
             ->orderByDesc('created_at')->limit(100)->pluck('id')->reverse()->map(fn ($id) => $this->tutor->message($id))->values();
 
         return new JsonResponse(['conversation' => $conversation, 'messages' => $messages]);
+    }
+
+    public function destroy(string $id, ConversationRetention $retention): JsonResponse
+    {
+        $this->tutor->conversation($id);
+        $retention->erase($id);
+
+        return new JsonResponse(['deleted' => true]);
+    }
+
+    public function export(string $id): StreamedResponse
+    {
+        $conversation = $this->tutor->conversation($id);
+
+        return new StreamedResponse(function () use ($id, $conversation) {
+            echo '{"conversation":'.json_encode($conversation, JSON_THROW_ON_ERROR).',"messages":[';
+            $first = true;
+            foreach (DB::table('tutor_ai_conversation_messages')->where('conversation_id', $id)->orderBy('created_at')->cursor() as $message) {
+                echo ($first ? '' : ',').json_encode($this->tutor->message($message->id), JSON_THROW_ON_ERROR);
+                $first = false;
+            }
+            echo ']}';
+        }, 200, ['Content-Type' => 'application/json', 'Cache-Control' => 'private, no-store',
+            'Content-Disposition' => 'attachment; filename="ai-tutor-conversation.json"']);
     }
 
     public function send(Request $request, string $id): JsonResponse|StreamedResponse

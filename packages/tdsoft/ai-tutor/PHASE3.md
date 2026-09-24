@@ -153,18 +153,90 @@ Creation/list endpoints currently cap lists at 100; chat context uses the last 8
 
 ## Remaining work / release limitations
 
+### Follow-up implemented: widget, versions, conversation lifecycle
+
+No new migration is required for this follow-up. The already applied Phase 3 migration
+is unchanged. Rebuild Vite assets and Blade views; restart scheduler/long-lived workers
+through the normal deployment process. Existing client-side view overrides must include
+the new shared chat partial and actorId value.
+
+The website now embeds <x-ai-tutor::widget :course-id="..." :lesson-id="..." /> in
+resources/views/lessons/show.blade.php. The component resolves permissions through the
+package contracts and stays hidden when disabled/unlicensed/inaccessible.
+Both namespaced and legacy x-ai-tutor-widget aliases are registered.
+
+- Drawer/floating panel, left/right launcher, mobile fullscreen.
+- Expand/collapse reuses the same DOM and stream reader: no navigation, no duplicate AI call.
+  Expanded view is fullscreen in the current page, not a navigation to another browser document.
+  The standalone /ai-tutor page remains available; completed conversation/draft state is scoped
+  by actor and lesson in sessionStorage. Navigating away while streaming is still a disconnect;
+  use in-place Expand to preserve the live stream.
+- window.AITutor.open(), close(), ask(text), setContext({lessonId}) are exposed for the widget.
+  setContext validates lesson access on the server and refuses changes while busy.
+- Version browser lists lesson documents and versions, previews content as text, creates new
+  immutable versions, and withdraws the published version without deleting its history.
+- Conversation export and confirmed deletion are owner-checked. Deletion removes messages,
+  sources, feedback and encrypted response replay content, but preserves credit/usage history.
+  Busy/unsettled requests block deletion. No real conversation was deleted during development.
+
+Optional configuration:
+
+~~~dotenv
+AI_TUTOR_LAUNCHER_POSITION=bottom-right
+AI_TUTOR_LESSON_CHAT_MODE=drawer
+AI_TUTOR_DESKTOP_PANEL_WIDTH=420
+AI_TUTOR_ALLOW_EXPAND_TO_PAGE=true
+AI_CONVERSATION_RETENTION_ENABLED=false
+AI_CONVERSATION_RETENTION_DAYS=365
+~~~
+
+Panel width is constrained to 320–640 px; invalid configuration is rejected before rendering.
+Retention is OFF by default. Review the period and backups before enabling it. Retention uses
+the latest conversation/message update, skips busy requests and keeps accounting history.
+Backups and existing browser downloads are outside this local deletion workflow.
+
+Read-only retention preview:
+
+~~~bash
+docker compose exec -T app php artisan ai-tutor:purge-conversations
+~~~
+
+Only an administrator's explicit --execute invocation, or opt-in enabled scheduler, deletes data.
+There is no application-level undo. Export first if necessary. The scheduler runs daily only
+when AI_CONVERSATION_RETENTION_ENABLED=true.
+
+Additional API routes under the same auth/CSRF/license-protected prefix:
+
+~~~text
+GET    /context?lesson_id=ID
+GET    /knowledge/documents/{id}/versions
+GET    /knowledge/document-versions/{id}/content
+POST   /knowledge/documents/{id}/withdraw
+GET    /conversations/{id}/export
+DELETE /conversations/{id}
+~~~
+
+Frontend unit checks (no downloaded browser or real provider needed):
+
+~~~bash
+node --test packages/tdsoft/ai-tutor/tests/js/widget.test.mjs
+~~~
+
+### Still outstanding
+
 This is a Phase 3 core slice, not a declaration that the entire V2 specification is complete.
 
 - Binary PDF/DOCX/PPTX/image upload, antivirus/quarantine and OCR are NOT enabled. Only text
   ingestion is accepted; unsupported formats fail closed. Do not enable uploads until safe
   extraction/scanning adapters and storage/retention policy are implemented.
+  The owner explicitly chose to keep upload disabled for later integration. The current
+  application container has no ClamAV, pdftotext or Tesseract; no containers/tools were installed.
 - Course-content bulk sync and attempt-bound random/inline quiz contexts are not implemented.
   The existing adapter continues denying question contexts it cannot safely bind.
-- Lesson drawer/launcher, expand-to-page state transfer and the public window.AITutor widget API
-  are not implemented in this slice; current UI is a full page. Speaking/Writing remain Phase 4.
-- Knowledge version-management UI is minimal; APIs support adding versions, not a complete browser.
-- No teacher-policy editor/profile UI, automatic retention/export/delete workflow or admin
-  reconciliation UI yet. Define operational retention before production learner-data use.
+- Speaking/Writing remain Phase 4.
+- Document/version lists currently cap at 100 entries; pagination and large-corpus administration
+  remain future improvements.
+- No teacher-policy editor/profile UI or admin reconciliation UI yet.
 - No production OpenAI call, signed-license activation, browser E2E, MySQL concurrency test,
   large-corpus benchmark or release tag has been performed. SQLite tests do not prove MySQL locking.
 - Exact local cosine search is intended for modest per-lesson corpora. Replace VectorStore and

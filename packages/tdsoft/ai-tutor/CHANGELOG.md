@@ -2,6 +2,12 @@
 
 ## Phase 3 — unreleased development candidate
 
+- Follow-up: permission-gated lesson widget, responsive drawer and in-place fullscreen expansion.
+- Public widget API, actor/lesson-scoped draft recovery and shared standalone chat partial.
+- Version browser/preview/new version and withdrawal, without changing released migrations.
+- Owner-only conversation export/delete; opt-in retention with default dry run and busy protection.
+- Upload/PDF/Office/OCR explicitly left disabled at the owner's request.
+
 - Local Knowledge documents/versions/chunks and replaceable VectorStore.
 - Queue ingestion of text/Markdown/HTML, explicit publish and permission-filtered retrieval.
 - Conversation ownership, source links, teaching policies and idempotent paid requests.
