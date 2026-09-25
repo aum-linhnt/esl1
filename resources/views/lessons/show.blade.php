@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('content')
+<x-ai-tutor::widget :course-id="(string) $course->id" :lesson-id="(string) $lesson->id" />
 <div class="w-full space-y-6">
     <a href="{{ route('courses.show', $course->id) }}" class="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 rounded-full transition-colors">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>

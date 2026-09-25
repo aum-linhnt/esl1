@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="bootstrap.php" colors="true" cacheDirectory="/tmp/tdsoft-ai-tutor-phpunit">
+    <testsuites>
+        <testsuite name="AI Tutor Foundation"><directory>Unit</directory><directory>Feature</directory></testsuite>
+        <testsuite name="AI Tutor Website Adapter"><directory>../../../../tests/AiTutor</directory></testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="DB_CONNECTION" value="sqlite" force="true"/>
+        <env name="DB_DATABASE" value=":memory:" force="true"/>
+    </php>
+</phpunit>
