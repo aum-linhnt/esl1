@@ -12,11 +12,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use TDSoft\AiTutor\Billing\CreditAdministration;
 use TDSoft\AiTutor\Billing\CreditAdminSchema;
 use TDSoft\AiTutor\Contracts\CreditAdministrator;
 use TDSoft\AiTutor\Core\AiException;
 use TDSoft\AiTutor\Core\AiExecutionService;
+use TDSoft\AiTutor\Http\RequireCreditAdministrator;
 use TDSoft\AiTutor\Tests\FoundationTestCase;
 
 final class CreditAdminTest extends FoundationTestCase
@@ -140,6 +142,7 @@ final class CreditAdminTest extends FoundationTestCase
             $this->assertStringStartsWith('admin/ai/credits', $route->uri());
             $this->assertContains('web', $route->gatherMiddleware());
             $this->assertContains('auth', $route->gatherMiddleware());
+            $this->assertContains(RequireCreditAdministrator::class, $route->gatherMiddleware());
         }
         $this->app->instance('env', 'production');
         $middleware = new class($this->app, $this->app['encrypter']) extends PreventRequestForgery
@@ -154,6 +157,19 @@ final class CreditAdminTest extends FoundationTestCase
         $request->setLaravelSession($session);
         $this->expectException(TokenMismatchException::class);
         $middleware->handle($request, fn () => $this->fail('CSRF bypassed'));
+    }
+
+    public function test_credit_admin_middleware_returns_403_for_non_admin(): void
+    {
+        $this->admin->allowed = false;
+        try {
+            (new RequireCreditAdministrator($this->admin))->handle(
+                Request::create('/admin/ai/credits'), fn () => $this->fail('Student reached credit admin')
+            );
+            $this->fail('Expected 403');
+        } catch (HttpException $error) {
+            $this->assertSame(403, $error->getStatusCode());
+        }
     }
 
     public function test_migration_preserves_accounts_and_reports_collisions(): void

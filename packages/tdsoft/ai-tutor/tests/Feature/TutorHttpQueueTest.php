@@ -10,9 +10,11 @@ use Illuminate\Session\Store;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use TDSoft\AiTutor\Contracts\BackgroundActor;
 use TDSoft\AiTutor\Contracts\KnowledgeAdministrator;
 use TDSoft\AiTutor\Core\AiException;
+use TDSoft\AiTutor\Http\RequireKnowledgeAdministrator;
 use TDSoft\AiTutor\Knowledge\KnowledgeService;
 use TDSoft\AiTutor\Knowledge\PhaseThreeSchema;
 use TDSoft\AiTutor\Knowledge\ProcessKnowledgeVersion;
@@ -32,6 +34,9 @@ final class TutorHttpQueueTest extends FoundationTestCase
             $this->assertContains('web', $route->gatherMiddleware());
             $this->assertContains('auth', $route->gatherMiddleware());
             $this->assertNotEmpty(array_filter($route->gatherMiddleware(), fn ($m) => str_starts_with($m, RequireModule::class.':')));
+            if (str_contains($route->uri(), 'knowledge')) {
+                $this->assertContains(RequireKnowledgeAdministrator::class, $route->gatherMiddleware());
+            }
             if (str_ends_with($route->uri(), '/stream')) {
                 $this->assertSame(['GET', 'HEAD'], $route->methods());
             }
@@ -49,6 +54,25 @@ final class TutorHttpQueueTest extends FoundationTestCase
         $request->setLaravelSession($session);
         $this->expectException(TokenMismatchException::class);
         $middleware->handle($request, fn () => $this->fail('Missing CSRF allowed'));
+    }
+
+    public function test_knowledge_admin_middleware_returns_403_for_non_admin(): void
+    {
+        $guard = new class implements KnowledgeAdministrator
+        {
+            public function allows(): bool
+            {
+                return false;
+            }
+        };
+        try {
+            (new RequireKnowledgeAdministrator($guard))->handle(
+                Request::create('/admin/ai/knowledge'), fn () => $this->fail('Student reached Knowledge admin')
+            );
+            $this->fail('Expected 403');
+        } catch (HttpException $error) {
+            $this->assertSame(403, $error->getStatusCode());
+        }
     }
 
     public function test_queue_rechecks_actor_and_replay_does_not_reembed_or_serialize_secrets(): void
@@ -97,7 +121,7 @@ final class TutorHttpQueueTest extends FoundationTestCase
         $this->assertSame(1, $this->provider->calls);
     }
 
-    public function test_embedding_failure_releases_credit_and_retry_keeps_the_same_request(): void
+    public function test_embedding_safe_failure_releases_credit_and_can_retry_after_configuration_is_fixed(): void
     {
         (require __DIR__.'/../../database/migrations/'.PhaseThreeSchema::MIGRATION.'.php')->up();
         $this->app->instance(KnowledgeAdministrator::class, new class implements KnowledgeAdministrator
@@ -115,8 +139,15 @@ final class TutorHttpQueueTest extends FoundationTestCase
         $this->provider->failure = new AiException('AI_PROVIDER_AUTH_FAILED');
         $this->assertError('AI_PROVIDER_AUTH_FAILED', fn () => $service->process($document->version_id));
         $this->assertError('AI_PROVIDER_AUTH_FAILED', fn () => $service->process($document->version_id));
-        $this->assertSame(1, $this->provider->calls);
+        $this->assertSame(2, $this->provider->calls);
         $this->assertSame(100, DB::table('tutor_ai_credit_accounts')->value('balance'));
-        $this->assertSame(1, DB::table('tutor_ai_credit_transactions')->where('type', 'release')->count());
+        $this->assertSame(2, DB::table('tutor_ai_credit_transactions')->where('type', 'release')->count());
+        // Compatibility: an older worker overwrote the specific safe error on final failure.
+        DB::table('tutor_ai_knowledge_processing_jobs')->update(['error_code' => 'AI_KNOWLEDGE_PROCESSING_FAILED']);
+        $this->provider->failure = null;
+        $service->process($document->version_id);
+        $this->assertSame(3, $this->provider->calls);
+        $this->assertSame('ready', DB::table('tutor_ai_knowledge_document_versions')->value('status'));
+        $this->assertSame(99, DB::table('tutor_ai_credit_accounts')->value('balance'));
     }
 }

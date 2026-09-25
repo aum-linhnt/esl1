@@ -1,5 +1,7 @@
 <?php
 
+use TDSoft\AiTutor\Providers\OpenAiProvider;
+
 return [
     // Enable only after an entitlement implementation and real provider are bound.
     'enabled' => (bool) env('AI_TUTOR_ENABLED', false),
@@ -11,13 +13,16 @@ return [
         'openai' => env('OPENAI_API_KEY'),
         'gemini' => env('GEMINI_API_KEY'),
     ],
-    'providers' => ['openai' => \TDSoft\AiTutor\Providers\OpenAiProvider::class],
+    'providers' => ['openai' => OpenAiProvider::class],
     'embedding_model' => env('AI_DEFAULT_EMBEDDING_MODEL', ''),
     'knowledge' => [
         'min_similarity' => 0.25,
         'top_k' => 5,
     ],
-    'tutor' => ['max_output_tokens' => 1200],
+    'tutor' => [
+        'max_output_tokens' => (int) env('AI_TUTOR_MAX_OUTPUT_TOKENS', 4000),
+        'reasoning_effort' => env('AI_TUTOR_REASONING_EFFORT', 'low'),
+    ],
     'retention' => [
         'enabled' => (bool) env('AI_CONVERSATION_RETENTION_ENABLED', false),
         'conversation_days' => (int) env('AI_CONVERSATION_RETENTION_DAYS', 365),

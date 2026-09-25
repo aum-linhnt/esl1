@@ -186,7 +186,15 @@ function chat(root) {
         mode.disabled = state || conversation !== null;
         root.querySelector('[data-reload]').disabled = state;
         root.querySelector('[data-export]').disabled = state || conversation === null;
+        root.querySelector('[data-new-conversation]').disabled = state || conversation === null;
         root.querySelector('[data-delete]').disabled = state || conversation === null;
+    };
+    const resetConversation = () => {
+        conversation = pending = null;
+        form.elements.message.value = '';
+        history.replaceChildren();
+        mode.disabled = false;
+        save();
     };
     const sources = (message, parent) => {
         for (const source of message.sources ?? []) {
@@ -289,17 +297,24 @@ function chat(root) {
     root.querySelector('[data-export]').addEventListener('click', () => {
         if (!busy && conversation) window.open(api + '/conversations/' + conversation + '/export', '_blank', 'noopener');
     });
+    root.querySelector('[data-new-conversation]').addEventListener('click', () => {
+        if (busy || !conversation || !confirm('Bắt đầu hội thoại mới? Hội thoại hiện tại vẫn được giữ để tải lại hoặc đối soát.')) return;
+        resetConversation();
+        controls(false);
+        status(root, 'Đã bắt đầu hội thoại mới. Hội thoại cũ vẫn được lưu an toàn.');
+    });
     root.querySelector('[data-delete]').addEventListener('click', async () => {
         if (busy || !conversation || !confirm('Xóa vĩnh viễn nội dung hội thoại này? Lịch sử credit/usage vẫn được giữ.')) return;
         controls(true);
         try {
             await json(api + '/conversations/' + conversation, 'DELETE');
-            conversation = pending = null;
-            form.elements.message.value = '';
-            history.replaceChildren();
-            save();
+            resetConversation();
             status(root, 'Đã xóa nội dung hội thoại. Không thể khôi phục từ ứng dụng.');
-        } catch (error) { status(root, error.message); }
+        } catch (error) {
+            status(root, error.message === 'AI_CONVERSATION_BUSY'
+                ? 'Chưa thể xóa vì yêu cầu AI đang cần đối soát. Hãy dùng “Hội thoại mới”; dữ liệu và credit của yêu cầu cũ vẫn được giữ an toàn.'
+                : error.message);
+        }
         finally { controls(false); }
     });
     controls(false);

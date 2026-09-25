@@ -21,6 +21,7 @@
         <button type="submit">Gửi câu hỏi</button>
         <button type="button" data-retry hidden>Thử lại cùng yêu cầu</button>
         <button type="button" data-reload>Tải lại hội thoại</button>
+        <button type="button" data-new-conversation>Hội thoại mới</button>
         <button type="button" data-export>Xuất hội thoại</button>
         <button type="button" data-delete>Xóa hội thoại</button>
     </form>

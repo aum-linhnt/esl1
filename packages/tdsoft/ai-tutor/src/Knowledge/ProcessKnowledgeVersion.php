@@ -51,6 +51,6 @@ final class ProcessKnowledgeVersion implements ShouldQueue
     public function failed(?Throwable $error): void
     {
         DB::table('tutor_ai_knowledge_processing_jobs')->where('version_id', $this->versionId)->where('status', '!=', 'completed')
-            ->update(['status' => 'failed', 'error_code' => 'AI_KNOWLEDGE_PROCESSING_FAILED', 'updated_at' => now()]);
+            ->update(['status' => 'failed', 'error_code' => DB::raw("COALESCE(error_code, 'AI_KNOWLEDGE_PROCESSING_FAILED')"), 'updated_at' => now()]);
     }
 }

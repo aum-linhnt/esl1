@@ -14,7 +14,13 @@ final class OpenAiProviderTest extends FoundationTestCase
 {
     private function driver(Factory $http): OpenAiProvider
     {
-        config(['ai-tutor.credentials.openai' => 'test-key-not-real', 'ai-tutor.model' => 'test-chat', 'ai-tutor.embedding_model' => 'test-embed']);
+        config([
+            'ai-tutor.credentials.openai' => 'test-key-not-real',
+            'ai-tutor.model' => 'test-chat',
+            'ai-tutor.embedding_model' => 'test-embed',
+            'ai-tutor.tutor.max_output_tokens' => 4000,
+            'ai-tutor.tutor.reasoning_effort' => 'low',
+        ]);
         $http->preventStrayRequests();
 
         return new OpenAiProvider($http, new CredentialResolver, $this->app->make(StreamOutput::class));
@@ -60,6 +66,19 @@ final class OpenAiProviderTest extends FoundationTestCase
         $this->assertSame(['Hello'], $deltas);
         $this->assertSame(12, $reply->usage['input_tokens']);
         $this->assertFalse($this->app->make(StreamOutput::class)->active());
+    }
+
+    public function test_gpt_five_chat_uses_configured_reasoning_effort_and_output_budget(): void
+    {
+        $http = new Factory;
+        $driver = $this->driver($http);
+        config(['ai-tutor.model' => 'gpt-5-mini']);
+        $http->fake(['*' => Factory::response($this->chat())]);
+
+        $driver->execute($this->request(payload: ['instructions' => 'Teach', 'input' => 'Hello']));
+
+        $http->assertSent(fn ($request) => $request['max_output_tokens'] === 4000
+            && $request['reasoning'] === ['effort' => 'low']);
     }
 
     public function test_auth_failure_is_sanitized_and_unknown_response_requires_reconciliation(): void

@@ -83,6 +83,25 @@ final class KnowledgeService
             return;
         }
         $document = $this->document($version->document_id);
+        $previousJob = DB::table('tutor_ai_knowledge_processing_jobs')->where('version_id', $versionId)->first();
+        $retryable = ['AI_PROVIDER_NOT_CONFIGURED', 'AI_PROVIDER_AUTH_FAILED', 'AI_PROVIDER_RATE_LIMITED',
+            'AI_PROVIDER_UNAVAILABLE', 'AI_REQUEST_DUPLICATE'];
+        $previousError = $previousJob?->error_code;
+        if ($previousJob?->status === 'failed' && in_array($previousError, ['AI_KNOWLEDGE_PROCESSING_FAILED', 'AI_REQUEST_DUPLICATE'], true)) {
+            // Older workers could overwrite the safe provider error in the processing row.
+            // Recover only from the immutable AI request for the first unfinished chunk.
+            $chunkId = DB::table('tutor_ai_knowledge_chunks')->where('version_id', $versionId)
+                ->where('indexed', false)->orderBy('position')->value('id');
+            $requestError = $chunkId ? DB::table('tutor_ai_requests')->where('feature', 'knowledge_embedding')
+                ->where('idempotency_key', 'like', 'knowledge:'.$chunkId.'%')->orderByDesc('id')->value('error_code') : null;
+            if (in_array($requestError, $retryable, true)) {
+                $previousError = $requestError;
+            }
+        }
+        if ($previousJob?->status === 'failed' && $previousError
+            && ! in_array($previousError, $retryable, true)) {
+            throw new AiException($previousError);
+        }
         $claimed = DB::table('tutor_ai_knowledge_processing_jobs')->where('version_id', $versionId)
             ->whereIn('status', ['pending', 'failed'])->update([
                 'status' => 'processing', 'attempts' => DB::raw('attempts + 1'), 'error_code' => null, 'updated_at' => now(),
@@ -90,13 +109,16 @@ final class KnowledgeService
         if (! $claimed) {
             throw new AiException('AI_DOCUMENT_BUSY');
         }
+        $attempt = (int) DB::table('tutor_ai_knowledge_processing_jobs')->where('version_id', $versionId)->value('attempts');
         try {
             foreach (DB::table('tutor_ai_knowledge_chunks')->where('version_id', $versionId)->where('indexed', false)
                 ->orderBy('position')->limit(max(1, min(100, $batchSize)))->get() as $chunk) {
+                $requestId = $attempt === 1 ? $chunk->id : (string) Str::uuid();
+                $idempotencyKey = 'knowledge:'.$chunk->id.($attempt === 1 ? '' : ':attempt-'.$attempt);
                 $response = $this->ai->execute(AiRequest::forFeature(
                     'knowledge_embedding', $this->access->actors->resolve(),
                     ['input' => $chunk->content, 'embedding_model' => config('ai-tutor.embedding_model')],
-                    $chunk->id, 'knowledge:'.$chunk->id, $document->course_id, $document->lesson_id,
+                    $requestId, $idempotencyKey, $document->course_id, $document->lesson_id,
                 ));
                 $this->vectors->put($chunk->id, $response->data['embedding'] ?? [], $response->model);
                 DB::table('tutor_ai_knowledge_chunks')->where('id', $chunk->id)->update([

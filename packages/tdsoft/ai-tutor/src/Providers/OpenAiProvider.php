@@ -36,6 +36,10 @@ final class OpenAiProvider implements ChatProviderInterface, EmbeddingProviderIn
                 'instructions' => $request->payload['instructions'],
                 'input' => $request->payload['input'],
             ];
+        $effort = config('ai-tutor.tutor.reasoning_effort');
+        if (! $embedding && str_starts_with($model, 'gpt-5') && is_string($effort) && $effort !== '') {
+            $body['reasoning'] = ['effort' => $effort];
+        }
         $key = $this->credentials->resolve('openai');
         try {
             // Fixed origin, no redirects, no automatic retry: uncertain failures need reconciliation.
