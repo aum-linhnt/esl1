@@ -6,12 +6,13 @@
 @endpush
 @section(config('ai-tutor.license.admin_section', 'content'))
 <div class="tai-license tai-credits" data-ai-tutor-root data-ai-tutor-theme="{{ config('ai-tutor.license.admin_theme') ?? 'system' }}">
-    <header class="tai-credit-header"><div><span class="tai-credit-eyebrow">GIA SƯ AI / QUẢN TRỊ</span><h1>Rule & Credit</h1><p>Thiết lập mức sử dụng AI và cấp credit cho người dùng.</p></div><a href="#credit-recipient">Cấp credit ↗</a></header>
+    <header class="tai-credit-header"><div><span class="tai-credit-eyebrow">GIA SƯ AI / QUẢN TRỊ</span><h1>Rule & Credit</h1><p>Thiết lập mức sử dụng AI và cấp credit cho người dùng.</p></div><a href="{{ route('ai-tutor.reconciliation.index') }}">Trang đối soát ↗</a></header>
     <p>Credit là quota nội bộ, không phải tiền OpenAI. Cấp credit không mua thêm số dư API và không mở quyền license.</p>
     @if(session('credit_notice'))<p role="status">{{ session('credit_notice') }}</p>@endif
     @if(session('credit_error'))<p role="alert">{{ session('credit_error') }}</p>@endif
     @if($errors->any())<p role="alert">{{ $errors->first() }}</p>@endif
     @if(!$ready)<p role="alert">Cần chạy migration audit mới trước khi thay đổi rule hoặc cấp credit.</p>@endif
+
     <section>
         <h2><span class="tai-credit-step">01</span> Quy tắc tính credit</h2>
         <p>knowledge_embedding: tạo vector tài liệu và câu hỏi tìm nguồn. tutor_message: tạo câu trả lời chat.</p>

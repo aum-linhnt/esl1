@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use TDSoft\AiTutor\Contracts\CreditAdministrator;
 use TDSoft\AiTutor\Core\AiException;
+use TDSoft\AiTutor\Core\AiRequest;
+use TDSoft\AiTutor\Core\LearnerIdentity;
 
 final class CreditAdministration
 {
@@ -75,6 +77,56 @@ final class CreditAdministration
                 'balance_before' => $account->balance,
                 'balance_after' => DB::table('tutor_ai_credit_accounts')->where('id', $accountId)->value('balance')];
         });
+    }
+
+    public function reconcile(string $requestId, string $decision, int $actualUnits, string $reason, string $operation): void
+    {
+        $this->authorize();
+        if (! Str::isUuid($requestId) || ! in_array($decision, ['commit', 'release'], true)
+            || $actualUnits < 0 || mb_strlen(trim($reason)) < 10 || mb_strlen($reason) > 500) {
+            throw new AiException('AI_RECONCILIATION_INVALID');
+        }
+        $this->operation($operation, 'request.reconcile.'.$decision, $requestId, [$decision, $actualUnits, $reason],
+            function () use ($requestId, $decision, $actualUnits, $reason) {
+                $record = DB::table('tutor_ai_requests')->where('request_id', $requestId)->lockForUpdate()->first();
+                if (! $record || $record->error_code !== 'AI_REQUEST_RECONCILIATION_REQUIRED'
+                    || ! in_array($record->status, ['authorized', 'processing'], true)) {
+                    throw new AiException('AI_RECONCILIATION_NOT_REQUIRED');
+                }
+                $reservation = DB::table('tutor_ai_credit_transactions')->where('request_id', $requestId)
+                    ->where('type', 'reserve')->lockForUpdate()->first();
+                if (! $reservation || DB::table('tutor_ai_credit_transactions')->where('request_id', $requestId)
+                    ->whereIn('type', ['commit', 'release'])->exists()) {
+                    throw new AiException('AI_RESERVATION_INVALID');
+                }
+                $reserved = (int) $reservation->units;
+                if (($decision === 'commit' && $actualUnits > $reserved) || ($decision === 'release' && $actualUnits !== 0)) {
+                    throw new AiException('AI_RECONCILIATION_INVALID');
+                }
+                $aiRequest = new AiRequest($record->feature, new LearnerIdentity($record->user_id), [],
+                    $record->request_id, $record->idempotency_key);
+                $authorization = new BillingAuthorization((int) $reservation->account_id, $reserved);
+                if ($decision === 'commit') {
+                    $this->ledger->settle($aiRequest, $authorization, $actualUnits);
+                } else {
+                    $this->ledger->release($aiRequest, $authorization);
+                }
+                $code = $decision === 'commit' ? 'AI_REQUEST_RECONCILED_CHARGED' : 'AI_REQUEST_RECONCILED_RELEASED';
+                DB::table('tutor_ai_requests')->where('request_id', $requestId)->update([
+                    'status' => 'failed', 'actual_units' => $decision === 'commit' ? $actualUnits : 0,
+                    'error_code' => $code, 'failed_at' => now(), 'updated_at' => now(),
+                ]);
+                if (Schema::hasTable('tutor_ai_conversation_messages')) {
+                    DB::table('tutor_ai_conversation_messages')->where('request_id', $requestId)->update([
+                        'status' => 'failed', 'error_code' => $code, 'updated_at' => now(),
+                    ]);
+                }
+
+                return ['decision' => $decision, 'reason' => $reason, 'reserved_units' => $reserved,
+                    'actual_units' => $decision === 'commit' ? $actualUnits : 0, 'user_id' => $record->user_id,
+                    'provider' => $record->provider, 'model' => $record->model,
+                    'remote_request_id' => $record->remote_request_id];
+            });
     }
 
     private function operation(string $id, string $action, string $target, array $input, callable $work): void

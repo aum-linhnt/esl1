@@ -51,6 +51,11 @@ final class CreditAdminTest extends FoundationTestCase
 
                 return ['id' => $id, 'name' => 'Learner'];
             }
+
+            public function administratorName(string $id): string
+            {
+                return $id === 'admin-1' ? 'Test Admin' : 'Admin #'.$id;
+            }
         };
         $this->app->instance(CreditAdministrator::class, $this->admin);
     }
@@ -110,6 +115,36 @@ final class CreditAdminTest extends FoundationTestCase
         $this->assertSame(0, $this->provider->calls);
     }
 
+    public function test_reconciliation_releases_or_commits_hold_idempotently_and_audits(): void
+    {
+        $this->provider->failure = new AiException('AI_PROVIDER_OUTCOME_UNKNOWN');
+        $execution = $this->app->make(AiExecutionService::class);
+        $service = $this->app->make(CreditAdministration::class);
+
+        $released = $this->request('release-request');
+        $this->assertError('AI_REQUEST_RECONCILIATION_REQUIRED', fn () => $execution->execute($released));
+        $releaseOperation = (string) Str::uuid();
+        $service->reconcile($released->requestId, 'release', 0, 'Provider confirmed no usage', $releaseOperation);
+        $service->reconcile($released->requestId, 'release', 0, 'Provider confirmed no usage', $releaseOperation);
+        $this->assertSame(100, DB::table('tutor_ai_credit_accounts')->value('balance'));
+        $this->assertSame('AI_REQUEST_RECONCILED_RELEASED', DB::table('tutor_ai_requests')->where('request_id', $released->requestId)->value('error_code'));
+
+        $committed = $this->request('commit-request');
+        $this->assertError('AI_REQUEST_RECONCILIATION_REQUIRED', fn () => $execution->execute($committed));
+        $service->reconcile($committed->requestId, 'commit', 3, 'Provider confirmed usage', (string) Str::uuid());
+        $this->assertSame(97, DB::table('tutor_ai_credit_accounts')->value('balance'));
+        $this->assertSame(['reserve', 'release', 'reserve', 'commit', 'release'],
+            DB::table('tutor_ai_credit_transactions')->orderBy('id')->pluck('type')->all());
+        $record = DB::table('tutor_ai_requests')->where('request_id', $committed->requestId)->first();
+        $this->assertSame('failed', $record->status);
+        $this->assertSame(3, $record->actual_units);
+        $this->assertSame('AI_REQUEST_RECONCILED_CHARGED', $record->error_code);
+        $this->assertSame(2, DB::table(CreditAdminSchema::TABLE)->count());
+        $this->assertError('AI_RECONCILIATION_NOT_REQUIRED', fn () => $service->reconcile(
+            $committed->requestId, 'release', 0, 'Conflicting operation', (string) Str::uuid()
+        ));
+    }
+
     public function test_non_admin_is_denied_by_service_even_without_http_middleware(): void
     {
         $service = $this->app->make(CreditAdministration::class);
@@ -157,6 +192,20 @@ final class CreditAdminTest extends FoundationTestCase
         $request->setLaravelSession($session);
         $this->expectException(TokenMismatchException::class);
         $middleware->handle($request, fn () => $this->fail('CSRF bypassed'));
+    }
+
+    public function test_reconciliation_routes_are_separate_and_protected(): void
+    {
+        $router = new Router($this->app['events'], $this->app);
+        Route::swap($router);
+        require __DIR__.'/../../routes/reconciliation.php';
+        $this->assertCount(2, $router->getRoutes());
+        foreach ($router->getRoutes() as $route) {
+            $this->assertStringStartsWith('admin/ai/reconciliation', $route->uri());
+            $this->assertContains('web', $route->gatherMiddleware());
+            $this->assertContains('auth', $route->gatherMiddleware());
+            $this->assertContains(RequireCreditAdministrator::class, $route->gatherMiddleware());
+        }
     }
 
     public function test_credit_admin_middleware_returns_403_for_non_admin(): void

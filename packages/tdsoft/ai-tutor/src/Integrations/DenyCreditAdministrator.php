@@ -21,4 +21,9 @@ final class DenyCreditAdministrator implements CreditAdministrator
     {
         throw new AiException('AI_CREDIT_ADMIN_FORBIDDEN');
     }
+
+    public function administratorName(string $id): string
+    {
+        throw new AiException('AI_CREDIT_ADMIN_FORBIDDEN');
+    }
 }

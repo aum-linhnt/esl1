@@ -47,4 +47,15 @@ final class WebsiteCreditAdministrator implements CreditAdministrator
 
         return ['id' => (string) $user->id, 'name' => $user->name];
     }
+
+    public function administratorName(string $id): string
+    {
+        $this->authorize();
+        $user = User::find($id);
+        if (! $user || ! $user->isAdmin()) {
+            return 'Admin #'.$id;
+        }
+
+        return $user->name;
+    }
 }

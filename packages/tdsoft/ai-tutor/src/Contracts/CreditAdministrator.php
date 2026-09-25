@@ -10,4 +10,7 @@ interface CreditAdministrator
     public function recipients(string $search): array;
 
     public function recipient(string $id): array;
+
+    /** Resolve a safe display name for an administrator already authorized by this adapter. */
+    public function administratorName(string $id): string;
 }

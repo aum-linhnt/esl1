@@ -720,8 +720,28 @@ function knowledge(root) {
         });
     }
 }
+function copyButtons() {
+    document.querySelectorAll('[data-copy-text]').forEach(button => {
+        button.addEventListener('click', async () => {
+            const label = button.querySelector('span');
+            const original = label?.textContent ?? 'Sao chép';
+            try {
+                await navigator.clipboard.writeText(button.dataset.copyText ?? '');
+                if (label) label.textContent = 'Đã chép';
+                button.classList.add('is-copied');
+                setTimeout(() => {
+                    if (label) label.textContent = original;
+                    button.classList.remove('is-copied');
+                }, 1600);
+            } catch {
+                if (label) label.textContent = 'Không thể chép';
+            }
+        });
+    });
+}
 function boot() {
     theme();
+    copyButtons();
     document.querySelectorAll('.tai-credits select').forEach(enhanceSelect);
     document.querySelectorAll('[data-tai-chat]').forEach(root => {
         const client = chat(root);
