@@ -72,14 +72,46 @@
         <ul>@forelse($ledger as $entry)<li>{{ $entry->created_at }} — {{ $entry->type }} — {{ $entry->units }} credit — số dư sau: {{ $entry->balance_after ?? 'Không giới hạn' }}</li>@empty<li>Chưa có giao dịch.</li>@endforelse</ul>
     </section>
     @endif
-    <section>
-        <h2><span class="tai-credit-step">03</span> Lịch sử quản trị</h2>
-        <p>20 thao tác gần nhất để theo dõi và đối soát.</p>
-        <ul class="tai-credit-audit">@forelse($audit as $entry)
-            <li>{{ $entry->created_at }} — admin {{ $entry->actor_id }} — {{ $entry->action }} — {{ $entry->target_id }}
-                <details><summary>Chi tiết audit</summary><pre class="tai-preview">{{ $entry->details }}</pre></details>
-            </li>
-        @empty<li>Chưa có thao tác.</li>@endforelse</ul>
+    <section class="tai-admin-history">
+        <div class="tai-history-heading"><div><h2><span class="tai-credit-step">03</span> Lịch sử quản trị</h2><p>Các thay đổi rule và lần cấp credit đã được ghi audit.</p></div><span>Hiển thị {{ $audit->count() }} thao tác gần nhất</span></div>
+        <div class="tai-history-list">
+        @forelse($audit as $entry)
+            @php($detail = json_decode($entry->details, true) ?: [])
+            @php($isGrant = $entry->action === 'credit.grant')
+            @php($before = (array) ($detail['before'] ?? []))
+            @php($after = (array) ($detail['after'] ?? []))
+            @php($displayTime = \Illuminate\Support\Carbon::parse($entry->created_at)->format('d/m/Y · H:i:s'))
+            @php($title = $isGrant ? 'Cấp '.($detail['units'] ?? 0).' credit cho người dùng #'.$entry->target_id : 'Cập nhật rule '.$entry->target_id)
+            <article class="tai-history-card">
+                <div class="tai-history-topline">
+                    <div>
+                        <span class="tai-history-badge {{ $isGrant ? 'is-grant' : 'is-rule' }}">{{ $isGrant ? 'Cấp credit' : 'Cập nhật rule' }}</span>
+                        <strong>{{ $title }}</strong>
+                    </div>
+                    <time datetime="{{ $entry->created_at }}">{{ $displayTime }}</time>
+                </div>
+                <dl>
+                @if($isGrant)
+                    <div><dt>Admin xử lý</dt><dd>{{ $adminNames->get($entry->actor_id, 'Admin #'.$entry->actor_id) }}</dd></div>
+                    <div><dt>Lý do</dt><dd>{{ $detail['reason'] ?? 'Không ghi lý do' }}</dd></div>
+                    <div><dt>Số dư trước</dt><dd>{{ $detail['balance_before'] ?? 'Không giới hạn' }}</dd></div>
+                    <div><dt>Số dư sau</dt><dd>{{ $detail['balance_after'] ?? 'Không giới hạn' }}</dd></div>
+                @else
+                    <div><dt>Admin xử lý</dt><dd>{{ $adminNames->get($entry->actor_id, 'Admin #'.$entry->actor_id) }}</dd></div>
+                    <div><dt>Credit cơ bản</dt><dd>{{ $before['base_units'] ?? '—' }} → {{ $after['base_units'] ?? '—' }}</dd></div>
+                    <div><dt>Trần credit</dt><dd>{{ $before['max_units_per_request'] ?? '—' }} → {{ $after['max_units_per_request'] ?? '—' }}</dd></div>
+                    <div><dt>Trạng thái</dt><dd>{{ isset($after['enabled']) ? ($after['enabled'] ? 'Đang bật' : 'Đang tắt') : 'Không xác định' }}</dd></div>
+                @endif
+                </dl>
+                <details>
+                    <summary>Dữ liệu kỹ thuật</summary>
+                    <pre class="tai-preview">{{ json_encode($detail, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+                </details>
+            </article>
+        @empty
+            <p class="tai-history-empty">Chưa có thao tác quản trị.</p>
+        @endforelse
+        </div>
     </section>
 </div>
 @endsection

@@ -20,14 +20,17 @@ final class CreditAdminController
         $person = isset($data['recipient']) ? $admin->recipient($data['recipient']) : null;
         $account = $person ? DB::table('tutor_ai_credit_accounts')->where(['owner_type' => 'learner', 'owner_id' => $person['id'], 'scope' => 'system'])->first() : null;
         $rules = DB::table('tutor_ai_credit_rules')->get()->keyBy('feature');
+        $audit = Schema::hasTable(CreditAdminSchema::TABLE) ? DB::table(CreditAdminSchema::TABLE)
+            ->whereIn('action', ['credit_rule.update', 'credit.grant'])->orderByDesc('id')->limit(20)->get() : collect();
+        $adminNames = $audit->pluck('actor_id')->unique()->mapWithKeys(
+            fn ($id) => [$id => $admin->administratorName((string) $id)]);
 
         return response()->view('ai-tutor::credits', [
             'people' => $admin->recipients($data['q'] ?? ''), 'person' => $person, 'account' => $account,
             'rules' => $rules, 'service' => $service, 'grantId' => (string) Str::uuid(),
             'ready' => Schema::hasTable(CreditAdminSchema::TABLE),
             'ledger' => $account ? DB::table('tutor_ai_credit_transactions')->where('account_id', $account->id)->orderByDesc('id')->limit(20)->get() : collect(),
-            'audit' => Schema::hasTable(CreditAdminSchema::TABLE) ? DB::table(CreditAdminSchema::TABLE)
-                ->whereIn('action', ['credit_rule.update', 'credit.grant'])->orderByDesc('id')->limit(20)->get() : collect(),
+            'audit' => $audit, 'adminNames' => $adminNames,
         ])->header('Cache-Control', 'private, no-store');
     }
 
