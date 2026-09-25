@@ -1,5 +1,19 @@
 # Installation and upgrade
 
+## Credit admin follow-up
+
+Apply new forward migration `2026_09_25_000005_create_tutor_ai_audit_logs.php`.
+Schema check reports `AI Tutor credit admin: installed`. No new environment variables;
+no automatic grants or rule changes. See [CREDIT-ADMIN.md](CREDIT-ADMIN.md).
+
+## Knowledge sync follow-up
+
+Requires new forward migration 2026_09_25_000004_create_tutor_ai_knowledge_sync_links.php
+and rebuilt Vite/Blade assets. Read PHASE3.md's course-sync section before rollout.
+No new env vars. Preserve prior migrations and existing content; back up before migration.
+The schema-check command now reports knowledge sync: pending/installed.
+The widget/version/retention follow-up mentioned below required no migration; this sync addition does.
+
 ## Compatibility
 
 Phase 3 development candidate: read [PHASE3.md](PHASE3.md) before applying the new

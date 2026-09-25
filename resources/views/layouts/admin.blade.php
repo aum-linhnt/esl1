@@ -161,6 +161,11 @@
                     <span aria-hidden="true">🔑</span><span x-show="sidebarOpen">License Gia sư AI</span>
                 </a>
             @endif
+            @if(Route::has('ai-tutor.credits.index') && app(\TDSoft\AiTutor\Contracts\CreditAdministrator::class)->actorId() !== null)
+                <a href="{{ route('ai-tutor.credits.index') }}" class="admin-sidebar-link {{ request()->routeIs('ai-tutor.credits.*') ? 'active' : '' }}">
+                    <span aria-hidden="true">💳</span><span x-show="sidebarOpen">Rule &amp; Credit AI</span>
+                </a>
+            @endif
         </nav>
 
         {{-- Footer Actions: Back to Student Portal & Logout --}}

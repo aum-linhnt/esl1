@@ -28,6 +28,9 @@ Route::middleware(['web', 'auth', HandleAiErrors::class, 'throttle:30,1'])
             Route::post('messages/{id}/feedback', [ConversationController::class, 'feedback']);
         });
         Route::middleware(RequireModule::class.':ai_tutor_knowledge')->group(function () {
+            Route::get('knowledge/sync/courses', [\TDSoft\AiTutor\Http\CourseSyncController::class, 'courses']);
+            Route::get('knowledge/sync/preview', [\TDSoft\AiTutor\Http\CourseSyncController::class, 'preview']);
+            Route::post('knowledge/sync', [\TDSoft\AiTutor\Http\CourseSyncController::class, 'store']);
             Route::get('knowledge/documents', [KnowledgeController::class, 'index']);
             Route::post('knowledge/documents', [KnowledgeController::class, 'store']);
             Route::post('knowledge/documents/{id}/versions', [KnowledgeController::class, 'version']);

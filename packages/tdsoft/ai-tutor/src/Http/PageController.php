@@ -5,6 +5,7 @@ namespace TDSoft\AiTutor\Http;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use TDSoft\AiTutor\Knowledge\Access;
+use TDSoft\AiTutor\Providers\ProviderReadiness;
 
 final class PageController
 {
@@ -26,10 +27,10 @@ final class PageController
         return new JsonResponse(['lesson_id' => $lesson->lessonId]);
     }
 
-    public function knowledge(Access $access): mixed
+    public function knowledge(Access $access, ProviderReadiness $readiness): mixed
     {
         $access->administrator();
 
-        return view('ai-tutor::knowledge');
+        return view('ai-tutor::knowledge', ['embeddingError' => $readiness->embeddingError()]);
     }
 }

@@ -21,6 +21,7 @@ final class AiTutorServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bindIf(Contracts\CreditAdministrator::class, Integrations\DenyCreditAdministrator::class);
         $this->mergeConfigFrom(__DIR__.'/../config/ai-tutor.php', 'ai-tutor');
         $this->app->bindIf(ActorResolver::class, MissingActorResolver::class);
         $this->app->bindIf(LmsContextAdapter::class, MissingLmsAdapter::class);
@@ -30,6 +31,7 @@ final class AiTutorServiceProvider extends ServiceProvider
         $this->app->bindIf(Contracts\VectorStore::class, Knowledge\LocalVectorStore::class);
         $this->app->scoped(Core\StreamOutput::class);
         $this->app->bindIf(Contracts\BackgroundActor::class, Integrations\MissingBackgroundActor::class);
+        $this->app->bindIf(Contracts\KnowledgeSourceAdapter::class, Integrations\MissingKnowledgeSourceAdapter::class);
     }
 
     public function boot(): void
@@ -44,6 +46,7 @@ final class AiTutorServiceProvider extends ServiceProvider
         $this->loadViewComponentsAs('ai-tutor', [Widget\Widget::class]);
         $this->app->make('blade.compiler')->component(Widget\Widget::class, 'ai-tutor::widget');
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/credits.php');
         $this->loadRoutesFrom(__DIR__.'/../routes/tutor.php');
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->command('ai-tutor:purge-conversations --execute')->daily()->withoutOverlapping()

@@ -14,6 +14,8 @@ final class AiTutorIntegrationServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bind(\TDSoft\AiTutor\Contracts\CreditAdministrator::class, \App\Integrations\AiTutor\WebsiteCreditAdministrator::class);
+        $this->app->bind(\TDSoft\AiTutor\Contracts\KnowledgeSourceAdapter::class, \App\Integrations\AiTutor\WebsiteKnowledgeSourceAdapter::class);
         $this->app->bind(ActorResolver::class, WebsiteActorResolver::class);
         $this->app->bind(LmsContextAdapter::class, WebsiteLmsAdapter::class);
         $this->app->bind(LicenseAdministrator::class, WebsiteLicenseAdministrator::class);

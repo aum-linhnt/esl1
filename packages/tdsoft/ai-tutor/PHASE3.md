@@ -81,6 +81,11 @@ Without it the new pages/API correctly remain forbidden. Test mocks work ONLY in
 
 ## Credit setup (trusted administrator / server-side only)
 
+Use the admin **Rule & Credit AI** page at `/admin/ai/credits` after applying
+the audit migration 000005. See [CREDIT-ADMIN.md](CREDIT-ADMIN.md) for rule setup,
+granting credit to the ingestion admin and learners, and quota limitations.
+The seeder example below is an alternative, not required for the admin UI.
+
 Migration does not grant money/credit or change existing pricing rules.
 Before a real request, configure enabled credit rules for tutor_message and knowledge_embedding,
 and provision funded credit accounts for learners and for the administrator who queues ingestion.
@@ -152,6 +157,66 @@ or permission loss. Model text is always rendered as text, not Markdown/HTML exe
 Creation/list endpoints currently cap lists at 100; chat context uses the last 8 completed turns.
 
 ## Remaining work / release limitations
+
+### Đồng bộ Knowledge từ khóa học
+
+Có migration tiến tới mới:
+2026_09_25_000004_create_tutor_ai_knowledge_sync_links.php.
+Migration cũ giữ nguyên. Bảng tutor_ai_knowledge_sync_links ghi liên kết nguồn LMS với
+document/version và fingerprint; không sửa bảng LMS, credit hoặc license.
+
+Sau backup/review tại staging:
+
+~~~bash
+docker compose exec -T app php artisan ai-tutor:schema-check
+docker compose exec -T app php artisan migrate --path=vendor/tdsoft/ai-tutor/database/migrations
+docker compose exec -T app php artisan ai-tutor:schema-check
+~~~
+
+Mong đợi: AI Tutor knowledge sync: installed.
+Build Vite, cập nhật config/view cache và restart worker theo quy trình triển khai.
+Không có biến môi trường mới. Không chạy migration trên database thật trong lúc phát triển.
+
+Trên /admin/ai/knowledge:
+
+1. Tải khóa học, chọn khóa học, bấm Xem trước.
+2. Kiểm tra nội dung, cảnh báo, số chunk và chọn tối đa 50 bài/lần.
+3. Bấm Đồng bộ để tạo bản nháp (không gọi provider, không trừ credit).
+4. Nếu muốn tạo vector ngay, tick ô queue và xác nhận chi phí trước khi đồng bộ.
+   Worker ai-tutor-knowledge dùng credit của người tạo version; cần rule knowledge_embedding,
+   tài khoản có credit và provider/model hợp lệ. Chunk count không phải báo giá USD.
+5. Bấm kết quả từng bài để chọn version, kiểm tra ready rồi publish như luồng hiện có.
+   Đồng bộ không tự publish, không thay bản đang phục vụ học viên.
+
+Contract KnowledgeSourceAdapter nằm trong package, WebsiteKnowledgeSourceAdapter nằm ở LMS.
+Adapter hiện chỉ xuất tiêu đề/tóm tắt của bài đang hiển thị; không đọc activities, question banks,
+đáp án, attempt, video hoặc file. Bài không có summary bị bỏ qua; nội dung ngắn có cảnh báo.
+Không sinh thêm kiến thức bằng AI. Người quản trị phải duyệt nội dung trước publish.
+Quyền đọc full summary được kiểm tra lại khi RAG/citation truy xuất nguồn đã đồng bộ,
+tránh lộ summary trả phí cho người chỉ được xem hoạt động học thử.
+
+Mỗi khóa học tối đa 200 bài trong một preview; danh sách khóa học tối đa 500.
+Preview đọc lại nguồn trên server lúc xác nhận. Thay đổi nội dung/model sau preview trả
+AI_SYNC_PREVIEW_STALE và không ghi batch. Nguồn không đổi tái sử dụng document/version;
+retry không tạo version/chunk request mới. Có thể chọn bài unchanged để đưa lại version vào queue.
+Queue retry vẫn tuân theo giới hạn idempotency/reconciliation hiện có.
+
+Nguồn đổi tạo version mới trong document được quản lý bởi sync, không ghi đè nội dung cũ
+hoặc tài liệu nhập tay. Đổi subject/level của document đã liên kết trả AI_SYNC_CONTEXT_CHANGED:
+cần quản trị viên rà soát lại mapping/content, không âm thầm sửa phạm vi bản đã publish.
+Sync không tự xóa/thu hồi tài liệu khi bài biến mất; adapter chặn truy xuất summary của bài ẩn.
+
+API mới cùng prefix /ai-tutor/api/v1 và guard admin/module/CSRF:
+
+~~~text
+GET  /knowledge/sync/courses
+GET  /knowledge/sync/preview?course_id=ID
+POST /knowledge/sync
+~~~
+
+POST nhận course_id, lessons=[{lesson_id,fingerprint}], enqueue boolean.
+Không nhận raw source content hoặc actor từ browser.
+Preview server độc lập hiện chỉ mô phỏng luồng tài liệu thủ công, chưa có API sync khóa học.
 
 ### Follow-up implemented: widget, versions, conversation lifecycle
 
@@ -231,8 +296,8 @@ This is a Phase 3 core slice, not a declaration that the entire V2 specification
   extraction/scanning adapters and storage/retention policy are implemented.
   The owner explicitly chose to keep upload disabled for later integration. The current
   application container has no ClamAV, pdftotext or Tesseract; no containers/tools were installed.
-- Course-content bulk sync and attempt-bound random/inline quiz contexts are not implemented.
-  The existing adapter continues denying question contexts it cannot safely bind.
+- Bulk sync tiêu đề/tóm tắt đã có; đồng bộ nội dung hoạt động/file và attempt-bound
+  random/inline quiz chưa triển khai. Adapter tiếp tục từ chối ngữ cảnh không ràng buộc an toàn.
 - Speaking/Writing remain Phase 4.
 - Document/version lists currently cap at 100 entries; pagination and large-corpus administration
   remain future improvements.

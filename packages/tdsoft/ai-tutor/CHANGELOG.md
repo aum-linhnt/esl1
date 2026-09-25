@@ -1,5 +1,20 @@
 # Changelog
 
+## Credit admin — unreleased
+
+- Admin rule editor and additive credit grants through a dedicated LMS adapter.
+- CSRF/auth checks, optimistic rule conflicts, idempotent grants and transactional audit.
+- Forward audit migration 000005; existing quotas, pricing blocks and request snapshots preserved.
+- See [CREDIT-ADMIN.md](CREDIT-ADMIN.md) for deployment and usage.
+
+## Knowledge course sync — unreleased
+
+- Separate LMS source adapter, admin course/lesson preview and explicit paid-queue confirmation.
+- Forward-only sync mapping migration; stable fingerprint/version reuse and stale-preview rejection.
+- No automatic publication; existing published versions and manually entered documents remain intact.
+- Runtime summary-access check excludes paid synced sources from activity-only trial access.
+- Website adapter exports visible lesson titles/summaries only, never quiz/activity answer payloads.
+
 ## License mode — unreleased
 
 - Explicit source_owned opt-in with module allowlist; server remains the default.

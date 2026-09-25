@@ -31,7 +31,20 @@ final class SchemaCheckCommand extends Command
             $this->error($problem);
         }
 
-        return in_array($phaseThree['state'], ['pending', 'installed'], true)
+        $sync = app(\TDSoft\AiTutor\Knowledge\SyncSchema::class)->inspect();
+        $this->line('AI Tutor knowledge sync: '.$sync['state']);
+        foreach ($sync['problems'] as $problem) {
+            $this->error($problem);
+        }
+
+        $audit = app(\TDSoft\AiTutor\Billing\CreditAdminSchema::class)->inspect();
+        $this->line('AI Tutor credit admin: '.$audit['state']);
+        foreach ($audit['problems'] as $problem) {
+            $this->error($problem);
+        }
+        return in_array($audit['state'], ['pending', 'installed'], true)
+            && in_array($sync['state'], ['pending', 'installed'], true)
+            && in_array($phaseThree['state'], ['pending', 'installed'], true)
             && in_array($result['state'], ['fresh', 'installed'], true)
             && in_array($license['state'], ['pending', 'installed'], true) ? self::SUCCESS : self::FAILURE;
     }

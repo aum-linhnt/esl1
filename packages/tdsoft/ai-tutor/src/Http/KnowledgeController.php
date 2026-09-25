@@ -5,9 +5,11 @@ namespace TDSoft\AiTutor\Http;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use TDSoft\AiTutor\Core\AiException;
 use TDSoft\AiTutor\Knowledge\Access;
 use TDSoft\AiTutor\Knowledge\KnowledgeService;
 use TDSoft\AiTutor\Knowledge\ProcessKnowledgeVersion;
+use TDSoft\AiTutor\Providers\ProviderReadiness;
 
 final class KnowledgeController
 {
@@ -62,8 +64,11 @@ final class KnowledgeController
         return new JsonResponse(['id' => $id, 'status' => 'unpublished']);
     }
 
-    public function process(string $id): JsonResponse
+    public function process(string $id, ProviderReadiness $readiness): JsonResponse
     {
+        if ($error = $readiness->embeddingError()) {
+            return new JsonResponse(['error' => ['code' => $error]], 409);
+        }
         $this->knowledge->getVersion($id);
         ProcessKnowledgeVersion::dispatch($id)->afterCommit();
 
@@ -75,13 +80,17 @@ final class KnowledgeController
         $version = $this->knowledge->getVersion($id);
         $job = DB::table('tutor_ai_knowledge_processing_jobs')->where('version_id', $id)->first();
 
-        return new JsonResponse(['id' => $id, 'status' => $version->status, 'processing_status' => $job->status,
-            'error_code' => $job->error_code]);
+        return new JsonResponse(['id' => $id, 'status' => $version->status, 'processing_status' => $job?->status ?? 'not_queued',
+            'error_code' => $job?->error_code]);
     }
 
     public function publish(string $id): JsonResponse
     {
-        $this->knowledge->publish($id);
+        try {
+            $this->knowledge->publish($id);
+        } catch (AiException $error) {
+            return new JsonResponse(['error' => ['code' => $error->errorCode]], 409);
+        }
 
         return new JsonResponse(['id' => $id, 'status' => 'published']);
     }

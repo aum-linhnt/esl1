@@ -3,6 +3,7 @@
 namespace Tests\AiTutor;
 
 use App\Integrations\AiTutor\WebsiteActorResolver;
+use App\Integrations\AiTutor\WebsiteKnowledgeSourceAdapter;
 use App\Integrations\AiTutor\WebsiteLicenseAdministrator;
 use App\Integrations\AiTutor\WebsiteLmsAdapter;
 use App\Models\User;
@@ -14,6 +15,43 @@ use TDSoft\AiTutor\Tests\FoundationTestCase;
 
 final class WebsiteAdapterTest extends FoundationTestCase
 {
+    public function test_credit_admin_identity_requires_active_admin_and_recipients_must_exist(): void
+    {
+        $adapter = new \App\Integrations\AiTutor\WebsiteCreditAdministrator;
+        foreach ([['student', 'active', false], ['teacher', 'active', false], ['admin', 'blocked', false], ['admin', 'active', true]] as [$role, $status, $allowed]) {
+            $user = new User;
+            $user->id = 1;
+            $user->role = $role;
+            $user->status = $status;
+            $auth = \Mockery::mock();
+            $auth->shouldReceive('user')->andReturn($user);
+            Auth::swap($auth);
+            $this->assertSame($allowed ? '1' : null, $adapter->actorId());
+        }
+        $this->assertSame('1', $adapter->recipient('1')['id']);
+        $this->assertError('AI_CREDIT_RECIPIENT_INVALID', fn () => $adapter->recipient('999'));
+        DB::table('users')->where('id', 1)->update(['status' => 'blocked']);
+        $this->assertError('AI_CREDIT_RECIPIENT_INVALID', fn () => $adapter->recipient('1'));
+    }
+    public function test_knowledge_sync_excludes_quiz_content_and_respects_trial_summary_access(): void
+    {
+        $adapter = new WebsiteKnowledgeSourceAdapter;
+        $this->assertError('AI_KNOWLEDGE_FORBIDDEN', fn () => $adapter->lessons('1', '1'));
+        $this->assertFalse($adapter->canReadLesson('1', '1'));
+        DB::table('users')->where('id', 1)->update(['role' => 'admin']);
+        DB::table('lessons')->where('id', 1)->update(['summary' => '<p>Safe summary</p><script>SECRET SCRIPT</script>']);
+        DB::table('lessons')->insert(['id' => 2, 'course_id' => 1, 'title' => 'Hidden', 'summary' => 'SECRET HIDDEN', 'is_visible' => false]);
+        $rows = $adapter->lessons('1', '1');
+        $this->assertCount(1, $rows);
+        $this->assertStringContainsString('Safe summary', $rows[0]['content']);
+        $this->assertStringNotContainsString('SECRET', json_encode($rows));
+        $this->assertTrue($adapter->canReadLesson('1', '1'));
+        $this->assertFalse($adapter->canReadLesson('1', '2'));
+        DB::table('users')->where('id', 1)->update(['role' => 'student']);
+        DB::table('lessons')->where('id', 1)->update(['is_free_trial' => true]);
+        $this->assertTrue($adapter->canReadLesson('1', '1'));
+    }
+
     public function test_only_active_website_admin_can_manage_license(): void
     {
         foreach ([['student', 'active', false], ['teacher', 'active', false], ['admin', 'blocked', false], ['admin', 'active', true]] as [$role, $status, $allowed]) {
