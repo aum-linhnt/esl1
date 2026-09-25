@@ -25,6 +25,9 @@ final class RefreshLicenseJob implements ShouldBeUnique, ShouldQueue
 
     public function handle(LicenseClient $client): void
     {
+        if (! (new LicenseMode)->shouldRefresh()) {
+            return;
+        }
         try {
             $client->refresh();
         } catch (LicenseException) {

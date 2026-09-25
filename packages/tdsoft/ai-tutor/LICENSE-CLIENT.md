@@ -1,5 +1,43 @@
 # Signed offline license client — Phase 2
 
+## Chế độ cấp quyền
+
+Mặc định AI_LICENSE_MODE=server (kể cả không khai báo): giữ nguyên signed offline
+license, domain/installation, hạn, refresh và thu hồi. Chỉ giá trị chính xác source_owned
+mới miễn license. Giá trị rỗng/sai/khác chữ hoa-thường không được cấp quyền; admin/CLI
+báo LICENSE_MODE_INVALID. Không fallback khi License Server lỗi.
+
+Khách mua source không cần xác minh license có thể cấu hình khi triển khai:
+
+~~~dotenv
+AI_LICENSE_MODE=source_owned
+AI_LICENSE_SOURCE_MODULES=ai_tutor_core,ai_tutor_knowledge
+~~~
+
+Module phải được liệt kê rõ; mặc định danh sách rỗng không cấp module nào. Không hỗ trợ
+wildcard *. source_owned không kiểm tra chữ ký, thời hạn, domain/installation và không
+có thu hồi từ xa. Danh sách module sai định dạng bị từ chối.
+Đăng nhập, actor, quyền LMS, AI_TUTOR_ENABLED, provider/key, quota/credit vẫn giữ nguyên.
+
+Trang license hiển thị bản quyền source và module; không có nút đổi mode qua HTTP.
+Activation/refresh/init qua trang license và command bị chặn với LICENSE_NOT_REQUIRED.
+Client activate/refresh gọi trực tiếp cũng bị chặn trước khi truy cập DB/HTTP.
+Scheduler bỏ qua source_owned; job refresh đã nằm trong queue cũng bỏ qua.
+Không sửa/xóa cache license cũ. Đổi về server sẽ xác minh license đã lưu theo chính sách cũ,
+không tự nhận source-owned thành signed license hay tự kích hoạt online.
+
+Không cần migration mới. Không đổi .env tự động. Sau khi người vận hành thay cấu hình,
+cập nhật config cache và restart worker theo quy trình triển khai:
+
+~~~bash
+php artisan config:cache
+php artisan queue:restart
+php artisan ai-tutor:license status
+~~~
+
+Trong repository Docker, thêm docker compose exec -T app trước php.
+Các mục signed-license bên dưới áp dụng cho mode server.
+
 License Server chưa cần tồn tại để phát triển/test client. Không có license giả cho
 runtime và không có private signing key trong package. Bộ test sinh khóa ngẫu nhiên
 trong memory, bind fake public-key ring và giả lập HTTP; không gọi dịch vụ thật.

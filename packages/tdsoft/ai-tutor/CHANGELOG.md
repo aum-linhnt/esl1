@@ -1,5 +1,13 @@
 # Changelog
 
+## License mode — unreleased
+
+- Explicit source_owned opt-in with module allowlist; server remains the default.
+- Invalid/empty modes fail closed. No HTTP toggle or automatic fallback.
+- Skip domain/license checks only in source_owned; retain LMS/auth/credit controls.
+- Disable license activation/refresh and background refresh in source-owned deployments.
+- Admin/CLI status and regression tests; no schema or existing license-cache changes.
+
 ## Phase 3 — unreleased development candidate
 
 - Follow-up: permission-gated lesson widget, responsive drawer and in-place fullscreen expansion.

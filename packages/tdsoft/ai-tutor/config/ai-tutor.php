@@ -42,6 +42,8 @@ return [
     ],
     'theme' => ['default' => 'system', 'allow_user_switch' => true],
     'license' => [
+        'mode' => env('AI_LICENSE_MODE', 'server'),
+        'source_modules' => array_values(array_filter(array_map('trim', explode(',', (string) env('AI_LICENSE_SOURCE_MODULES', ''))), fn ($module) => $module !== '')),
         'server_url' => env('AI_LICENSE_SERVER_URL', ''),
         'key' => env('AI_LICENSE_KEY', ''),
         'installation_id' => env('AI_LICENSE_INSTALLATION_ID', ''),

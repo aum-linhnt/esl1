@@ -50,7 +50,7 @@ final class AiTutorServiceProvider extends ServiceProvider
                 ->when(fn () => (bool) config('ai-tutor.retention.enabled', false));
             $schedule->job(new RefreshLicenseJob)->everyMinute()->name('ai-tutor-license-refresh')
                 ->withoutOverlapping()->when(function () {
-                    if (! config('ai-tutor.license.server_url')) {
+                    if (! (new Licensing\LicenseMode)->shouldRefresh() || ! config('ai-tutor.license.server_url')) {
                         return false;
                     }
                     $state = app(InstallationIdentity::class)->initialized();

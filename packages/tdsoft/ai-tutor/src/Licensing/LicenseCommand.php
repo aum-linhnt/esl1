@@ -13,6 +13,16 @@ final class LicenseCommand extends Command
     public function handle(InstallationIdentity $identity, LicenseReader $reader, LicenseClient $client): int
     {
         try {
+            $mode = new LicenseMode;
+            if ($mode->value() === 'source_owned') {
+                if ($this->argument('action') !== 'status') {
+                    throw new LicenseException('LICENSE_NOT_REQUIRED');
+                }
+                $this->line('AI Tutor license: source_owned');
+                $this->line('Modules: '.implode(', ', $mode->modules()));
+
+                return self::SUCCESS;
+            }
             switch ($this->argument('action')) {
                 case 'init':
                     $state = $identity->initialize();

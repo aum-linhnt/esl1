@@ -10,12 +10,24 @@ use TDSoft\AiTutor\Contracts\LicenseAdministrator;
 use TDSoft\AiTutor\Licensing\InstallationIdentity;
 use TDSoft\AiTutor\Licensing\LicenseClient;
 use TDSoft\AiTutor\Licensing\LicenseException;
+use TDSoft\AiTutor\Licensing\LicenseMode;
 use TDSoft\AiTutor\Licensing\LicenseReader;
 
 final class LicenseController extends Controller
 {
     public function index(LicenseReader $reader, InstallationIdentity $identity): mixed
     {
+        $mode = new LicenseMode;
+        try {
+            $value = $mode->value();
+            if ($value === 'source_owned') {
+                return response()->view('ai-tutor::license-mode', ['modeError' => null, 'modules' => $mode->modules()])
+                    ->header('Cache-Control', 'no-store, private');
+            }
+        } catch (LicenseException $error) {
+            return response()->view('ai-tutor::license-mode', ['modeError' => $error->errorCode, 'modules' => []], 503)
+                ->header('Cache-Control', 'no-store, private');
+        }
         $state = $identity->initialized();
         $status = $reader->status();
         $attempts = Schema::hasTable('tutor_ai_license_refresh_attempts')
@@ -61,6 +73,7 @@ final class LicenseController extends Controller
     private function action(callable $action): mixed
     {
         try {
+            (new LicenseMode)->requireServer();
             $action();
 
             return redirect()->route('ai-tutor.license.index')->with('license_notice', 'Đã cập nhật trạng thái license.');

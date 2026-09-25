@@ -21,6 +21,7 @@ final class LicenseClient
 
     public function activate(#[\SensitiveParameter] string $licenseKey, ?string $actorId = null): void
     {
+        (new LicenseMode)->requireServer();
         if ($licenseKey === '' || strlen($licenseKey) > 512) {
             throw new LicenseException('LICENSE_KEY_REQUIRED');
         }
@@ -29,6 +30,7 @@ final class LicenseClient
 
     public function refresh(bool $force = false, ?string $actorId = null): void
     {
+        (new LicenseMode)->requireServer();
         $this->exchange('refresh', null, $force, $actorId);
     }
 
