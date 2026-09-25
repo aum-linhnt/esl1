@@ -2,8 +2,10 @@
 
 namespace TDSoft\AiTutor\Tests\Feature;
 
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Router;
 use Illuminate\Session\ArraySessionHandler;
 use Illuminate\Session\Store;
@@ -18,6 +20,7 @@ use TDSoft\AiTutor\Billing\CreditAdminSchema;
 use TDSoft\AiTutor\Contracts\CreditAdministrator;
 use TDSoft\AiTutor\Core\AiException;
 use TDSoft\AiTutor\Core\AiExecutionService;
+use TDSoft\AiTutor\Http\CreditAdminController;
 use TDSoft\AiTutor\Http\RequireCreditAdministrator;
 use TDSoft\AiTutor\Tests\FoundationTestCase;
 
@@ -75,6 +78,39 @@ final class CreditAdminTest extends FoundationTestCase
         $this->assertError('AI_REQUEST_DUPLICATE', fn () => $service->grant('learner-2', 20, 'Test allocation', $id));
         $this->assertFalse(DB::table('tutor_ai_credit_accounts')->where('owner_id', 'learner-2')->exists());
         $this->assertSame(1, DB::table(CreditAdminSchema::TABLE)->count());
+    }
+
+    public function test_credit_history_loads_grant_audit_for_the_selected_recipient(): void
+    {
+        $service = $this->app->make(CreditAdministration::class);
+        $operation = (string) Str::uuid();
+        $service->grant('learner-1', 20, 'Additional learning credit', $operation);
+        $service->grant('learner-2', 10, 'Other learner allocation', (string) Str::uuid());
+
+        $request = new class extends Request
+        {
+            public function validate(array $rules): array
+            {
+                return $this->query->all();
+            }
+        };
+        $request->query->replace(['tab' => 'grant', 'recipient' => 'learner-1']);
+        $data = [];
+        $factory = \Mockery::mock(ResponseFactory::class);
+        $factory->shouldReceive('view')->once()->with('ai-tutor::credits', \Mockery::type('array'))
+            ->andReturnUsing(function ($view, $values) use (&$data) {
+                $data = $values;
+
+                return new Response;
+            });
+        $this->app->instance(ResponseFactory::class, $factory);
+        $this->app->make(CreditAdminController::class)->index($request, $service, $this->admin);
+
+        $this->assertCount(1, $data['grantAudit']);
+        $this->assertSame('learner-1', $data['grantAudit'][$operation]->target_id);
+        $this->assertSame('Additional learning credit', json_decode($data['grantAudit'][$operation]->details, true)['reason']);
+        $this->assertSame('Test Admin', $data['adminNames']['admin-1']);
+        $this->assertSame('grant:admin:'.$operation, $data['ledger']->first()->idempotency_key);
     }
 
     public function test_new_account_has_default_quota_and_failed_operations_leave_no_audit_or_grants(): void

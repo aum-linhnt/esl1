@@ -87,7 +87,16 @@ body[data-ai-tutor-root] { background: var(--tai-background); color: var(--tai-t
     .tai-credit-header h1 { font-size: clamp(26px, 3vw, 34px); letter-spacing: -.035em; margin: 6px 0; }
     .tai-credit-header p { margin: 0; color: var(--tai-muted); }
     .tai-credit-header > a { padding: 10px 18px; border: 1px solid var(--tai-border); border-radius: 10px; white-space: nowrap; text-decoration: none; font-weight: 600; }
+    .tai-header-count { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 5px; color: #fff; background: #f59e0b; border-radius: 999px; font-size: 10px; line-height: 1; }
     .tai-credit-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--tai-muted); }
+    .tai-credit-tabs { display: flex; gap: 6px; padding: 5px; margin: 24px 0; overflow-x: auto; border: 1px solid var(--tai-border); border-radius: 12px; background: var(--tai-panel); }
+    .tai-credit-tabs a { flex: 1 0 auto; padding: 10px 16px; border-radius: 8px; color: var(--tai-muted); text-align: center; text-decoration: none; font-size: 13px; font-weight: 600; white-space: nowrap; }
+    .tai-credit-tabs a:hover { color: var(--tai-text); background: var(--tai-background); }
+    .tai-credit-tabs a.is-active { color: #fff; background: #6654e8; box-shadow: 0 5px 16px #6654e833; }
+    .tai-credit-tabs a:focus-visible { outline-width: 2px; outline-offset: 1px; }
+    .tai-credit-tabs::-webkit-scrollbar { height: 4px; }
+    .tai-credit-tabs::-webkit-scrollbar-thumb { background: var(--tai-border); border-radius: 999px; }
+    .tai-credit-tabs + section { margin-top: 0; }
     section { padding: 28px; margin: 24px 0; box-shadow: 0 6px 24px #00000008; scroll-margin-top: 24px; }
     section > p { color: var(--tai-muted); max-width: 90ch; }
     h2 { display: flex; align-items: center; gap: 12px; }
@@ -122,7 +131,45 @@ body[data-ai-tutor-root] { background: var(--tai-background); color: var(--tai-t
     .tai-credit-people strong { color: var(--tai-text); overflow-wrap: anywhere; }
     .tai-credit-people small { display: block; color: var(--tai-muted); margin-top: 2px; }
     .tai-credit-people a:hover { border-color: var(--tai-primary); background: var(--tai-background); }
-    #credit-grant form { max-width: 680px; }
+    .tai-selected-person { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 18px; margin-bottom: 14px; border: 1px solid #6654e866; border-radius: 12px; background: linear-gradient(105deg, #6654e812, var(--tai-background)); }
+    .tai-selected-person > div { min-width: 0; }
+    .tai-selected-person strong, .tai-selected-person small { display: block; overflow-wrap: anywhere; }
+    .tai-selected-person strong { font-size: 16px; }
+    .tai-selected-person small { color: var(--tai-muted); }
+    .tai-selected-person a { flex: 0 0 auto; padding: 7px 11px; color: var(--tai-primary); border: 1px solid var(--tai-border); border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600; }
+    .tai-credit-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .tai-credit-stats article { min-width: 0; padding: 14px 16px; border: 1px solid var(--tai-border); border-radius: 11px; background: var(--tai-background); }
+    .tai-credit-stats span, .tai-credit-stats strong { display: block; }
+    .tai-credit-stats span { color: var(--tai-muted); font-size: 11px; }
+    .tai-credit-stats strong { margin-top: 3px; font-size: 17px; overflow-wrap: anywhere; }
+    .tai-grant-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+    .tai-grant-form-panel, .tai-ledger-panel { min-width: 0; padding: 20px; border: 1px solid var(--tai-border); border-radius: 13px; background: var(--tai-background); }
+    .tai-grant-form-panel h2, .tai-ledger-panel h2 { margin-top: 0; }
+    .tai-grant-form-panel > p, .tai-form-note { color: var(--tai-muted); font-size: 12px; }
+    .tai-grant-form-panel form { max-width: none; }
+    .tai-confirm-box { display: flex; align-items: flex-start; gap: 3px; padding: 11px 12px; border: 1px solid var(--tai-border); border-radius: 9px; background: var(--tai-panel); }
+    .tai-ledger-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .tai-ledger-heading > span { color: var(--tai-muted); font-size: 11px; white-space: nowrap; }
+    .tai-ledger-list { display: grid; gap: 8px; }
+    .tai-ledger-help, .tai-ledger-description { color: var(--tai-muted); font-size: 12px; }
+    .tai-ledger-help { margin: 0 0 10px; }
+    .tai-ledger-guide { padding: 10px 12px; margin-bottom: 14px; border: 1px solid var(--tai-border); border-radius: 9px; background: var(--tai-panel); font-size: 12px; }
+    .tai-ledger-guide summary, .tai-ledger-request summary { color: var(--tai-primary); }
+    .tai-ledger-guide p { color: var(--tai-muted); margin-bottom: 0; }
+    .tai-ledger-feature { margin: 10px 0 0; font-size: 12px; font-weight: 600; }
+    .tai-ledger-description { margin: 7px 0 0; }
+    .tai-ledger-request { margin-top: 8px; font-size: 11px; }
+    .tai-ledger-request code { display: block; margin-top: 6px; overflow-wrap: anywhere; }
+    .tai-ledger-list { max-height: 640px; overflow-y: auto; }
+    .tai-ledger-item { padding: 12px 13px; border: 1px solid var(--tai-border); border-radius: 9px; background: var(--tai-panel); }
+    .tai-ledger-item > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .tai-ledger-item time, .tai-ledger-amount span { color: var(--tai-muted); font-size: 10px; }
+    .tai-ledger-amount { margin-top: 8px; }
+    .tai-ledger-amount strong { font-size: 13px; }
+    .tai-ledger-badge { padding: 3px 7px; border: 1px solid var(--tai-border); border-radius: 999px; font-size: 10px; font-weight: 700; }
+    .tai-ledger-badge.is-grant, .tai-ledger-badge.is-release { color: #10b981; border-color: #10b98155; background: #10b98112; }
+    .tai-ledger-badge.is-reserve { color: #f59e0b; border-color: #f59e0b55; background: #f59e0b12; }
+    .tai-ledger-badge.is-commit { color: #a78bfa; border-color: #8b5cf666; background: #7c3aed20; }
     .tai-credit-audit { list-style: none; padding: 0; }
     .tai-credit-audit > li { padding: 16px 0; border-bottom: 1px solid var(--tai-border); overflow-wrap: anywhere; }
     .tai-credit-audit > li:last-child { border-bottom: 0; }
@@ -152,6 +199,9 @@ body[data-ai-tutor-root] { background: var(--tai-background); color: var(--tai-t
     .tai-history-badge { padding: 4px 9px; border-radius: 999px; font-size: 10px; font-weight: 700; white-space: nowrap; }
     .tai-history-badge.is-commit { color: #c4b5fd; background: #7c3aed26; border: 1px solid #8b5cf666; }
     .tai-history-badge.is-release { color: #6ee7b7; background: #0596691f; border: 1px solid #10b98166; }
+    .tai-history-badge.is-grant { color: #6ee7b7; background: #0596691f; border: 1px solid #10b98166; }
+    .tai-history-badge.is-rule { color: #93c5fd; background: #2563eb1f; border: 1px solid #3b82f666; }
+    .tai-admin-history .tai-history-card dl { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .tai-history-card dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
     .tai-history-card dl div { min-width: 0; padding: 10px 12px; border-radius: 8px; background: var(--tai-panel); }
     .tai-history-card dt { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
@@ -170,7 +220,9 @@ body[data-ai-tutor-root] { background: var(--tai-background); color: var(--tai-t
     .tai-history-empty { padding: 28px; border: 1px dashed var(--tai-border); border-radius: 12px; text-align: center; color: var(--tai-muted); }
     @media (max-width: 760px) {
         section { padding: 18px; }
-        .tai-credit-rule-grid, .tai-credit-people, .tai-reconciliation-card dl, .tai-reconciliation-actions, .tai-history-card dl { grid-template-columns: 1fr; }
+        .tai-credit-rule-grid, .tai-credit-people, .tai-grant-grid, .tai-reconciliation-card dl, .tai-reconciliation-actions, .tai-history-card dl { grid-template-columns: 1fr; }
+        .tai-credit-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .tai-admin-history .tai-history-card dl { grid-template-columns: 1fr; }
         .tai-credit-header { align-items: flex-start; flex-direction: column; }
         .tai-history-heading, .tai-history-topline { align-items: flex-start; flex-direction: column; }
         .tai-credit-search { align-items: stretch; flex-direction: column; gap: 0; }
