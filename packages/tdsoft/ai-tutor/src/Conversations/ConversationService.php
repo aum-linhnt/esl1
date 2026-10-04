@@ -210,6 +210,9 @@ final class ConversationService
             'id' => $message->id, 'conversation_id' => $message->conversation_id, 'request_id' => $message->request_id,
             'user_content' => $message->user_content, 'content' => $message->content, 'status' => $message->status,
             'error_code' => $message->error_code, 'metadata' => $message->metadata ? json_decode($message->metadata, true) : [],
+            'created_at' => $message->created_at ? \Illuminate\Support\Carbon::parse($message->created_at, config('app.timezone', 'UTC'))->toIso8601String() : null,
+            'completed_at' => $message->status === 'completed' && $message->updated_at
+                ? \Illuminate\Support\Carbon::parse($message->updated_at, config('app.timezone', 'UTC'))->toIso8601String() : null,
             'sources' => $sources,
             'credit_balance' => DB::table('tutor_ai_credit_accounts')->where([
                 'owner_type' => 'learner', 'owner_id' => $conversation->user_id, 'scope' => 'system',

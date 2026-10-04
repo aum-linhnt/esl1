@@ -37,8 +37,9 @@ class CourseController extends Controller
 
         $enrollment = $user->getEnrollment($courseId);
         $isEnrolled = $enrollment && $enrollment->hasValidAccess();
+        $canPreviewAsStaff = $user->isAdmin() || $user->isTeacher();
 
-        $lessonsWithStatus = $course->lessons->map(function ($lesson) use ($user, $completedActivityIds, $isEnrolled) {
+        $lessonsWithStatus = $course->lessons->map(function ($lesson) use ($user, $completedActivityIds, $isEnrolled, $canPreviewAsStaff) {
             $visibleActs = $lesson->activities->where('is_visible', true);
             $totalActs = $visibleActs->count();
             $completedActs = $visibleActs->filter(fn($a) => isset($completedActivityIds[$a->id]))->count();
@@ -47,7 +48,7 @@ class CourseController extends Controller
             $trialActsCount = $visibleActs->where('is_free_trial', true)->count();
             $hasTrialActs = $trialActsCount > 0;
             $isTrialLesson = (bool) ($hasTrialActs || $lesson->is_free_trial);
-            $canAccess = $isEnrolled ? $lesson->isUnlockedFor($user) : $isTrialLesson;
+            $canAccess = $canPreviewAsStaff || ($isEnrolled ? $lesson->isUnlockedFor($user) : $isTrialLesson);
 
             return [
                 'lesson' => $lesson,
@@ -61,7 +62,18 @@ class CourseController extends Controller
             ];
         });
 
+        // Enter the learning workspace only through a visible, available lesson.
+        $layoutCandidates = $lessonsWithStatus->filter(function ($item) use ($enrollment, $isEnrolled, $canPreviewAsStaff) {
+            return ($canPreviewAsStaff || !$enrollment || $isEnrolled)
+                && $item['unlocked']
+                && $item['lesson']->is_visible
+                && $item['lesson']->activities->contains(fn ($activity) => $activity->is_visible
+                    && ($canPreviewAsStaff || ($activity->isAvailable() && ($isEnrolled || $activity->is_free_trial))));
+        });
+        $layoutEntry = $layoutCandidates->first(fn ($item) => !$item['completed']) ?? $layoutCandidates->first();
+
         return view('courses.show', [
+            'layoutLesson' => $layoutEntry['lesson'] ?? null,
             'course' => $course,
             'lessonsWithStatus' => $lessonsWithStatus,
         ]);

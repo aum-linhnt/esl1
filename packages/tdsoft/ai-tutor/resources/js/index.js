@@ -159,6 +159,32 @@ function theme() {
         });
     });
 }
+function formatMessageTime(value, now = new Date()) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const formatter = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    });
+    const parts = input => Object.fromEntries(formatter.formatToParts(input).map(part => [part.type, part.value]));
+    const sent = parts(date), today = parts(now);
+    const time = sent.hour + ':' + sent.minute;
+    return ['year', 'month', 'day'].every(key => sent[key] === today[key])
+        ? time : time + ' ' + sent.day + '/' + sent.month + '/' + sent.year;
+}
+function messageTime(row, value) {
+    if (!row || !value || !formatMessageTime(value)) return;
+    let time = row.querySelector('[data-message-time]');
+    if (!time) {
+        time = document.createElement('time');
+        time.dataset.messageTime = '';
+        time.className = 'lesson-message-time';
+        (row.querySelector('.lesson-message-content') ?? row).append(time);
+    }
+    time.dateTime = new Date(value).toISOString();
+    time.textContent = formatMessageTime(value);
+}
 function chat(root) {
     const api = root.dataset.api;
     let lesson = root.dataset.lesson;
@@ -166,6 +192,43 @@ function chat(root) {
     const history = root.querySelector('[data-history]');
     const retry = root.querySelector('[data-retry]');
     const mode = root.querySelector('[data-mode]');
+    const quickPrompts = root.querySelectorAll('[data-quick-prompt]');
+    const creditBadge = root.querySelector('[data-credit-balance]');
+    const clearWelcome = () => root.querySelector('.lesson-chat-welcome')?.remove();
+    const messageContainer = role => {
+        const row = document.createElement('div');
+        const template = root.querySelector('[data-chat-avatar="' + role + '"]');
+        if (!template) return { row, body: row };
+        row.className = 'lesson-message lesson-message--' + role;
+        row.setAttribute('aria-label', role === 'tutor' ? 'Gia sư AI' : 'Bạn');
+        row.append(template.content.cloneNode(true));
+        const body = document.createElement('div');
+        body.className = 'lesson-message-bubble';
+        const content = document.createElement('div');
+        content.className = 'lesson-message-content';
+        content.append(body);
+        row.append(content);
+        return { row, body };
+    };
+    const learnerMessage = (text, sentAt) => {
+        if (!root.querySelector('[data-chat-avatar="learner"]')) {
+            const node = paragraph(history, 'Bạn: ' + text);
+            messageTime(node, sentAt);
+            return node;
+        }
+        const { row, body } = messageContainer('learner');
+        paragraph(body, text);
+        messageTime(row, sentAt);
+        history.append(row);
+        return row;
+    };
+    let followHistory = true;
+    history.addEventListener('scroll', () => {
+        followHistory = history.scrollHeight - history.scrollTop - history.clientHeight < 80;
+    });
+    new MutationObserver(() => {
+        if (followHistory) history.scrollTop = history.scrollHeight;
+    }).observe(history, { childList: true, subtree: true, characterData: true });
     let storageKey = 'tai-chat:' + root.dataset.actor + ':' + lesson;
     let conversation = null, pending = null, busy = false;
     try {
@@ -180,6 +243,7 @@ function chat(root) {
     form.elements.message.addEventListener('input', save);
     const controls = state => {
         busy = state;
+        quickPrompts.forEach(button => { button.disabled = state || pending !== null; });
         form.querySelector('button[type="submit"]').disabled = state || pending !== null;
         retry.disabled = state;
         retry.hidden = pending === null;
@@ -219,11 +283,12 @@ function chat(root) {
             history.replaceChildren();
             mode.value = data.conversation.teaching_mode;
             for (const message of data.messages) {
-                paragraph(history, 'Bạn: ' + message.user_content);
-                const block = document.createElement('div');
-                history.append(block);
-                paragraph(block, 'Gia sư: ' + (message.content ?? message.status));
+                learnerMessage(message.user_content, message.created_at);
+                const { row, body: block } = messageContainer('tutor');
+                history.append(row);
+                paragraph(block, (row === block ? 'Gia sư: ' : '') + (message.content ?? message.status));
                 sources(message, block);
+                messageTime(row, message.completed_at);
                 if (pending && message.request_id === pending.request_id && message.status === 'completed') {
                     pending = null;
                 }
@@ -236,7 +301,7 @@ function chat(root) {
         if (busy) return;
         controls(true);
         status(root, 'Đang xử lý… Không gửi lại bằng mã yêu cầu mới khi kết nối gián đoạn.');
-        const block = document.createElement('div');
+        const { row, body: block } = messageContainer('tutor');
         const output = paragraph(block, '');
         try {
             if (!conversation) {
@@ -245,15 +310,17 @@ function chat(root) {
                 save();
             }
             if (!pending) {
-                pending = { message: form.elements.message.value, request_id: crypto.randomUUID(), idempotency_key: crypto.randomUUID() };
+                pending = { message: form.elements.message.value, request_id: crypto.randomUUID(), idempotency_key: crypto.randomUUID(), sent_at: new Date().toISOString() };
                 save();
             }
-            paragraph(history, 'Bạn: ' + pending.message);
-            history.append(block);
+            clearWelcome();
+            followHistory = true;
+            const learnerRow = learnerMessage(pending.message, pending.sent_at);
+            history.append(row);
             const response = await fetch(api + '/conversations/' + conversation + '/messages', {
                 method: 'POST', credentials: 'same-origin',
                 headers: { Accept: 'text/event-stream', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
-                body: JSON.stringify(pending),
+                body: JSON.stringify({ message: pending.message, request_id: pending.request_id, idempotency_key: pending.idempotency_key }),
             });
             if (!response.ok || !response.headers.get('content-type')?.includes('text/event-stream')) {
                 const data = await response.json();
@@ -275,8 +342,13 @@ function chat(root) {
                     if (event === 'error') throw new Error(data.code);
                     if (event === 'completed') {
                         completed = true;
+                        if (creditBadge && data.credit_balance !== undefined) {
+                            creditBadge.textContent = data.credit_balance === null ? 'Credit không giới hạn' : 'Còn ' + data.credit_balance + ' credit';
+                        }
                         output.textContent = data.content;
                         sources(data, block);
+                        messageTime(learnerRow, data.created_at);
+                        messageTime(row, data.completed_at);
                         status(root, 'Hoàn tất · Credit đã dùng: ' + (data.metadata?.credit_units ?? 0)
                             + (data.credit_balance !== null ? ' · Số dư: ' + data.credit_balance : '')
                             + (data.metadata?.missing_sources ? ' · Chưa có nguồn Knowledge phù hợp.' : ''));
@@ -292,6 +364,12 @@ function chat(root) {
         } finally { controls(false); }
     }
     form.addEventListener('submit', event => { event.preventDefault(); if (!pending) send(); });
+    quickPrompts.forEach(button => button.addEventListener('click', () => {
+        if (busy || pending) return;
+        form.elements.message.value = button.dataset.quickPrompt;
+        save();
+        form.requestSubmit();
+    }));
     retry.addEventListener('click', send);
     root.querySelector('[data-reload]').addEventListener('click', reload);
     root.querySelector('[data-export]').addEventListener('click', () => {
@@ -317,6 +395,15 @@ function chat(root) {
         }
         finally { controls(false); }
     });
+    const refreshTimes = () => history.querySelectorAll('[data-message-time]').forEach(time => {
+        const label = formatMessageTime(time.dateTime);
+        if (time.textContent !== label) time.textContent = label;
+    });
+    const timeRefresh = setInterval(() => {
+        if (!root.isConnected) { clearInterval(timeRefresh); return; }
+        refreshTimes();
+    }, 60000);
+    document.addEventListener('visibilitychange', refreshTimes);
     controls(false);
     const ready = reload();
     return {

@@ -2,6 +2,9 @@
 @section('content')
 <x-ai-tutor::widget :course-id="(string) $course->id" :lesson-id="(string) $lesson->id" />
 <div class="w-full space-y-6">
+    <div style="display:flex;justify-content:flex-end">
+        @include('lessons.partials.layout-toggle', ['tutorLayout' => false])
+    </div>
     <a href="{{ route('courses.show', $course->id) }}" class="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 rounded-full transition-colors">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         <span class="truncate">{{ $course->title }}</span>
@@ -100,12 +103,13 @@
             @php
                 $isActDone = in_array($activity->id, $completedActivityIds ?? []);
                 $canTrial = (bool) $activity->is_free_trial;
-                $isLocked = ($isTrialMode ?? false) && !$canTrial;
+                $isLocked = !($canPreviewAsStaff ?? (auth()->user()->isAdmin() || auth()->user()->isTeacher()))
+                    && ((($isTrialMode ?? false) && !$canTrial) || !$activity->isAvailable());
             @endphp
             @if($isLocked)
                 {{-- Visible but unclickable locked activity --}}
                 <div class="card-dark p-3.5 sm:p-4 flex items-center justify-between gap-3 rounded-xl sm:rounded-2xl border border-slate-800/80 bg-slate-900/40 opacity-60 cursor-not-allowed select-none"
-                     title="Hoạt động này không mở học thử. Vui lòng ghi danh khóa học để tham gia.">
+                     title="Hoạt động yêu cầu ghi danh hợp lệ và phải trong thời gian được phép truy cập.">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
                         {{-- Activity Type Icon (Locked) --}}
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm bg-slate-800/90 text-gray-400 border border-slate-700/60">

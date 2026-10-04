@@ -1,11 +1,16 @@
-@extends('layouts.app')
+@extends(request()->boolean('embedded') ? 'layouts.activity-embedded' : 'layouts.app')
 
 @section('content')
 <div class="w-full space-y-4 sm:space-y-6" x-data="activityTelemetry({{ $activity->id }}, {{ ($isActivityCompleted ?? false) ? 'true' : 'false' }}, {{ ($isTrialMode ?? false) ? 'true' : 'false' }})" x-init="startTracking()">
+    @unless(request()->boolean('embedded'))
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
     <a href="{{ route('lessons.show', $lesson->id) }}" class="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 rounded-full transition-colors">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         <span class="truncate max-w-xs">{{ $lesson->title }}</span>
     </a>
+        @include('lessons.partials.layout-toggle', ['tutorLayout' => false, 'toggleActivityId' => $activity->id, 'toggleText' => 'Chuyển giao diện'])
+    </div>
+    @endunless
 
     @if($isTrialMode ?? false)
         <div class="p-4 rounded-2xl bg-gradient-to-r from-teal-500/15 via-indigo-500/15 to-blue-500/15 border border-teal-500/30 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg backdrop-blur-md">
@@ -122,6 +127,9 @@ function activityTelemetry(activityId, initialCompleted, isTrialMode = false) {
                 }
                 if (data.success) {
                     this.isCompleted = true;
+                    if (window.parent !== window) {
+                        window.parent.postMessage({ type: 'lesson-activity-completed', activityId: this.activityId }, window.location.origin);
+                    }
                     let msg = '🎉 ' + (data.message || 'Hoạt động đã được đánh dấu hoàn thành!');
                     if (data.reward && data.reward.xp_earned) {
                         msg += `\n⚡ +${data.reward.xp_earned} XP | +${data.reward.coins_earned} Coins | 🔥 Streak: ${data.reward.streak_count} ngày`;
