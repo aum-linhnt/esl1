@@ -117,9 +117,10 @@ class EnrollmentService
     public function checkAccess(User $user, Course|int $course): array
     {
         $courseId = $course instanceof Course ? $course->id : $course;
+        $course = $course instanceof Course ? $course : Course::findOrFail($courseId);
         $enrollment = $user->getEnrollment($courseId);
 
-        if ($user->isAdmin() || $user->isTeacher()) {
+        if ($course->canPreviewFor($user, $enrollment)) {
             return [
                 'has_access' => true,
                 'is_enrolled' => (bool) $enrollment,
@@ -133,12 +134,12 @@ class EnrollmentService
         $isEnrolled = $enrollment !== null;
         $isSuspended = $enrollment?->isSuspended() ?? false;
         $isExpired = $enrollment?->isExpired() ?? false;
-        $hasAccess = $isEnrolled && !$isSuspended && !$isExpired;
+        $hasAccess = $course->is_published && $enrollment && $enrollment->hasValidAccess();
 
         return [
             'has_access' => $hasAccess,
             'is_enrolled' => $isEnrolled,
-            'is_manager' => $enrollment?->canGradeStudents() ?? false,
+            'is_manager' => $course->canPreviewFor($user, $enrollment),
             'is_suspended' => $isSuspended,
             'is_expired' => $isExpired,
             'enrollment' => $enrollment,

@@ -102,6 +102,24 @@ class Course extends Model
 
     // ─── Enrollment & Visibility Helpers ───
 
+    public function canPreviewFor(User $user, ?Enrollment $enrollment = null): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+        if ($user->isTeacher() && $user->id !== null && $this->created_by !== null
+            && (string) $this->created_by === (string) $user->id) {
+            return true;
+        }
+
+        return $enrollment !== null
+            && $this->id !== null && $user->id !== null
+            && (string) $enrollment->course_id === (string) $this->id
+            && (string) $enrollment->user_id === (string) $user->id
+            && $enrollment->hasValidAccess()
+            && $enrollment->canGradeStudents();
+    }
+
     public function activeEnrollmentsCount(): int
     {
         return $this->enrollments()->whereIn('status', ['active', 'completed'])->count();
@@ -187,5 +205,3 @@ class Course extends Model
         return url('storage/' . $this->thumbnail);
     }
 }
-
-

@@ -27,6 +27,9 @@ class CourseController extends Controller
     {
         $user = $request->user();
         $course = Course::with('lessons.activities')->findOrFail($courseId);
+        $enrollment = $user->getEnrollment($courseId);
+        $canPreviewAsStaff = $course->canPreviewFor($user, $enrollment);
+        abort_unless($canPreviewAsStaff || $course->is_published, 404);
 
         $allActivityIds = $course->lessons->flatMap->activities->where('is_visible', true)->pluck('id');
         $completedActivityIds = \App\Models\ActivityCompletion::where('user_id', $user->id)
@@ -35,11 +38,10 @@ class CourseController extends Controller
             ->flip()
             ->all();
 
-        $enrollment = $user->getEnrollment($courseId);
         $isEnrolled = $enrollment && $enrollment->hasValidAccess();
-        $canPreviewAsStaff = $user->isAdmin() || $user->isTeacher();
 
-        $lessonsWithStatus = $course->lessons->map(function ($lesson) use ($user, $completedActivityIds, $isEnrolled, $canPreviewAsStaff) {
+        $lessons = $canPreviewAsStaff ? $course->lessons : $course->lessons->where('is_visible', true);
+        $lessonsWithStatus = $lessons->map(function ($lesson) use ($user, $completedActivityIds, $isEnrolled, $canPreviewAsStaff) {
             $visibleActs = $lesson->activities->where('is_visible', true);
             $totalActs = $visibleActs->count();
             $completedActs = $visibleActs->filter(fn($a) => isset($completedActivityIds[$a->id]))->count();
@@ -66,9 +68,9 @@ class CourseController extends Controller
         $layoutCandidates = $lessonsWithStatus->filter(function ($item) use ($enrollment, $isEnrolled, $canPreviewAsStaff) {
             return ($canPreviewAsStaff || !$enrollment || $isEnrolled)
                 && $item['unlocked']
-                && $item['lesson']->is_visible
-                && $item['lesson']->activities->contains(fn ($activity) => $activity->is_visible
-                    && ($canPreviewAsStaff || ($activity->isAvailable() && ($isEnrolled || $activity->is_free_trial))));
+                && ($canPreviewAsStaff || $item['lesson']->is_visible)
+                && $item['lesson']->activities->contains(fn ($activity) => $canPreviewAsStaff
+                    || ($activity->is_visible && $activity->isAvailable() && ($isEnrolled || $activity->is_free_trial)));
         });
         $layoutEntry = $layoutCandidates->first(fn ($item) => !$item['completed']) ?? $layoutCandidates->first();
 

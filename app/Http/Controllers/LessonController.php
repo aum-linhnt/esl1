@@ -19,7 +19,7 @@ class LessonController extends Controller
         $enrollment = $user->getEnrollment($courseId);
         $hasActiveEnrollment = $enrollment && $enrollment->hasValidAccess();
         $isTrialMode = !$hasActiveEnrollment;
-        $canPreviewAsStaff = $user->isAdmin() || $user->isTeacher();
+        $canPreviewAsStaff = $lesson->course->canPreviewFor($user, $enrollment);
 
         if ($denied = $this->checkLearningAccess($user, $lesson, $enrollment)) {
             return $denied;
@@ -31,7 +31,7 @@ class LessonController extends Controller
         $completedCount = 0;
         $isLessonCompleted = false;
 
-        $visibleActivities = $lesson->activities->where('is_visible', true)->values();
+        $visibleActivities = ($canPreviewAsStaff ? $lesson->activities : $lesson->activities->where('is_visible', true))->values();
         $totalActivities = $visibleActivities->count();
         $trialActivitiesCount = $visibleActivities->where('is_free_trial', true)->count();
 
@@ -47,11 +47,13 @@ class LessonController extends Controller
 
         // Get previous and next lessons
         $prevLesson = Lesson::where('course_id', $lesson->course_id)
+            ->when(!$canPreviewAsStaff, fn ($query) => $query->where('is_visible', true))
             ->where('order', '<', $lesson->order)
             ->orderBy('order', 'desc')
             ->first();
 
         $nextLesson = Lesson::where('course_id', $lesson->course_id)
+            ->when(!$canPreviewAsStaff, fn ($query) => $query->where('is_visible', true))
             ->where('order', '>', $lesson->order)
             ->orderBy('order', 'asc')
             ->first();
@@ -176,11 +178,10 @@ class LessonController extends Controller
     /** Shared by the lesson page and direct/embedded activity requests. */
     protected function checkLearningAccess(User $user, Lesson $lesson, ?Enrollment $enrollment, ?Activity $activity = null): ?\Illuminate\Http\RedirectResponse
     {
-        // Preserve the existing staff preview permission.
-        if ($user->isAdmin() || $user->isTeacher()) {
+        if ($lesson->course->canPreviewFor($user, $enrollment)) {
             return null;
         }
-        abort_if(!$lesson->is_visible || ($activity && !$activity->is_visible), 404);
+        abort_if(!$lesson->course->is_published || !$lesson->is_visible || ($activity && !$activity->is_visible), 404);
         if ($activity) {
             abort_unless($activity->isAvailable(), 403, 'Hoạt động chưa mở hoặc đã hết thời gian truy cập.');
         }
@@ -188,7 +189,7 @@ class LessonController extends Controller
         if ($enrollment && !$enrollment->hasValidAccess()) {
             // Revoked enrollment must never fall back to free trial access.
             $reason = 'Quyền truy cập khóa học đã hết hạn, bị đình chỉ hoặc đã hủy. Vui lòng liên hệ quản trị viên.';
-        } elseif ($enrollment && !$enrollment->canGradeStudents() && !$lesson->isUnlockedFor($user)) {
+        } elseif ($enrollment && !$lesson->isUnlockedFor($user)) {
             $reason = 'Bài học này đang bị khóa. Bạn cần hoàn thành bài học trước đó để mở khóa.';
         } elseif (!$enrollment && $activity && !$activity->is_free_trial) {
             $reason = 'Hoạt động này yêu cầu ghi danh chính thức vào khóa học để mở khóa.';

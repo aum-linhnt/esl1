@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Http\Controllers\LessonController;
 use App\Models\Activity;
+use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\User;
@@ -13,12 +14,20 @@ use Tests\TestCase;
 
 class LearningAccessTest extends TestCase
 {
-    private function check(?Enrollment $enrollment, Activity $activity, bool $unlocked = true, bool $lessonVisible = true, bool $lessonOnly = false, string $role = 'student'): mixed
+    private function check(?Enrollment $enrollment, Activity $activity, bool $unlocked = true, bool $lessonVisible = true, bool $lessonOnly = false, string $role = 'student', ?int $creatorId = null, bool $published = true): mixed
     {
         $user = new User(['role' => $role]);
+        $user->id = 1;
+        $course = new Course(['created_by' => $creatorId, 'is_published' => $published]);
+        $course->id = 1;
+        if ($enrollment) {
+            $enrollment->user_id = 1;
+            $enrollment->course_id = 1;
+        }
         $lesson = Mockery::mock(Lesson::class)->makePartial();
         $lesson->course_id = 1;
         $lesson->is_visible = $lessonVisible;
+        $lesson->setRelation('course', $course);
         $lesson->shouldReceive('isUnlockedFor')->andReturn($unlocked);
         $controller = new class extends LessonController {
             public function check($user, $lesson, $enrollment, $activity) { return $this->checkLearningAccess($user, $lesson, $enrollment, $activity); }
@@ -82,12 +91,42 @@ class LearningAccessTest extends TestCase
         $this->assertNull($this->check(new Enrollment(['status' => 'active', 'course_role' => 'student']), $this->activity(['is_free_trial' => false])));
     }
 
-    public function test_staff_can_preview_paid_and_scheduled_activities_without_enrollment(): void
+    public function test_admin_and_creator_can_preview_paid_and_scheduled_activities_without_enrollment(): void
     {
         foreach (['admin', 'teacher'] as $role) {
             $activity = $this->activity(['is_free_trial' => false, 'available_from' => now()->addDay()]);
-            $this->assertNull($this->check(null, $activity, unlocked: false, role: $role));
-            $this->assertNull($this->check(null, $activity, unlocked: false, lessonOnly: true, role: $role));
+            $this->assertNull($this->check(null, $activity, unlocked: false, role: $role, creatorId: 1, published: false));
+            $this->assertNull($this->check(null, $activity, unlocked: false, lessonOnly: true, role: $role, creatorId: 1, published: false));
+        }
+    }
+
+    public function test_unrelated_teacher_has_learner_access(): void
+    {
+        $this->assertNull($this->check(null, $this->activity(), role: 'teacher', creatorId: 2));
+        $this->assertSame(302, $this->check(null, $this->activity(['is_free_trial' => false]), role: 'teacher', creatorId: 2)->getStatusCode());
+        $enrollment = new Enrollment(['status' => 'active', 'course_role' => 'student']);
+        $this->assertNull($this->check($enrollment, $this->activity(['is_free_trial' => false]), role: 'teacher', creatorId: 2));
+        $this->assertSame(302, $this->check($enrollment, $this->activity(), unlocked: false, role: 'teacher', creatorId: 2)->getStatusCode());
+    }
+
+    public function test_assigned_staff_can_preview_only_with_valid_enrollment(): void
+    {
+        foreach (['teacher', 'assistant', 'manager'] as $courseRole) {
+            $enrollment = new Enrollment(['status' => 'active', 'course_role' => $courseRole]);
+            $activity = $this->activity(['is_free_trial' => false, 'available_from' => now()->addDay()]);
+            $this->assertNull($this->check($enrollment, $activity, unlocked: false, role: 'teacher', creatorId: 2));
+            $enrollment->status = 'suspended';
+            $this->assertSame(302, $this->check($enrollment, $this->activity(), role: 'teacher', creatorId: 2)->getStatusCode());
+        }
+    }
+
+    public function test_unrelated_teacher_cannot_preview_unpublished_course(): void
+    {
+        try {
+            $this->check(null, $this->activity(), role: 'teacher', creatorId: 2, published: false);
+            $this->fail('Unpublished course was accessible.');
+        } catch (HttpException $error) {
+            $this->assertSame(404, $error->getStatusCode());
         }
     }
 }

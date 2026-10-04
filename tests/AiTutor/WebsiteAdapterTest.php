@@ -77,6 +77,8 @@ final class WebsiteAdapterTest extends FoundationTestCase
         Schema::create('courses', function (Blueprint $t) {
             $t->id();
             $t->string('level')->nullable();
+            $t->unsignedBigInteger('created_by')->nullable();
+            $t->boolean('is_published')->default(true);
         });
         Schema::create('lessons', function (Blueprint $t) {
             $t->id();
@@ -166,6 +168,28 @@ final class WebsiteAdapterTest extends FoundationTestCase
         $auth->shouldReceive('user')->once()->andReturn($user);
         Auth::swap($auth);
         $this->assertSame('1', (new WebsiteActorResolver)->resolve()->id);
+    }
+
+    public function test_teacher_context_requires_ownership_or_valid_assignment_for_paid_summary(): void
+    {
+        $adapter = new WebsiteLmsAdapter;
+        $knowledge = new WebsiteKnowledgeSourceAdapter;
+        DB::table('users')->where('id', 1)->update(['role' => 'teacher']);
+        DB::table('courses')->where('id', 1)->update(['created_by' => 2]);
+        $this->assertTrue($adapter->canAccessLesson('1', '1'));
+        $this->assertStringNotContainsString('Paid lesson summary', $adapter->getLessonContext('1', '1')->content);
+        $this->assertFalse($knowledge->canReadLesson('1', '1'));
+        DB::table('activities')->where('id', 1)->update(['is_free_trial' => false]);
+        $this->assertFalse($adapter->canAccessLesson('1', '1'));
+        DB::table('courses')->where('id', 1)->update(['created_by' => 1]);
+        $this->assertTrue($adapter->canAccessLesson('1', '1'));
+        $this->assertStringContainsString('Paid lesson summary', $adapter->getLessonContext('1', '1')->content);
+        DB::table('courses')->where('id', 1)->update(['created_by' => 2]);
+        DB::table('enrollments')->insert(['user_id' => 1, 'course_id' => 1, 'status' => 'active', 'course_role' => 'teacher']);
+        $this->assertTrue($knowledge->canReadLesson('1', '1'));
+        DB::table('enrollments')->where('user_id', 1)->update(['status' => 'suspended']);
+        $this->assertFalse($adapter->canAccessLesson('1', '1'));
+        $this->assertFalse($knowledge->canReadLesson('1', '1'));
     }
 
     protected function tearDown(): void

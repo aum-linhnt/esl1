@@ -3,7 +3,7 @@
 @php
     $tabs = ['lesson' => ['play', 'Bài học'], 'vocabulary' => ['cards', 'Từ vựng'], 'practice' => ['clipboard', 'Bài tập'], 'resources' => ['document', 'Tài liệu']];
     $percent = $totalActivities > 0 ? round($completedCount / $totalActivities * 100) : 0;
-    $canPreviewAsStaff = $canPreviewAsStaff ?? (auth()->user()->isAdmin() || auth()->user()->isTeacher());
+    $canPreviewAsStaff = $canPreviewAsStaff ?? $course->canPreviewFor(auth()->user(), $enrollment ?? null);
 @endphp
 <div class="learning-workspace" x-data="{ tab: @js($initialTab), tutorOpen: false }" @keydown.escape.window="tutorOpen = false" :class="{ 'tutor-is-open': tutorOpen }">
     <aside class="learning-sidebar" aria-label="Điều hướng khóa học">
@@ -62,7 +62,7 @@
             </section>
         @endforeach
         <div class="learning-summary-grid">
-            <section><span>@include('ai-tutor::partials.icon', ['name' => 'target', 'size' => 20])</span><div><h2>Nội dung bài học</h2><p>{{ (!$isTrialMode || $lesson->is_free_trial || auth()->user()->isAdmin() || auth()->user()->isTeacher()) && $lesson->summary ? strip_tags($lesson->summary) : 'Hoàn thành các hoạt động trong bài và hỏi gia sư khi bạn cần giải thích thêm.' }}</p></div></section>
+            <section><span>@include('ai-tutor::partials.icon', ['name' => 'target', 'size' => 20])</span><div><h2>Nội dung bài học</h2><p>{{ (!$isTrialMode || $lesson->is_free_trial || $canPreviewAsStaff) && $lesson->summary ? strip_tags($lesson->summary) : 'Hoàn thành các hoạt động trong bài và hỏi gia sư khi bạn cần giải thích thêm.' }}</p></div></section>
             <section><span>@include('ai-tutor::partials.icon', ['name' => 'check', 'size' => 20])</span><div><h2>Học theo tốc độ của bạn</h2><p>{{ $totalActivities }} hoạt động{{ $lesson->estimated_minutes ? ' · Khoảng '.$lesson->estimated_minutes.' phút' : '' }}. Tiến trình được ghi nhận theo điều kiện hoàn thành của từng hoạt động.</p></div></section>
         </div>
     </main>

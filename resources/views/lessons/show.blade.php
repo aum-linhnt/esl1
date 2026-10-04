@@ -103,7 +103,7 @@
             @php
                 $isActDone = in_array($activity->id, $completedActivityIds ?? []);
                 $canTrial = (bool) $activity->is_free_trial;
-                $isLocked = !($canPreviewAsStaff ?? (auth()->user()->isAdmin() || auth()->user()->isTeacher()))
+                $isLocked = !($canPreviewAsStaff ?? $course->canPreviewFor(auth()->user(), $enrollment ?? null))
                     && ((($isTrialMode ?? false) && !$canTrial) || !$activity->isAvailable());
             @endphp
             @if($isLocked)

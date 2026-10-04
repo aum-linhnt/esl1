@@ -61,20 +61,21 @@ class Lesson extends Model
 
     public function isUnlockedFor(User $user): bool
     {
-        // System admin, teachers always have access
-        if ($user->isAdmin() || $user->isTeacher()) {
+        if ($user->isAdmin()) {
             return true;
         }
 
-        // Must be enrolled with valid active access
         $enrollment = $user->getEnrollment($this->course_id);
-        if (!$enrollment || !$enrollment->hasValidAccess()) {
+        if ($this->course->canPreviewFor($user, $enrollment)) {
+            return true;
+        }
+        if (!$this->course->is_published || !$this->is_visible) {
             return false;
         }
 
-        // Course instructors / managers bypass lesson completion requirements
-        if ($enrollment->canGradeStudents()) {
-            return true;
+        // Learners must be enrolled with valid access.
+        if (!$enrollment || !$enrollment->hasValidAccess()) {
+            return false;
         }
 
         // First lesson is unlocked once enrolled

@@ -3,6 +3,7 @@
 namespace App\Integrations\AiTutor;
 
 use App\Models\Lesson;
+use App\Models\Course;
 use App\Models\QuestionBank;
 use App\Models\User;
 use TDSoft\AiTutor\Contracts\LmsContextAdapter;
@@ -19,13 +20,13 @@ final class WebsiteLmsAdapter implements LmsContextAdapter
         if (! $user || ! $lesson || $user->isBlocked() || $user->isTrialExpired()) {
             return false;
         }
-        if ($user->isAdmin() || $user->isTeacher()) {
+        $enrollment = $user->getEnrollment($lesson->course_id);
+        if ($lesson->course->canPreviewFor($user, $enrollment)) {
             return true;
         }
-        if (! $lesson->is_visible) {
+        if (! $lesson->course->is_published || ! $lesson->is_visible) {
             return false;
         }
-        $enrollment = $user->getEnrollment($lesson->course_id);
         if ($enrollment && ! $enrollment->hasValidAccess()) {
             return false;
         }
@@ -41,7 +42,7 @@ final class WebsiteLmsAdapter implements LmsContextAdapter
         $lesson = Lesson::with('course')->findOrFail($lessonId);
         $user = User::findOrFail($userId);
         $enrollment = $user->getEnrollment($lesson->course_id);
-        $fullAccess = $user->isAdmin() || $user->isTeacher() || ($enrollment && $enrollment->hasValidAccess());
+        $fullAccess = $lesson->course->canPreviewFor($user, $enrollment) || ($enrollment && $enrollment->hasValidAccess());
         // Never serialize activity content or question-bank records containing answer keys.
         $content = (string) $lesson->title;
         if ($fullAccess || $lesson->is_free_trial) {
@@ -61,7 +62,8 @@ final class WebsiteLmsAdapter implements LmsContextAdapter
         }
         $user = User::findOrFail($userId);
         $enrollment = $user->getEnrollment((int) $context->courseId);
-        $fullAccess = $user->isAdmin() || $user->isTeacher() || ($enrollment && $enrollment->hasValidAccess());
+        $fullAccess = Course::findOrFail($context->courseId)->canPreviewFor($user, $enrollment)
+            || ($enrollment && $enrollment->hasValidAccess());
         $activities = Lesson::findOrFail($lessonId)->activities()->where('is_visible', true)->where('type', 'quiz')->get();
         $belongs = $activities->contains(function ($activity) use ($questionId, $fullAccess) {
             $content = $activity->content;

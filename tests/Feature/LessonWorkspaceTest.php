@@ -60,7 +60,7 @@ class LessonWorkspaceTest extends TestCase
 
     private function data(bool $trial = false): array
     {
-        $course = new Course(['title' => 'English B1']);
+        $course = new Course(['title' => 'English B1', 'created_by' => 1]);
         $course->id = 1;
         $lesson = new Lesson(['title' => 'Present Perfect', 'summary' => 'PRIVATE_LESSON_SUMMARY', 'order' => 1]);
         $lesson->id = 2;
@@ -135,5 +135,21 @@ class LessonWorkspaceTest extends TestCase
         ]);
         $view->assertSee('data-lesson="2"', false)->assertSee('Còn 37 credit')
             ->assertSee('data-quick-prompt', false)->assertSee('data-retry', false);
+    }
+
+    public function test_unrelated_teacher_cannot_see_paid_summary_or_activity_links(): void
+    {
+        auth()->user()->forceFill(['role' => 'teacher']);
+        $data = $this->data(true);
+        $data['course']->created_by = 2;
+        $this->view('lessons.tutor', $data)
+            ->assertDontSee('PRIVATE_LESSON_SUMMARY')
+            ->assertDontSee('data-activity-frame', false)
+            ->assertSee('aria-disabled="true"', false);
+        $data['activities'] = collect([$data['selectedActivity']]);
+        $data['trialActivitiesCount'] = 0;
+        $data['isLessonCompleted'] = false;
+        $this->view('lessons.show', $data)
+            ->assertDontSee('href="'.route('activities.show', 3).'"', false);
     }
 }

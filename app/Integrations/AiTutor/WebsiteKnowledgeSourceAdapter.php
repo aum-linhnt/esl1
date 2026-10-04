@@ -22,7 +22,7 @@ final class WebsiteKnowledgeSourceAdapter implements KnowledgeSourceAdapter
         }
         $enrollment = $user->getEnrollment($lesson->course_id);
 
-        return $user->isAdmin() || $user->isTeacher() || $lesson->is_free_trial
+        return $lesson->course->canPreviewFor($user, $enrollment) || $lesson->is_free_trial
             || ($enrollment && $enrollment->hasValidAccess());
     }
 
