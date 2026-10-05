@@ -12,6 +12,8 @@ use Illuminate\Foundation\Testing\WithCachedRoutes;
 
 abstract class TestCase extends BaseTestCase
 {
+    private static ?string $compiledViews = null;
+
     public function createApplication()
     {
         $app = require Application::inferBasePath().'/bootstrap/app.php';
@@ -25,7 +27,16 @@ abstract class TestCase extends BaseTestCase
         if (isset(CachedState::$cachedRoutes, $this->traitsUsedByTest[WithCachedRoutes::class])) {
             $app->booting(fn () => $this->markRoutesCached($app));
         }
-        $app->afterBootstrapping(LoadConfiguration::class, fn ($app) => TestDatabaseSafety::enforce($app['config']));
+        $app->afterBootstrapping(LoadConfiguration::class, function ($app) {
+            TestDatabaseSafety::enforce($app['config']);
+            self::$compiledViews ??= sys_get_temp_dir().'/esl1-phpunit-views-'.bin2hex(random_bytes(8));
+            if (! is_dir(self::$compiledViews) && ! mkdir(self::$compiledViews, 0700, true)) {
+                throw new \RuntimeException('Cannot create isolated PHPUnit view cache');
+            }
+            // CLI tests often run as root while HTTP runs as application.
+            // Never let test compilation create root-owned files in the live cache.
+            $app['config']->set('view.compiled', self::$compiledViews);
+        });
         $app->make(Kernel::class)->bootstrap();
 
         return $app;

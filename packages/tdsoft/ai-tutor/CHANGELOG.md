@@ -1,5 +1,26 @@
 # Changelog
 
+## Phase 4 — unreleased foundation
+
+- Add English profile/task validation, immutable practice rubric versions,
+  forward assessment schema, preflight checks and evidence-aware score validation.
+- Add website test bootstrap/connection guard before RefreshDatabase; isolate
+  all environment sources to SQLite memory and skip legacy MySQL-only MODIFY there.
+- Add Writing draft/revision services, immutable submission/prompt snapshots,
+  owner/context/exam guards, async assessment jobs and session/CSRF API.
+- OpenAI Writing assessments use a separate configured model and strict JSON schema;
+  output validation occurs after usage settlement, with evidence/span checks.
+- Stable-ID replay, confirmed safe retry and admin reconciliation integration;
+  no duplicate charge/completion event, fabricated scores or gradebook writes.
+- Forward migration 000008 adds execution snapshots; no live migration applied.
+- Add Writing Studio pages with word count, autosave/conflict comparison, credit
+  confirmation, durable same-ID recovery, Unicode-safe issue fixes and light/dark mobile UI.
+- Add owner-filtered paginated draft/assessment history and read-only request lookup.
+- Add isolated mock Writing preview and browser smoke; no new UI migration.
+- Writing export/delete, legacy route cutover, Speaking and full release verification remain pending.
+  See [PHASE4.md](PHASE4.md), including the baseline database incident and
+  successful recovery from the approved 10:52 database backup.
+
 ## Current-question quiz chat — unreleased
 
 - Server snapshots at quiz start and question chat for inline/manual/random quizzes.

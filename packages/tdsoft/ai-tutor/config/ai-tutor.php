@@ -15,6 +15,10 @@ return [
     ],
     'providers' => ['openai' => OpenAiProvider::class],
     'embedding_model' => env('AI_DEFAULT_EMBEDDING_MODEL', ''),
+    'writing' => [
+        'model' => env('AI_WRITING_MODEL', ''),
+        'max_output_tokens' => (int) env('AI_WRITING_MAX_OUTPUT_TOKENS', 4000),
+    ],
     'knowledge' => [
         'min_similarity' => 0.25,
         'top_k' => 5,
