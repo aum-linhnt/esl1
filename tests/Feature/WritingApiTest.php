@@ -42,7 +42,10 @@ final class WritingApiTest extends TestCase
     public function test_writing_pages_render_editor_without_embedding_learner_content_as_html(): void
     {
         $this->withoutVite();
-        $this->get('/ai-tutor/writing')->assertOk()->assertSee('Writing Studio')->assertSee('data-writing-editor', false);
+        $this->get('/ai-tutor/writing')->assertOk()->assertSee('Writing Studio')->assertSee('data-writing-editor', false)
+            ->assertSee(auth()->user()->name)->assertSee(auth()->user()->email)
+            ->assertSee('sidebarOpen', false)->assertSee('data-ai-tutor-root', false)
+            ->assertDontSee('tai-writing-brand', false)->assertDontSee('tai-license-standalone', false);
         $draft = $this->draft();
         $this->get('/ai-tutor/writing/'.$draft['id'])->assertOk()->assertSee('data-draft="'.$draft['id'].'"', false)
             ->assertDontSee('I like reading books.', false);

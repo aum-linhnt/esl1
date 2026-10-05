@@ -32,6 +32,7 @@ return [
         'conversation_days' => (int) env('AI_CONVERSATION_RETENTION_DAYS', 365),
     ],
     'ui' => [
+        'writing_layout' => 'ai-tutor::layouts.tutor',
         'asset_entries' => [],
         'launcher_position' => env('AI_TUTOR_LAUNCHER_POSITION', 'bottom-right'),
         'lesson_chat_mode' => env('AI_TUTOR_LESSON_CHAT_MODE', 'drawer'),

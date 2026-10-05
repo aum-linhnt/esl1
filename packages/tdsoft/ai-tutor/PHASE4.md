@@ -189,6 +189,426 @@ Live HTTP checks returned 200 and byte-for-byte matches for Writing JS/SCSS
 and app JS; Laravel's Vite helper resolves the new manifest paths. No database
 or license configuration was changed for this asset update.
 
+## Unified Writing UI — light/dark layout and results
+
+- One responsive view/session for both themes: draft metrics, topic and plain-text
+  editor on the left; assessment panel on the right; stacked on smaller screens.
+- Circular overall practice score and criterion meters use API values on the
+  existing 0–100 scale. Missing scores display a dash and no filled meter;
+  actual zero remains a scored criterion. No conversion to an IELTS band.
+- Accessible keyboard-operated tabs separate AI feedback from detailed fixes.
+  Each fix shows original/replacement text and explanation, preserving verified
+  UTF-16 application checks and text-only rendering. Tab selection survives edits.
+- Empty/pending/error status, actual credit usage/balance, revision and autosave
+  state remain visible. No fake timer, rich-text controls or unimplemented AI
+  features were added. Navigation returns to the LMS or opens a new draft.
+- Verification: production Vite build; 31 JS tests; focused website tests
+  9 tests / 88 assertions in guarded SQLite memory with isolated view cache;
+  isolated Chrome smoke including themes, keyboard tabs, missing-vs-zero scores,
+  autosave, interrupted-submit recovery, Unicode fixes, conflicts and mobile.
+- Local assets built under `/tmp/esl1-writing-redesign-final` and published under
+  `public/build/assets-writing-ui` with an atomic manifest replacement. Previous
+  manifest saved at `/tmp/esl1-writing-ui-manifest-before.json`; previous assets
+  preserved. No migration, provider call or `.env` change for this UI revision.
+
+## Unified entry and draft workspace
+
+- The entry page now opens the same two-column workspace as existing drafts.
+  Setup (profile/task/feedback language/topic) sits above the editor in the left
+  column. The right result panel remains visible, with empty scores and guidance.
+- Before creation, the editor and save/assessment controls are disabled. Target
+  selection updates the metric immediately. “Bắt đầu viết” creates a draft using
+  the existing API, replaces setup with its saved topic and enables/focuses the
+  editor without leaving the workspace. History remains below the workspace.
+- No backend/schema/provider changes. Browser smoke covers the initial panel,
+  disabled controls, target preview, mobile width and the in-place transition,
+  alongside all existing recovery/autosave/theme tests. JS 31 tests and focused
+  SQLite PHP suite 9 tests / 88 assertions pass.
+- Assets built in `/tmp/esl1-writing-unified-final`, copied to
+  `public/build/assets-writing-unified`; verified manifest replaced atomically,
+  with the previous manifest at `/tmp/esl1-writing-unified-manifest-before.json`.
+
+## LMS shell integration for Writing
+
+- The website sets `ai-tutor.ui.writing_layout=layouts.app` in its integration
+  provider. Writing reuses the existing LMS sidebar, header, account menu,
+  branding and navigation rather than drawing a separate brand/account header.
+- The shared LMS layout has a head stack to load Writing's configured Vite
+  entries. Package users retain the standalone default layout; other hosts can
+  choose a layout with a content section and head stack.
+- Writing theme tokens are scoped to its content root. The LMS shell retains
+  its current styling; switching Writing's theme preserves editor state.
+  Container queries collapse the editor/result columns when sidebar width
+  reduces available content space.
+- Focused website tests assert the authenticated user's real name/email and
+  LMS sidebar are rendered, and the standalone brand/header is absent.
+  SQLite/view-cache isolation remains in force (9 tests / 94 assertions).
+- Assets built in `/tmp/esl1-writing-lms-verified` and published to
+  `public/build/assets-writing-lms`. Previous manifest retained at
+  `/tmp/esl1-writing-lms-manifest-before.json`. No database or `.env` changes.
+
+## Writing readability and initial guidance
+
+- Compact setup fields and larger helper text/placeholder text; the existing
+  LMS header/sidebar and account integration are preserved.
+- Before grading, the result panel shows a three-step guide instead of an empty
+  score ring and tabs. Completed results reveal criteria, score and fix tabs.
+- Before draft creation, actions are hidden. Save appears for unsynced edits;
+  refresh appears for a submission or pending request. Recovery/retry safeguards
+  and autosave remain unchanged. History pagination hides on a single page and
+  the duplicate new-draft link was removed.
+- Validation: 31 JS tests, 9 guarded SQLite PHP tests / 94 assertions, isolated
+  browser smoke for initial visibility, creation, themes, recovery, Unicode fixes,
+  keyboard tabs and narrow LMS content. No paid provider call or DB change.
+- Verified Vite assets published to `public/build/assets-writing-polish`; previous
+  manifest backed up at `/tmp/esl1-writing-polish-manifest-before.json`.
+
+## Compact pre-writing state
+
+- Disabled editor starts at 96px, with ancillary editor UI hidden until a draft
+  is loaded. Creation expands the editor and retains all existing save safeguards.
+- Routine success/instruction banners are hidden; errors remain visible with
+  live status announcements. Draft/assessment state remains in existing panels.
+- Task 1 input guidance only appears for IELTS Task 1, updating when framework
+  or task changes. Empty-state robot SVG centered explicitly for LMS CSS resets.
+- Empty first-page history is a compact row; populated history/pagination retain
+  existing behavior. LMS header/sidebar unchanged as requested.
+- Production Vite build and extended isolated browser smoke pass: compact editor,
+  conditional task guidance, creation/expansion, mobile, themes and recovery.
+  Assets published under `public/build/assets-writing-compact`, previous manifest
+  saved at `/tmp/esl1-writing-compact-manifest-before.json`.
+
+## Exact quote recovery for Writing fixes
+
+- Incorrect model offsets can recover from an exact quote only when it appears
+  once in the immutable assessed essay. Server computes UTF-16 positions from
+  the UTF-8 prefix. Missing/ambiguous quotes never enable replacement; valid
+  exact offsets still disambiguate repeated quotes. No fuzzy matching.
+- Blank/whitespace replacements are feedback-only; UI omits their apply button
+  and labels them as manual feedback, preventing accidental essay deletion.
+- Result GET revalidates stored issues so earlier completed submissions benefit
+  without rewriting immutable results, scores, billing or invoking a provider.
+- Read-only verification of Admin #1's latest actual assessment confirmed both
+  grammar fixes are now applicable, while blank coherence feedback stays manual.
+  No additional credit spent. Existing overlap/manual-edit guards stay intact.
+- Validation: package 141 tests / 907 assertions, Writing JS 14 tests, production
+  Vite build, extended isolated browser smoke including blank replacement UI.
+  Assets published in `public/build/assets-writing-spans`; prior manifest saved
+  at `/tmp/esl1-writing-spans-manifest-before.json`.
+
+## Visible background assessment failures
+
+- Failed result polling now displays a persistent accessible alert from the
+  known error-code message map. Credit shortage explains that the draft is
+  preserved and the learner should contact an administrator to add credits.
+- Failed assessments no longer show the misleading waiting-for-results guidance.
+  Balance zero remains visible as zero. Unknown failure codes use a safe generic
+  message without exposing provider bodies. No automatic funding or paid retry.
+- Read-only audit confirmed Admin #1 balance=0 and latest failure code
+  AI_CREDIT_INSUFFICIENT. No extra credit granted or provider call performed.
+- Writing JS 14 tests, production Vite build and extended mock browser smoke
+  pass, including insufficient-credit polling alert and draft preservation.
+  Assets published in `public/build/assets-writing-credit-ui`, prior manifest
+  saved at `/tmp/esl1-writing-credit-ui-manifest-before.json`.
+
+## Insufficient-credit popup
+
+- Native modal dialog opens for AI_CREDIT_INSUFFICIENT from direct actions or
+  a failed background result. It explains how to add credit through the admin
+  and that the draft remains saved. The persistent panel error stays visible.
+- Each failing request is shown once per page session, so edits/polling/refresh
+  do not repeatedly open the popup. Keyboard focus moves into the dialog; close
+  button and Escape use native dialog semantics. Theme uses Writing tokens.
+- Production build and isolated browser smoke passed, including focused close
+  control, dismissal and no repeat popup after refreshing the same failure.
+  No provider call, credit grant or DB change. Assets published under
+  `public/build/assets-writing-credit-popup`; previous manifest backed up at
+  `/tmp/esl1-writing-credit-popup-manifest-before.json`.
+
+## Writing confirmation modals
+
+- All four browser confirm calls in Writing replaced with an accessible native
+  dialog styled with Writing light/dark tokens: paid submit, confirmed paid retry,
+  keeping local conflict text, and discarding local text for the server version.
+- Promises resolve only after the modal closes. Cancel/Escape resolve false;
+  initial focus is on Cancel. Duplicate triggers cannot replace an outstanding
+  confirmation. Existing cost/retry/ownership/idempotency safeguards unchanged.
+- The browser's unsaved-work beforeunload prompt remains browser-managed.
+- Vite build, Writing JS 14 tests and extended browser smoke pass, including
+  cancel/Escape sending zero paid POSTs, modal-confirmed submit/retry/conflict
+  resolution, credit popup, themes and mobile. No live credit/provider call.
+  Assets published under `public/build/assets-writing-modals`, previous manifest
+  saved at `/tmp/esl1-writing-modals-manifest-before.json`.
+
+## Writing visual refinement
+
+- Added title icon, compact setup section heading, consistent surface shading,
+  lighter typography for inputs, distinct metric icons and stronger topic/result
+  accents. Editor height adapts to viewport rather than oversized row height;
+  the compact pre-draft state remains intact. Modal spacing and controls align
+  with the same light/dark design. No change to existing LMS shell/account.
+- Responsive typography/spacing and reduced-motion preference preserved.
+  Theme, content and control state are unchanged by styling.
+- Verified Vite build, website Writing API/view tests (6 / 81 assertions), and
+  isolated browser smoke for themes, mobile, modal confirmations/cancellation,
+  credit popup, autosave, recovery and fixes. No real provider call or DB change.
+- Assets published to `public/build/assets-writing-visual`; previous manifest
+  saved at `/tmp/esl1-writing-visual-manifest-before.json`.
+
+## Writing UI — compact editor and grouped feedback
+
+- Keep the existing LMS header, sidebar, branding and account controls.
+- Move target, save status, word count and revision into the editor header;
+  remove the three separate metric cards. Use a wider editor column and a
+  larger score ring with navy surfaces in dark mode and matching light mode.
+- Show actual issue counts grouped by category in the assessment overview.
+  Clicking a group opens detailed feedback filtered to that category. Filter
+  chips support all issues or a single category, preserve selection while
+  editing the same result, and reset when a different result is displayed.
+- Keep verified sentence replacement, confirmation dialogs, credit handling,
+  responsive layout and safe text rendering intact.
+- Validation: 14 Writing JavaScript tests, 6 guarded SQLite Writing API tests
+  / 81 assertions, isolated browser smoke and production Vite build passed.
+  No provider calls, credit grants or database changes for this revision.
+- Published assets under `public/build/assets-writing-grouped`; previous
+  manifest backup: `/tmp/esl1-writing-grouped-manifest-before.json`.
+
+## Writing UI — collapsible AI feedback
+
+- Compact AI feedback card shows four lines by default, with an accessible
+  “Xem thêm / Thu gọn” button only when the text overflows. Full feedback stays
+  available as safe text; expansion persists while editing the same result
+  and resets for a different result. Resize observation handles narrow layouts.
+- Validation: 14 Writing JavaScript tests, production build and isolated browser
+  smoke passed, including expand/collapse, preservation across category changes,
+  short feedback without a toggle, light/dark and mobile. No provider calls or
+  database changes. Assets published under `public/build/assets-writing-feedback`.
+
+## Writing UI — restored summary cards
+
+- Restore target, live word count and draft save status as three cards directly
+  above the prompt in the compose column. Move their existing data selectors
+  from the editor header to the cards so each value remains a single live field.
+- Keep compact, expandable AI feedback and existing LMS navigation.
+- Validation: isolated browser smoke and guarded SQLite Writing API tests
+  (6 tests / 81 assertions) passed. Template-only change uses existing assets.
+
+## Writing UI — compact prompt card
+
+- Restyle the prompt with a small document icon, soft purple background and
+  compact typography. Keep the summary cards above it and the existing LMS shell.
+- Add an accessible “Xem gợi ý / Thu gọn gợi ý” disclosure containing general
+  writing guidance. This guidance is static and uses no AI call or credit.
+- Validation: production build and isolated browser smoke passed, including
+  opening/closing guidance, light/dark, mobile and existing submission flows.
+  Published assets: `public/build/assets-writing-prompt`.
+
+## Writing UI — editable document toolbar
+
+- Replace the textarea with a contenteditable document and toolbar: undo/redo,
+  paragraph/headings, bold, italic, underline, strikethrough, ordered/unordered
+  lists, live word count and expanded editing (Escape exits). Use shared SVG
+  icons and display save status below the document.
+- Keep plain-text revision storage and provider input. Formatting applies while
+  composing and is not persisted by the current backend; reload or automatic
+  sentence replacement reconstructs plain text. Toolbar is disabled before
+  draft creation and while the session is busy or unavailable.
+- Extract text from DOM block boundaries explicitly to preserve empty lines
+  without layout-dependent innerText duplicates. Paste accepts plain text only;
+  dropping external content is blocked. AI output is still rendered as text.
+- Validation: 14 Writing JS tests, 6 guarded SQLite API tests / 81 assertions,
+  production build and isolated browser smoke passed. Browser checks cover
+  multiline reload, bold, lists, HTML paste exclusion, expanded mode/Escape,
+  autosave, Unicode corrections, recovery, light/dark and mobile.
+- Published assets: `public/build/assets-writing-editor`. No provider call,
+  database migration or credit change for this UI revision.
+
+## Writing UI — saved time
+
+- Draft responses expose `updated_at` as ISO UTC; browser displays the last
+  confirmed save time as “Đã tự động lưu lúc HH:mm” in local browser time,
+  in both the summary card and editor footer. Preserve unsaved/saving/conflict
+  states and use confirmed server time for load, save, recovered PATCH and
+  conflict resolution. Missing timestamps show “Đã tự động lưu” without a
+  fabricated time.
+- Validation: 14 JS tests, 6 guarded SQLite API tests / 81 assertions,
+  production build and isolated browser smoke passed. Recovery test verifies
+  unsaved edits do not advance the saved timestamp. No migration or AI call.
+- Published assets: `public/build/assets-writing-saved-time`.
+
+## Writing UI — inline issue highlights and tooltips
+
+- CSS Custom Highlight ranges mark verified grammar issues red and other
+  verified suggestions yellow, without inserting markup into the editable
+  document. Map UTF-16 text offsets across formatted DOM nodes and block
+  boundaries using the same text extraction as autosave.
+- Hover shows category, explanation and replacement as safe text. Keyboard
+  caret movement can show the same tooltip; Escape, blur and scrolling dismiss
+  it. Tooltips adapt to theme and available width.
+- Only render highlights when current text exactly matches the assessed
+  original. Edits and sentence application clear stale markers. Unverified
+  spans remain in detailed feedback without inline marks. Browsers without
+  CSS Custom Highlight support retain the existing detailed feedback.
+- Validation: 14 Writing JS tests, production build and extended isolated
+  browser smoke passed, covering red/yellow ranges, Unicode offsets, mixed
+  formatting, safe tooltip text, stale clearing, autosave and mobile.
+- Published assets: `public/build/assets-writing-highlights`. No provider
+  request, migration or credit use for this UI revision.
+
+## Writing UI — historical submission view
+
+- Selecting an assessment history entry displays its immutable original text
+  in the editor alongside that submission's result and verified highlights.
+  Historical text is read-only; formatting, submission and automatic issue
+  application controls cannot change it. Revision and word count follow the
+  selected submission.
+- Historical selection is separate from WritingSession state. Current text,
+  pending autosave, assessment recovery and persisted result are retained.
+  “Quay lại bản nháp” restores the editable current draft and current result.
+- Validation: production build and extended isolated browser smoke passed,
+  checking old text, read-only controls, historical highlights, unchanged
+  server draft, returning to editing, reload and existing mobile/recovery flows.
+- Published assets: `public/build/assets-writing-history-view`. No AI call,
+  database migration or credit use.
+
+## Writing UI — compact editor footer
+
+- Restyle saved status/count on a soft background, align action buttons and
+  highlight the submit action. Refresh uses the existing shared SVG icon.
+- Combine the credit note and collapsed save guidance in a compact inset
+  panel. Guidance now uses the current “Đã tự động lưu” status wording.
+- Adapt controls to mobile, with the submit action spanning the available
+  width. Hide notes before starting and while viewing historical submissions.
+- Validation: production build and isolated browser smoke passed; mobile
+  screenshot reviewed. Existing save, confirmation, history and recovery
+  behavior retained. Published assets: `public/build/assets-writing-footer`.
+
+## Writing UI — adaptive editor height and single footer
+
+- Editor grows naturally with content from 220px to 450px, then scrolls;
+  expanded editing retains its larger viewport and initial disabled editor
+  remains compact. No height calculation rewrites the document or selection.
+- Combine save status and actions into one footer row, wrapping on mobile.
+  Remove duplicate word/byte text from the footer; word count remains in the
+  toolbar and summary card. Credit disclosure remains in submission/retry
+  confirmation dialogs. Save guidance opens from a small information control.
+- Validation: production build, 6 guarded SQLite API tests / 81 assertions and
+  extended isolated browser smoke passed. Short/long document sizing, internal
+  scrolling, shrinking after deletion and save guidance were verified alongside
+  historical viewing, highlighting, autosave and mobile. Screenshot reviewed.
+- Published assets: `public/build/assets-writing-compact`. No AI request or
+  database change.
+
+## Writing UI — separate save guidance card
+
+- Restore “Cách lưu bài viết” as a separate card below the editor, with the
+  full guidance visible. Remove the information popover from the footer.
+  Compact editor height and single-row actions remain in place.
+- Validation: production build and isolated browser smoke passed, including
+  visibility and position below the editor. Published assets:
+  `public/build/assets-writing-save-guide`.
+
+## Writing UI — single correction at a time
+
+- Detailed feedback displays one filtered issue at a time, with position/total
+  and previous/next controls. Category changes and new results reset the
+  position; edits retain it. Navigation preserves original issue indexes for
+  safe sentence replacement.
+- Compact red original/green suggested comparison with a directional arrow,
+  emphasis on changed words and a tinted explanation panel. Narrow mobile
+  layouts stack the comparison. All provider text still uses safe text nodes.
+- Preserve category filters, manual-only feedback and read-only historical
+  views. Apply only verified replacements to the current editable draft.
+- Validation: 14 Writing JS tests, production build and extended isolated
+  browser smoke passed, including navigation limits, filters, manual feedback,
+  historical views and sentence application.
+- Published assets: `public/build/assets-writing-issue-carousel`.
+
+## Writing UI — shared SVG icons
+
+- Replace character-based toolbar symbols, navigation arrows, comparison arrow,
+  feedback disclosure arrows and new-draft plus with shared outline SVG icons.
+  Dynamic controls clone trusted Blade icon templates; provider strings remain
+  text only. Decorative SVGs are aria-hidden and buttons retain their labels.
+- Validation: production build and isolated browser smoke passed, including
+  toolbar actions, feedback expansion, issue navigation, hover and mobile.
+- Published assets: `public/build/assets-writing-svg`.
+
+## Writing UI — corrections in assessment overview
+
+- Show the same “Gợi ý chỉnh sửa câu” card at the bottom of the overview tab,
+  after assessment feedback and issue groups. Both tabs share the filtered
+  issue position, pagination and safe application logic. Hide the overview
+  correction block when no assessed issues exist.
+- Preserve read-only historical viewing and render provider strings as text.
+  Navigation icons use the shared SVG templates.
+- Validation: production build and extended isolated browser smoke passed,
+  including overview pagination and existing detail/apply/history/mobile flows.
+- Published assets: `public/build/assets-writing-overview-corrections`.
+
+## Writing UI — assessment history rows
+
+- Compact history rows show an SVG document icon, revision, creation time,
+  colored assessment status and view action. Latest row is labelled on the
+  first page. Selected history row uses aria-pressed and “Đang xem”; returning
+  to the current draft clears selection. Keep repeated revisions as separate
+  assessment attempts and preserve pagination.
+- Submission listing returns ISO timestamps for consistent browser-local
+  date/time display. Rows adapt to narrow screens without horizontal overflow.
+- Validation: production build, 6 guarded SQLite API tests / 81 assertions and
+  isolated browser smoke passed. Selected state, timestamps and return to draft
+  were verified; mobile screenshot reviewed.
+- Published assets: `public/build/assets-writing-history-polish`.
+
+## Writing UI — strengths and improvements
+
+- Add green “Điểm tốt” and amber “Cần cải thiện” panels after AI feedback,
+  with shared SVG icons, safe bullet text and light/dark surfaces.
+- New execution snapshots request essay-grounded strengths and improvements
+  in the chosen feedback language. Validate up to five non-empty strings per
+  field and retain them in existing result JSON; no migration is needed.
+- Older snapshots/results remain supported. Missing strengths show an explicit
+  no-data message; missing improvements use existing issue explanations. Do
+  not infer praise from scores or automatically regrade historical submissions.
+- Validation: Writing backend suite 16 tests / 93 assertions, production build
+  and isolated browser smoke passed. Mock UI checks confirm both panels.
+- Published assets: `public/build/assets-writing-feedback-points`. No actual
+  provider call, new credit grant or migration during this change.
+
+## Writing UI — two-line feedback previews
+
+- Add a shared sparkle SVG to the AI feedback heading. Default feedback and
+  improvements previews show at most two lines, with accessible expand/collapse
+  controls when content overflows. Improvements keep full bullet content and
+  expansion state during edits; new results reset the state.
+- Validation: production build and isolated browser smoke passed, including
+  SVG heading, two-line CSS and improvements expand/collapse.
+- Published assets: `public/build/assets-writing-two-lines`.
+
+## Writing UI — correction actions
+
+- Add SVG action buttons below sentence corrections in both tabs: view errors,
+  show improvement guidance, and resubmit. View errors opens the assessed
+  original in detailed feedback; improvement guidance expands existing points
+  in the overview without a provider call. IELTS uses “Gợi ý nâng band”, other
+  frameworks use “Gợi ý cải thiện”.
+- Resubmit follows the existing session eligibility and credit-confirmation
+  modal; it is disabled for unchanged drafts and historical views. Mobile
+  layouts stack the actions.
+- Validation: production build and extended isolated browser smoke passed,
+  including guidance expansion, original error view and cancelling resubmission
+  without another POST. Published assets: `public/build/assets-writing-result-actions`.
+
+## Writing UI — shared actions outside result card
+
+- Move the three correction actions into a single shared row below and outside
+  the result card. Keep it visible for assessed results across both tabs,
+  including assessments without issues. Existing eligibility and confirmation
+  behavior remain intact.
+- Validation: production build and isolated browser smoke passed, verifying
+  the row is outside any card, visible in both tabs, and submit exists once.
+- Published assets: `public/build/assets-writing-shared-actions`.
+
 ## Data contracts
 
 - Rubric snapshot records version ID, criteria, prompt version and fingerprint;

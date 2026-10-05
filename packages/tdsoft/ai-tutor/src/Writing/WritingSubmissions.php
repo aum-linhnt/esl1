@@ -127,12 +127,19 @@ final class WritingSubmissions
         $this->access->owned($record, true);
         $billing = DB::table('tutor_ai_requests')->where('request_id', $record->request_id)->first();
 
+        $result = $record->result ? json_decode($record->result, true, flags: JSON_THROW_ON_ERROR) : null;
+        if ($result !== null) {
+            // Revalidate stored feedback for old submissions without rewriting scores,
+            // billing records or provider responses and without another AI call.
+            $result['issues'] = WritingIssues::validate($result['issues'], $record->original);
+        }
+
         return ['id' => $record->id, 'draft_id' => $record->draft_id, 'revision' => (int) $record->revision,
             'original' => $record->original, 'status' => $record->status, 'error_code' => $record->error_code,
             'recovery' => $this->recovery($record), 'request_id' => $record->request_id, 'idempotency_key' => $record->idempotency_key,
             'feature' => $record->feature, 'retry_of_submission_id' => $record->retry_of_submission_id,
             'rubric' => json_decode($record->rubric_snapshot, true, flags: JSON_THROW_ON_ERROR),
-            'result' => $record->result ? json_decode($record->result, true, flags: JSON_THROW_ON_ERROR) : null,
+            'result' => $result,
             'provider' => $record->provider, 'model' => $record->model,
             'credit_units' => $billing?->actual_units,
             'credit_balance' => DB::table('tutor_ai_credit_accounts')->where('owner_type', 'learner')
@@ -155,7 +162,7 @@ final class WritingSubmissions
         return ['data' => $rows->take(20)->map(fn ($row) => [
             'id' => $row->id, 'revision' => (int) $row->revision, 'status' => $row->status,
             'request_id' => $row->request_id, 'retry_of_submission_id' => $row->retry_of_submission_id,
-            'created_at' => $row->created_at,
+            'created_at' => \Illuminate\Support\Carbon::parse($row->created_at)->toISOString(),
         ])->all(), 'page' => $page, 'next_page' => $rows->count() > 20 ? $page + 1 : null];
     }
 
@@ -200,6 +207,19 @@ final class WritingSubmissions
             }
             unset($criterion);
             $result['issues'] = WritingIssues::validate($data['issues'] ?? null, $record->original);
+            foreach (['strengths', 'improvements'] as $field) {
+                // Older execution snapshots did not request these fields.
+                $points = $data[$field] ?? [];
+                if (! is_array($points) || ! array_is_list($points) || count($points) > 5) {
+                    throw new AiException('AI_ASSESSMENT_RESULT_INVALID');
+                }
+                foreach ($points as $point) {
+                    if (! is_string($point) || trim($point) === '' || strlen($point) > 2000) {
+                        throw new AiException('AI_ASSESSMENT_RESULT_INVALID');
+                    }
+                }
+                $result[$field] = array_map('trim', $points);
+            }
             DB::transaction(function () use ($record, $rubric, $result, $response) {
                 $current = $this->record($record->id, true);
                 $this->access->owned($current, true);

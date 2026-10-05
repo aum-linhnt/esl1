@@ -56,10 +56,13 @@ test('typing while autosave is in flight does not lose later edits', async () =>
 test('lost PATCH response reconciles exact saved content without another write', async () => {
     const f = setup(); await f.session.load(); f.session.edit('Durable updated essay.');
     f.setHook(async (_, method, body) => {
-        if (method === 'PATCH') { f.setDraft({ content: body.content, revision: 2 }); throw new Error('WRITING_CONNECTION'); }
+        if (method === 'PATCH') { f.setDraft({ content: body.content, revision: 2, updated_at: '2026-10-05T03:24:00Z' }); throw new Error('WRITING_CONNECTION'); }
     });
     await f.session.save(); assert.equal(f.session.revision, 2); assert.equal(f.session.dirty, false);
     assert.equal(f.calls.filter(c => c.method === 'PATCH').length, 1);
+    assert.equal(f.session.savedAt, '2026-10-05T03:24:00Z');
+    f.session.edit('A later unsaved change.');
+    assert.equal(f.session.savedAt, '2026-10-05T03:24:00Z');
 });
 
 test('revision conflict preserves local editor and requires explicit resolution', async () => {

@@ -23,6 +23,7 @@
         }
     </style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('head')
 </head>
 <body class="bg-fsel-dark text-white min-h-screen antialiased selection:bg-indigo-500 selection:text-white overflow-x-hidden max-w-full" 
       x-data="{ sidebarOpen: window.innerWidth >= 1024, chatOpen: false, showChatBubble: true }"

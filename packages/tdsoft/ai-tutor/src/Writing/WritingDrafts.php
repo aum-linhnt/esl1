@@ -43,7 +43,8 @@ final class WritingDrafts
 
         return ['id' => $draft->id, 'revision' => (int) $draft->revision, 'content' => $draft->content,
             'profile' => json_decode($draft->profile, true, flags: JSON_THROW_ON_ERROR), 'task' => $draft->task,
-            'topic' => $draft->topic, 'lesson_id' => $draft->lesson_id, 'course_id' => $draft->course_id];
+            'topic' => $draft->topic, 'lesson_id' => $draft->lesson_id, 'course_id' => $draft->course_id,
+            'updated_at' => \Illuminate\Support\Carbon::parse($draft->updated_at)->toISOString()];
     }
 
     public function listing(int $page = 1): array

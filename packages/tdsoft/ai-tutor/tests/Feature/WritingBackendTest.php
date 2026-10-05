@@ -80,7 +80,8 @@ final class WritingBackendTest extends FoundationTestCase
     {
         $data ??= ['criteria' => array_fill_keys(array_keys($this->rubric['criteria']),
             ['status' => 'assessed', 'score' => 70, 'evidence' => ['I likes']]),
-            'feedback' => 'Practice agreement.', 'issues' => [['category' => 'grammar', 'start_utf16' => 2,
+            'feedback' => 'Practice agreement.', 'strengths' => ['The topic is stated clearly.'],
+            'improvements' => ['Check subject agreement.'], 'issues' => [['category' => 'grammar', 'start_utf16' => 2,
                 'end_utf16' => 7, 'original' => 'likes', 'replacement' => 'like', 'explanation' => 'Subject agreement.']]];
         $this->provider->response = new AiResponse(json_encode($data, JSON_THROW_ON_ERROR), 'mock', 'mock-writing', ['input_tokens' => 20, 'output_tokens' => 30]);
     }
@@ -121,6 +122,8 @@ final class WritingBackendTest extends FoundationTestCase
         $result = $this->writing()->get($submission['id']);
         $this->assertSame('completed', $result['status']);
         $this->assertSame(70.0, (float) $result['result']['overall_score']);
+        $this->assertSame(['The topic is stated clearly.'], $result['result']['strengths']);
+        $this->assertSame(['Check subject agreement.'], $result['result']['improvements']);
         $this->assertSame(1, $this->provider->calls);
         $this->assertCount(1, $this->events);
         $this->assertSame($submission['id'], $this->events[0]->eventId);
@@ -292,15 +295,34 @@ final class WritingBackendTest extends FoundationTestCase
         $this->assertCount(1, $this->events);
     }
 
-    public function test_invalid_unicode_spans_are_feedback_only_and_valid_spans_are_exact(): void
+    public function test_wrong_offsets_recover_only_unique_exact_quotes_with_utf16_offsets(): void
     {
         $issues = WritingIssues::validate([
             ['category' => 'grammar', 'start_utf16' => 5, 'end_utf16' => 10, 'original' => 'likes', 'replacement' => 'like', 'explanation' => 'Fix'],
             ['category' => 'grammar', 'start_utf16' => 3, 'end_utf16' => 8, 'original' => 'likes', 'replacement' => 'like', 'explanation' => 'Wrong offset'],
         ], '😀 I likes reading.');
         $this->assertTrue($issues[0]['applicable']);
-        $this->assertFalse($issues[1]['applicable']);
-        $this->assertNull($issues[1]['start_utf16']);
+        $this->assertTrue($issues[1]['applicable']);
+        $this->assertSame(5, $issues[1]['start_utf16']);
+        $this->assertSame(10, $issues[1]['end_utf16']);
+    }
+
+    public function test_ambiguous_missing_quotes_and_blank_replacements_remain_feedback_only(): void
+    {
+        $base = ['category' => 'grammar', 'start_utf16' => -1, 'end_utf16' => -1,
+            'original' => 'likes', 'replacement' => 'like', 'explanation' => 'Fix'];
+        $issues = WritingIssues::validate([$base, [...$base, 'original' => 'absent'],
+            [...$base, 'original' => 'I', 'replacement' => '  ']], 'I likes books and likes music.');
+        foreach ($issues as $issue) {
+            $this->assertFalse($issue['applicable']);
+            $this->assertNull($issue['start_utf16']);
+        }
+        $exact = WritingIssues::validate([[...$base, 'start_utf16' => 2, 'end_utf16' => 7]], 'I likes books and likes music.');
+        $this->assertTrue($exact[0]['applicable']);
+        $empty = WritingIssues::validate([[...$base, 'start_utf16' => 2, 'end_utf16' => 7, 'replacement' => '']], 'I likes books.');
+        $this->assertFalse($empty[0]['applicable']);
+        $overlap = WritingIssues::validate([[...$base, 'original' => 'aa']], 'aaa');
+        $this->assertFalse($overlap[0]['applicable']);
     }
 
     public function test_model_cannot_invent_text_evidence(): void

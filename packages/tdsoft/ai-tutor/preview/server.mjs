@@ -101,7 +101,7 @@ const server = http.createServer(async (req, res) => {
                 if (!d[2] && req.method === 'GET') return json(res, draft);
                 if (!d[2] && req.method === 'PATCH') {
                     const data = await body(req); if (data.revision !== draft.revision) return fail(res, 'AI_WRITING_REVISION_CONFLICT');
-                    if (data.content !== draft.content) { draft.revision++; draft.content = data.content; }
+                    if (data.content !== draft.content) { draft.revision++; draft.content = data.content; draft.updated_at = stamp(); }
                     return json(res, draft);
                 }
                 if (d[2] === 'submissions' && req.method === 'GET') return json(res, paginate([...writingSubmissions.values()].reverse()
@@ -115,8 +115,9 @@ const server = http.createServer(async (req, res) => {
                     const submission = { id: randomUUID(), draft_id: draft.id, original: draft.content, revision: draft.revision,
                         request_id: data.request_id, idempotency_key: data.idempotency_key, status: failure ? 'failed' : 'completed',
                         recovery: failure ? 'new_attempt' : 'completed', created_at: stamp(), credit_units: failure ? 0 : 1, credit_balance: failure ? 100 : 99,
-                        result: failure ? null : { overall_score: 70, feedback: 'Nhận xét giả: kiểm tra subject–verb agreement. <script>Không thực thi HTML</script>',
+                        result: failure ? null : { overall_score: 70, feedback: 'Nhận xét giả: kiểm tra subject–verb agreement. <script>Không thực thi HTML</script> ' + 'Hãy bổ sung ví dụ cụ thể, liên kết các ý và kiểm tra cách chia động từ để bài viết rõ ràng hơn. '.repeat(6),
                             criteria: { grammar: { score: 70 }, vocabulary: { score: 75 }, coherence: { score: 65 }, task_response: { score: 70 } },
+                            strengths: ['Bài viết nêu rõ sở thích và có ví dụ cụ thể.'], improvements: ['Kiểm tra cách chia động từ theo chủ ngữ.'],
                             issues: pos >= 0 ? [{ category: 'grammar', start_utf16: pos, end_utf16: pos + 5, original: 'likes', replacement: 'like', explanation: 'Dùng I like, không dùng I likes.', applicable: true }] : [] } };
                     writingSubmissions.set(submission.id, submission); return json(res, submission, 202);
                 }
