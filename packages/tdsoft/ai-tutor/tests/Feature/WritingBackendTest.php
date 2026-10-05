@@ -335,6 +335,34 @@ final class WritingBackendTest extends FoundationTestCase
         $this->assertSame(0, DB::table('tutor_ai_assessment_scores')->count());
     }
 
+    public function test_wrapped_evidence_is_recovered_and_unsupported_criteria_are_unscored(): void
+    {
+        $criteria = array_fill_keys(array_keys($this->rubric['criteria']),
+            ['status' => 'assessed', 'score' => 80, 'evidence' => ['"I likes" (should be "I like")']]);
+        $unsupported = array_key_last($criteria);
+        $criteria[$unsupported]['evidence'] = ['Discusses the topic with clear examples.'];
+        $this->validResponse(['criteria' => $criteria, 'feedback' => 'Feedback', 'issues' => []]);
+        $submission = $this->submit($this->draft());
+        $this->writing()->process($submission['id']);
+        $result = $this->writing()->get($submission['id']);
+        $this->assertSame('completed', $result['status']);
+        $this->assertNull($result['result']['overall_score']);
+        $this->assertSame(['status' => 'not_available', 'score' => null, 'evidence' => []], $result['result']['criteria'][$unsupported]);
+        unset($criteria[$unsupported]);
+        foreach (array_keys($criteria) as $key) {
+            $this->assertSame(['I likes'], $result['result']['criteria'][$key]['evidence']);
+        }
+        $this->assertSame(1, $this->provider->calls);
+    }
+
+    public function test_evidence_recovery_keeps_only_literal_original_text(): void
+    {
+        $criteria = ['grammar' => ['status' => 'assessed', 'score' => 70,
+            'evidence' => ['Uses “I likes” and \'reading books\'.', '"I LIKES"', '"invented words"']]];
+        $result = \TDSoft\AiTutor\Writing\WritingEvidence::validate($criteria, 'I likes reading books.');
+        $this->assertSame(['I likes', 'reading books'], $result['grammar']['evidence']);
+    }
+
     public function test_job_contains_only_id_and_reauthenticates_persisted_owner(): void
     {
         $submission = $this->submit($this->draft());

@@ -3,6 +3,7 @@ const tasks = { cefr: ['cefr_writing'], toeic: ['cefr_writing'], ielts: ['ielts_
 const taskNames = { cefr_writing: 'CEFR Writing', ielts_task_1: 'IELTS Task 1', ielts_task_2: 'IELTS Task 2' };
 const criterionNames = { grammar: 'Ngữ pháp', vocabulary: 'Từ vựng', coherence: 'Mạch lạc', task_response: 'Đáp ứng đề bài', style: 'Phong cách' };
 const errorText = code => ({
+    AI_ASSESSMENT_EVIDENCE_INVALID: 'AI chưa cung cấp dẫn chứng khớp với bài viết nên lượt chấm chưa có kết quả hợp lệ. Bản nháp vẫn được giữ. Nếu thử lại, thao tác có thể dùng thêm credit.',
     AI_WRITING_REVISION_CONFLICT: 'Bản nháp đã thay đổi ở nơi khác. Bài đang soạn được giữ lại; hãy so sánh hai phiên bản.',
     WRITING_CONNECTION: 'Mất kết nối. Nội dung và mã yêu cầu được giữ lại; kết nối lại rồi cập nhật trạng thái.',
     WRITING_STORAGE: 'Không lưu được trạng thái trong trình duyệt. Hãy sao chép bài viết trước khi đóng tab; chưa gửi đánh giá.',

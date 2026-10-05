@@ -609,6 +609,23 @@ or license configuration was changed for this asset update.
   the row is outside any card, visible in both tabs, and submit exists once.
 - Published assets: `public/build/assets-writing-shared-actions`.
 
+## Writing — literal evidence recovery
+
+- Provider evidence sometimes contains quoted essay text plus commentary.
+  Recover only literal substrings inside quote wrappers; exclude parenthetical
+  correction suffixes. Never accept paraphrases, invented text or fuzzy matches.
+- Criteria without any valid evidence become unavailable; recalculate overall
+  with the existing complete-rubric rule. Entirely unsupported claimed scores
+  still fail with AI_ASSESSMENT_EVIDENCE_INVALID. Prompt now explicitly requires
+  exact standalone essay substrings without explanations or quotation wrappers.
+- Add a Vietnamese browser message for the evidence error.
+- Validation: 18 backend tests / 102 assertions, 6 API tests / 81 assertions
+  and production build passed. Read-only verification of the failing cached
+  IELTS response recovered three criteria; task response remains unavailable
+  and overall null. Historical failure state is unchanged; no provider call,
+  credit grant or paid retry was performed.
+- Published assets: `public/build/assets-writing-evidence`.
+
 ## Data contracts
 
 - Rubric snapshot records version ID, criteria, prompt version and fingerprint;

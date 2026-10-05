@@ -198,14 +198,8 @@ final class WritingSubmissions
             }
             $rubric = json_decode($record->rubric_snapshot, true, flags: JSON_THROW_ON_ERROR);
             $result = AssessmentResult::fromArray($data, new RubricDefinition($rubric['criteria']), ['text'])->toArray();
-            foreach ($result['criteria'] as &$criterion) {
-                foreach ($criterion['evidence'] as $quote) {
-                    if (! str_contains($record->original, $quote)) {
-                        throw new AiException('AI_ASSESSMENT_EVIDENCE_INVALID');
-                    }
-                }
-            }
-            unset($criterion);
+            $result['criteria'] = WritingEvidence::validate($result['criteria'], $record->original);
+            $result = AssessmentResult::fromArray($result, new RubricDefinition($rubric['criteria']), ['text'])->toArray();
             $result['issues'] = WritingIssues::validate($data['issues'] ?? null, $record->original);
             foreach (['strengths', 'improvements'] as $field) {
                 // Older execution snapshots did not request these fields.
