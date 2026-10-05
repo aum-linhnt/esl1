@@ -1,6 +1,9 @@
 @extends('layouts.app')
 @section('content')
 <x-ai-tutor::widget :course-id="(string) $course->id" :lesson-id="(string) $lesson->id" />
+@if($lesson->canManageAiTutorPolicy(auth()->user()))
+    <a href="{{ route('courses.lessons.ai-policy.edit', [$course->id, $lesson->id]) }}" class="inline-block text-sm text-indigo-400 mb-3">Cấu hình Gia sư AI</a>
+@endif
 <div class="w-full space-y-6">
     <div style="display:flex;justify-content:flex-end">
         @include('lessons.partials.layout-toggle', ['tutorLayout' => false])

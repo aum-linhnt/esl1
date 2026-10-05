@@ -37,11 +37,13 @@ final class ConversationController
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'lesson_id' => 'required|string|max:191', 'question_id' => 'nullable|string|max:191',
+            'lesson_id' => 'required|string|max:191', 'question_id' => 'nullable|string|max:191|required_with:attempt_id',
+            'attempt_id' => 'nullable|string|max:191|required_with:question_id',
             'teaching_mode' => 'sometimes|in:socratic,hints_first,explain,practice,review,exam',
+            'answer_policy' => 'prohibited', 'hint_level' => 'prohibited', 'teacher_allows_solution' => 'prohibited', 'is_exam' => 'prohibited',
         ]);
 
-        return new JsonResponse($this->tutor->create($data['lesson_id'], $data['teaching_mode'] ?? 'hints_first', $data['question_id'] ?? null), 201);
+        return new JsonResponse($this->tutor->create($data['lesson_id'], $data['teaching_mode'] ?? 'hints_first', $data['question_id'] ?? null, $data['attempt_id'] ?? null), 201);
     }
 
     public function show(string $id): JsonResponse
@@ -81,9 +83,12 @@ final class ConversationController
     {
         $data = $request->validate([
             'message' => 'required|string|max:4000', 'request_id' => 'required|uuid', 'idempotency_key' => 'required|string|max:191',
+            'retry_of_message_id' => 'nullable|uuid', 'confirm_retry' => 'required_with:retry_of_message_id|accepted',
+            'next_hint' => 'sometimes|boolean',
+            'answer_policy' => 'prohibited', 'hint_level' => 'prohibited', 'teacher_allows_solution' => 'prohibited', 'is_exam' => 'prohibited',
         ]);
         $this->tutor->conversation($id);
-        $work = fn () => $this->tutor->send($id, $data['message'], $data['request_id'], $data['idempotency_key']);
+        $work = fn () => $this->tutor->send($id, $data['message'], $data['request_id'], $data['idempotency_key'], $data['retry_of_message_id'] ?? null, (bool) ($data['next_hint'] ?? false));
         if (! str_contains($request->header('Accept', ''), 'text/event-stream')) {
             return new JsonResponse($work());
         }

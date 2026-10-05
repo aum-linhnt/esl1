@@ -5,7 +5,7 @@
     $percent = $totalActivities > 0 ? round($completedCount / $totalActivities * 100) : 0;
     $canPreviewAsStaff = $canPreviewAsStaff ?? $course->canPreviewFor(auth()->user(), $enrollment ?? null);
 @endphp
-<div class="learning-workspace" x-data="{ tab: @js($initialTab), tutorOpen: false }" @keydown.escape.window="tutorOpen = false" :class="{ 'tutor-is-open': tutorOpen }">
+<div class="learning-workspace" x-data="{ tab: @js($initialTab), tutorOpen: false }" @keydown.escape.window="tutorOpen = false" @ai-tutor-open.window="tutorOpen = true" :class="{ 'tutor-is-open': tutorOpen }">
     <aside class="learning-sidebar" aria-label="Điều hướng khóa học">
         <a class="learning-course" href="{{ route('courses.show', $course->id) }}">@include('ai-tutor::partials.icon', ['name' => 'book', 'size' => 20]) <span>{{ $course->title }}</span></a>
         <div class="learning-progress"><progress value="{{ $completedCount }}" max="{{ max(1, $totalActivities) }}"></progress><strong data-lesson-percent>{{ $percent }}%</strong></div>
@@ -13,6 +13,9 @@
         <nav class="learning-nav">
             <a href="{{ route('courses.show', $course->id) }}">@include('ai-tutor::partials.icon', ['name' => 'grid', 'size' => 20]) <span>Tổng quan khóa học</span></a>
             <a href="{{ route('lessons.show', $lesson->id) }}" aria-current="page">@include('ai-tutor::partials.icon', ['name' => 'book', 'size' => 20]) <span>Bài học hiện tại</span></a>
+            @if($lesson->canManageAiTutorPolicy(auth()->user()))
+                <a href="{{ route('courses.lessons.ai-policy.edit', [$course->id, $lesson->id]) }}">Cấu hình Gia sư AI</a>
+            @endif
             <button type="button" @click="tab = 'practice'">@include('ai-tutor::partials.icon', ['name' => 'clipboard', 'size' => 20]) <span>Bài tập</span></button>
             <button type="button" @click="tab = 'vocabulary'">@include('ai-tutor::partials.icon', ['name' => 'cards', 'size' => 20]) <span>Từ vựng</span></button>
             <button type="button" @click="tab = 'resources'">@include('ai-tutor::partials.icon', ['name' => 'document', 'size' => 20]) <span>Tài liệu</span></button>

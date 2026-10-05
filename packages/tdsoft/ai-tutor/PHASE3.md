@@ -18,8 +18,9 @@ No License Server implementation or license bypass is included.
   on every document; course-wide/global documents are not implicitly visible.
 - Authenticated tutor conversations; course/lesson/question data from the LMS adapter.
   Conversation owner checks run on read, write, source, feedback and reconnect.
-- Teaching modes and server-controlled answer policy. exam/no_answer/teacher_controlled
-  return a deterministic refusal without an AI call. Other policies are prompt constraints,
+- Teaching modes and server-controlled answer policy. exam/no_answer return a deterministic
+  refusal without an AI call. teacher_controlled uses hints_only until the LMS explicitly
+  permits full solutions, then hints_first with staged progression. Other policies are prompt constraints,
   not a formal guarantee against a model generating an answer. The adapter never supplies
   locked answer keys. Keep exam content under no_answer and answer documents excluded.
 - OpenAI Responses and embeddings, normalized usage/data DTOs, store=false for Responses,
@@ -42,7 +43,7 @@ API documentation used:
 ## Deploy on staging after backup/review
 
 Do not edit vendor; it is a Composer path symlink in this repository.
-No development/production migration was run while implementing this change.
+Apply the website and package forward migrations before enabling attempt-bound quiz chat.
 
 ~~~bash
 docker compose exec -T app php artisan ai-tutor:schema-check
@@ -50,8 +51,10 @@ docker compose exec -T app php artisan migrate --path=vendor/tdsoft/ai-tutor/dat
 docker compose exec -T app php artisan ai-tutor:schema-check
 ~~~
 
-New migration:
-2026_09_25_000003_create_tutor_ai_knowledge_conversations.php
+Forward migrations include:
+- `2026_09_25_000003_create_tutor_ai_knowledge_conversations.php`
+- Website: `2026_10_05_000002_add_question_snapshot_to_quiz_attempts.php`
+- Package: `2026_10_05_000006_add_conversation_attempt_context.php`
 
 Expected extra schema-check line after migration:
 AI Tutor knowledge/conversations: installed
@@ -120,7 +123,8 @@ docker compose exec -T app php artisan queue:work --queue=ai-tutor-knowledge,def
 
 Jobs use stable chunk request IDs. Repeated jobs do not embed or charge completed chunks again.
 Known provider failures remain failed under their original request ID; they do not silently create
-new billable attempts. After correcting configuration, deliberately create/process a new version.
+new billable attempts. Knowledge processing can retry known safe failures with a new recorded
+attempt after configuration is corrected; completed chunks are not embedded again.
 If a request is processing/reconciliation-required after a crash, inspect provider usage and local
 reservation before taking action. Do not clear reservations or reset IDs automatically.
 A crash can leave a processing record busy; resolve through operational review, not forced retry.
@@ -133,6 +137,51 @@ A crash can leave a processing record busy; resolve through operational review, 
 Session API prefix is /ai-tutor/api/v1, not /api/ai-tutor/v1: the host currently exempts /api/*
 from CSRF. All writes require session auth + CSRF; feature routes require the signed license.
 Browser cannot choose actor, answer policy, system prompt, provider, billing mode or source URLs.
+
+## Lesson answer policy and hint progression
+
+The website integration adds the forward LMS migration
+`database/migrations/2026_10_05_000001_add_ai_tutor_policy_to_lessons.php`.
+This is a WEBSITE migration, not a package migration. Apply it on reviewed staging before
+editing policy, then deploy through the normal migration process. No real database migration
+is part of implementation verification. Existing lessons default to hints_only, teacher
+solution permission false and exam mode false; no existing learning content is rewritten.
+
+Admin lesson create/edit includes policy fields. Authorized teachers can use
+`/courses/{courseId}/lessons/{lessonId}/ai-policy`, linked from both lesson layouts.
+Editing requires an active administrator, the owning teacher, or a valid course assignment
+with content-management permission (teacher/manager). Ordinary learners, assistants,
+unrelated teachers and suspended/expired assignments are rejected. The legacy lesson
+create/update endpoint checks the same permission; omitting new fields preserves settings.
+
+LessonContext now carries optional teacherAllowsSolution and isExam booleans (both false
+by default). WebsiteLmsAdapter reads these and answerPolicy from the lesson, never the chat.
+isExam or teaching mode exam overrides EVERY answer policy with no_answer and zero AI calls.
+The lesson-level exam flag remains the trusted exam policy. Random/inline questions now
+use attempt snapshots with owner, membership, status and deadline checks (step 3).
+
+| Policy | Behavior |
+| --- | --- |
+| no_answer | Deterministic refusal, no inference or credit usage |
+| hints_only | Levels 1–3 only; never authorize a full solution |
+| hints_first | Start at 1; explicit next-hint actions advance to at most 4 |
+| full_solution | Level 4 permitted immediately |
+| teacher_controlled | Hints only unless teacherAllowsSolution=true; then staged hints_first |
+
+Hint levels: 1 orientation, 2 concept/rule reminder, 3 nearest next step, 4 full worked
+solution when permitted. The message API accepts next_hint boolean; it rejects browser-supplied
+answer_policy, teacher_allows_solution, is_exam and numeric hint_level overrides. Ordinary
+messages retain the level; only a successful explicit next-hint turn advances it by one.
+Failures and same-ID replay do not advance progression; a confirmed new retry preserves the
+failed turn's stage/action. Each turn stores hint metadata and a sequence under the existing
+conversation lock, so same-second timestamps cannot reorder progress. Policy changes reset
+progress after the most recent completed turn used a different policy stamp.
+Prepared prompts are checked against current lesson context before retry; changed policies
+fail closed rather than replaying a prepared permissive prompt. Hint/source controls are
+prompt constraints; they are not a formal guarantee of model compliance.
+
+Rebuild Vite assets and restart long-lived workers after deployment. The new fields do not
+grant credit or enable AI/license by themselves.
 
 ~~~text
 GET/POST /conversations
@@ -148,9 +197,23 @@ POST     /knowledge/document-versions/{id}/process
 POST     /knowledge/document-versions/{id}/publish
 ~~~
 
-Messages POST: message, request_id UUID, idempotency_key (<=191 chars).
+Messages POST: message, request_id UUID, idempotency_key (<=191 chars), optional next_hint boolean.
 Accept: text/event-stream returns start, delta, completed or error events.
 Otherwise JSON returns the completed turn. Preserve both identifiers on retry.
+For a deliberate new chat attempt, also send retry_of_message_id UUID and confirm_retry=true.
+The server checks the original belongs to the conversation, has identical learner content,
+has a known safe failure and no outstanding reservation or charged failed request. Only one
+child attempt is allowed per failed turn; repeated submission of that child replays its result.
+The old message/request/ledger remain unchanged. Prepared RAG context is reused with current
+access/source checks, so a completed query embedding is not charged again.
+
+Each message exposes recovery: completed, same_request, new_attempt, reconciliation or blocked.
+The chat refreshes durable status after an error and before retry. A completed result clears
+the pending state without inference. An uncertain connection retains both identifiers, including
+the identifiers of a newly confirmed attempt. Known settled failures show an explicit confirmation
+before creating a potentially paid attempt in the same conversation. Unsettled/unknown outcomes
+remain blocked pending read-only refresh or administrator reconciliation; a released reconciliation
+can enable a new attempt, while a charged failed request cannot be automatically retried.
 One turn row stores learner input plus assistant result; raw encrypted prompt snapshots are never
 returned through these endpoints. Sources are filtered again when read, including after unpublish
 or permission loss. Model text is always rendered as text, not Markdown/HTML execution.
@@ -284,7 +347,7 @@ DELETE /conversations/{id}
 Frontend unit checks (no downloaded browser or real provider needed):
 
 ~~~bash
-node --test packages/tdsoft/ai-tutor/tests/js/widget.test.mjs
+node --test packages/tdsoft/ai-tutor/tests/js/*.test.mjs
 ~~~
 
 ### Still outstanding
@@ -296,12 +359,11 @@ This is a Phase 3 core slice, not a declaration that the entire V2 specification
   extraction/scanning adapters and storage/retention policy are implemented.
   The owner explicitly chose to keep upload disabled for later integration. The current
   application container has no ClamAV, pdftotext or Tesseract; no containers/tools were installed.
-- Bulk sync tiêu đề/tóm tắt đã có; đồng bộ nội dung hoạt động/file và attempt-bound
-  random/inline quiz chưa triển khai. Adapter tiếp tục từ chối ngữ cảnh không ràng buộc an toàn.
+- Bulk sync tiêu đề/tóm tắt đã có; đồng bộ nội dung hoạt động/file chưa triển khai. Random/inline quiz đã dùng snapshot của attempt đang làm; attempt cũ không có snapshot bị từ chối.
 - Speaking/Writing remain Phase 4.
 - Document/version lists currently cap at 100 entries; pagination and large-corpus administration
   remain future improvements.
-- No teacher-policy editor/profile UI or admin reconciliation UI yet.
+- Teacher policy editing and admin reconciliation UI are implemented; tutor profile UI remains future work.
 - No production OpenAI call, signed-license activation, browser E2E, MySQL concurrency test,
   large-corpus benchmark or release tag has been performed. SQLite tests do not prove MySQL locking.
 - Exact local cosine search is intended for modest per-lesson corpora. Replace VectorStore and
@@ -319,3 +381,45 @@ Tests use SQLite :memory:, fake entitlements confined to tests and fake HTTP res
 OpenAI requests or real license bypass. Coverage includes publish filtering, answer-key exclusion,
 lesson/owner revocation, duplicate billing, queue serialization/retry, native SSE parsing, CSRF
 with the host's API wildcard exclusion, safe provider errors and forward schema preservation.
+
+
+## Current-question chat (step 3)
+
+Website `POST /activities/{activityId}/attempts` creates an owned `in_progress` QuizAttempt
+with a server-resolved question snapshot for inline, manual-bank and random-bank sources.
+The browser receives that same set; starts serialize per learner and abandon the previous
+active attempt for that activity. Attempts used only for trial context do not count as grades.
+Submitting `attempt_id` updates the existing attempt instead of inserting a second completed row.
+Legacy submissions without an attempt ID remain supported and terminate outstanding context.
+
+Use `AITutor.setContext({lessonId, questionId, attemptId})`, or select “Hỏi AI về câu đang làm”.
+HTTP conversation creation requires `attempt_id` whenever `question_id` is supplied; every conversation read/send,
+context validation and core AI execution rechecks ownership, lesson/activity access, question
+membership, in-progress status and the server deadline. Completed/abandoned/timed-out attempts
+are unavailable for new tutor access. A new attempt is required; post-submit AI review is not enabled.
+Server exam policy still refuses assistance without a provider call or credit charge.
+
+Only question text and whitelisted option text enter the prompt, from the server snapshot.
+Answer keys, explanations, correctness flags and submitted answers_payload are excluded.
+Question snapshots are hidden from generic attempt JSON/history. Existing client quiz grading
+and its answer fields in the taking-quiz payload remain unchanged by this step.
+Adapters implement the optional `AttemptQuestionContextAdapter`; unsupported adapters fail closed.
+Lesson-only calls and legacy adapter/service manual-bank contracts remain compatible;
+browser question chat requires an attempt. Billing fingerprints include
+attempt identity only when supplied, preserving older idempotency keys.
+
+Drafts, conversation IDs, retries and hint progression are separate per learner/lesson/attempt/question.
+Switching cannot discard a pending request. Embedded quiz actions accept only the selected
+same-origin frame and then validate IDs through the authenticated context endpoint.
+
+Website tests now bootstrap all environment sources to SQLite `:memory:` and refuse another
+configured database before RefreshDatabase runs. One legacy MySQL-only migration skips its
+varchar alteration on SQLite, which already stores those columns as text.
+
+
+Step 3 validation (2026-10-05): focused website suite 35 tests / 187 assertions;
+package suite 109 tests / 697 assertions; four JavaScript test files pass; Vite build,
+Blade compilation and diff checks pass. Full website suite: 145 tests / 652 assertions,
+with five failures and one error outside current-question chat (exam/question skill validation,
+exam count, avatar upload, AI exercise-generator signature). Browser E2E and MySQL
+concurrency tests remain pending.

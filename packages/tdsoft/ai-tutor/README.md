@@ -33,7 +33,9 @@ Adapter ESL hỗ trợ lesson và câu hỏi bank_manual thuộc activity hiển
 Question inline/random phải gắn với attempt ở Phase 3; hiện từ chối chúng.
 Học thử không lấy summary của lesson trả phí hoặc câu hỏi trong activity trả phí.
 correct_answer, explanation và metadata đánh dấu đáp án không được đưa vào DTO.
-Teacher/admin giữ quy tắc truy cập hiện tại của LMS. Answer policy mặc định hints_only.
+Teacher/admin giữ quy tắc truy cập hiện tại của LMS. Answer policy mặc định hints_only;
+cấu hình theo bài học, quyền xem lời giải và cờ bài thi được đọc từ LMS. Xem phần
+“Lesson answer policy and hint progression” trong [PHASE3.md](PHASE3.md) để triển khai migration website.
 
 ~~~php
 $actor = app(\TDSoft\AiTutor\Contracts\ActorResolver::class)->resolve();
@@ -156,3 +158,10 @@ tạo fixture schema tối thiểu trong memory. Mock provider không gọi mạ
 Không chạy composer setup, scratch scripts hoặc database dev.
 
 Xem [UPGRADE.md](UPGRADE.md) và [CHANGELOG.md](CHANGELOG.md).
+
+
+Current-question quiz chat uses the optional `AttemptQuestionContextAdapter` and opaque
+`lessonId`, `questionId`, `attemptId` values. The host freezes questions on quiz start and
+rechecks access, owner, membership, status and deadline before chat/provider execution.
+Apply the website snapshot migration and package conversation-attempt migration before use.
+See [PHASE3.md](PHASE3.md#current-question-chat-step-3).

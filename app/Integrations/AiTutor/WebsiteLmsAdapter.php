@@ -2,16 +2,20 @@
 
 namespace App\Integrations\AiTutor;
 
-use App\Models\Lesson;
 use App\Models\Course;
+use App\Models\Lesson;
 use App\Models\QuestionBank;
+use App\Models\QuizAttempt;
 use App\Models\User;
+use App\Services\LMS\QuizAttemptContextService;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use TDSoft\AiTutor\Contracts\AttemptQuestionContextAdapter;
 use TDSoft\AiTutor\Contracts\LmsContextAdapter;
 use TDSoft\AiTutor\Core\AiException;
 use TDSoft\AiTutor\Core\LessonContext;
 use TDSoft\AiTutor\Core\QuestionContext;
 
-final class WebsiteLmsAdapter implements LmsContextAdapter
+final class WebsiteLmsAdapter implements AttemptQuestionContextAdapter, LmsContextAdapter
 {
     public function canAccessLesson(string $userId, string $lessonId): bool
     {
@@ -50,7 +54,56 @@ final class WebsiteLmsAdapter implements LmsContextAdapter
         }
 
         return new LessonContext((string) $lesson->course_id, (string) $lesson->id, $content,
-            level: (string) ($lesson->course->level ?? ''), answerPolicy: 'hints_only');
+            level: (string) ($lesson->course->level ?? ''),
+            answerPolicy: (string) ($lesson->ai_answer_policy ?? 'hints_only'),
+            teacherAllowsSolution: (bool) $lesson->ai_teacher_solution_allowed,
+            isExam: (bool) $lesson->ai_exam_mode);
+    }
+
+    public function getAttemptQuestionContext(string $userId, string $questionId, string $lessonId, string $attemptId): QuestionContext
+    {
+        $context = $this->getLessonContext($userId, $lessonId);
+        $attempt = QuizAttempt::with('activity.lesson.course')->find($attemptId);
+        if (! $attempt || (string) $attempt->user_id !== $userId || (string) $attempt->activity->lesson_id !== $lessonId) {
+            throw new AiException('AI_CONTEXT_FORBIDDEN');
+        }
+        try {
+            app(QuizAttemptContextService::class)->active(User::findOrFail($userId), $attempt->activity, $attemptId);
+        } catch (HttpException) {
+            throw new AiException('AI_CONTEXT_FORBIDDEN');
+        }
+        $question = collect($attempt->question_snapshot)->first(fn ($question) => (string) ($question['id'] ?? '') === $questionId);
+        if (! $question) {
+            throw new AiException('AI_CONTEXT_FORBIDDEN');
+        }
+        // Whitelist learner-visible text. Never derive options from correct_answer,
+        // answers_payload, explanation, grading metadata or client-supplied content.
+        $options = $question['options'] ?? [];
+        if (is_string($options)) {
+            $options = json_decode($options, true) ?: [];
+        }
+        $safeOptions = [];
+        $append = function ($values) use (&$safeOptions) {
+            foreach ((array) $values as $option) {
+                $text = is_array($option) ? ($option['text'] ?? null) : $option;
+                if (is_string($text)) {
+                    $safeOptions[] = $text;
+                }
+            }
+        };
+        if (($question['question_type'] ?? '') === 'matching') {
+            // Keep the two lists separate and unordered to avoid conveying pairings.
+            $append($options['left'] ?? []);
+            $leftCount = count($safeOptions);
+            $append($options['right'] ?? []);
+            $right = array_slice($safeOptions, $leftCount);
+            sort($right, SORT_STRING);
+            $safeOptions = array_merge(array_slice($safeOptions, 0, $leftCount), $right);
+        } else {
+            $append($options);
+        }
+
+        return new QuestionContext($questionId, $context, (string) ($question['question'] ?? $question['question_text'] ?? ''), $safeOptions);
     }
 
     public function getQuestionContext(string $userId, string $questionId, string $lessonId): QuestionContext

@@ -11,5 +11,7 @@ final readonly class LessonContext
         public string $subject = 'english',
         public string $level = '',
         public string $answerPolicy = 'hints_only',
+        public bool $teacherAllowsSolution = false,
+        public bool $isExam = false,
     ) {}
 }

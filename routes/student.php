@@ -74,6 +74,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/gradebook/{courseId}', [GradebookController::class, 'courseDetail'])->name('gradebook.show');
 
     // Activity Completion (Hoàn thành hoạt động)
+    Route::post('/activities/{activityId}/attempts', [\App\Http\Controllers\QuizAttemptController::class, 'store'])->name('activities.attempts.store');
     Route::post('/activities/{activityId}/complete', [ActivityCompletionController::class, 'complete'])->name('activities.complete');
     Route::get('/api/lesson/{lessonId}/completion-status', [ActivityCompletionController::class, 'status'])->name('api.lesson.completion');
 

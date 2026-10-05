@@ -22,6 +22,7 @@ class CourseLessonController extends Controller
             'estimated_minutes' => $request->estimated_minutes,
             'unlock_condition_score' => $request->unlock_condition_score,
             'is_free_trial' => $request->boolean('is_free_trial'),
+            ...$request->safe()->only(['ai_answer_policy', 'ai_teacher_solution_allowed', 'ai_exam_mode']),
         ]);
 
         return redirect()->route('admin.courses.show', $courseId)
@@ -41,6 +42,7 @@ class CourseLessonController extends Controller
             'estimated_minutes' => $request->estimated_minutes,
             'unlock_condition_score' => $request->unlock_condition_score,
             'is_free_trial' => $request->boolean('is_free_trial'),
+            ...$request->safe()->only(['ai_answer_policy', 'ai_teacher_solution_allowed', 'ai_exam_mode']),
         ]);
 
         return redirect()->route('admin.courses.show', $courseId)

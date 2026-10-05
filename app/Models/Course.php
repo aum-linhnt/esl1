@@ -107,6 +107,7 @@ class Course extends Model
         if ($user->isAdmin()) {
             return true;
         }
+
         if ($user->isTeacher() && $user->id !== null && $this->created_by !== null
             && (string) $this->created_by === (string) $user->id) {
             return true;

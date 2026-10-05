@@ -117,9 +117,10 @@ final class CreditAdministration
                     'error_code' => $code, 'failed_at' => now(), 'updated_at' => now(),
                 ]);
                 if (Schema::hasTable('tutor_ai_conversation_messages')) {
-                    DB::table('tutor_ai_conversation_messages')->where('request_id', $requestId)->update([
-                        'status' => 'failed', 'error_code' => $code, 'updated_at' => now(),
-                    ]);
+                    DB::table('tutor_ai_conversation_messages')->where(fn ($q) => $q->where('request_id', $requestId)
+                        ->orWhere('embedding_request_id', $requestId))->update([
+                            'status' => 'failed', 'error_code' => $code, 'updated_at' => now(),
+                        ]);
                 }
 
                 return ['decision' => $decision, 'reason' => $reason, 'reserved_units' => $reserved,

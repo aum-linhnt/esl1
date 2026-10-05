@@ -276,6 +276,7 @@
     {{-- SCREEN 1: TAKING QUIZ (CBT Practice Room Mode)                            --}}
     {{-- ========================================================================= --}}
     <div x-show="viewMode === 'taking'" x-cloak style="display: none;" class="space-y-5">
+        <button type="button" @click="askTutorForCurrentQuestion()" :disabled="!attemptId || submitting" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm">Hỏi AI về câu đang làm</button>
         
         {{-- HEADER BAR: Progress, Timer, Live Counters & Flagging --}}
         <div class="cbt-quiz-card rounded-2xl p-4 sm:p-5 shadow-xl">
@@ -868,6 +869,8 @@ function courseQuizApp() {
         finalGrade: {{ (float) ($quizFinalGrade ?? 0) }},
         currentReviewAttempt: null,
         startedAtIso: null,
+        attemptId: null,
+        startingAttempt: false,
         submitting: false,
         timeRemaining: {{ $timeLimitMinutes > 0 ? $timeLimitMinutes * 60 : 0 }},
         elapsedSeconds: 0,
@@ -1385,11 +1388,28 @@ function courseQuizApp() {
             return 'Đang cập nhật';
         },
 
-        startQuiz() {
+        async startQuiz() {
             if (!this.canAttempt) {
                 alert(`Bạn đã hết số lần làm bài cho phép (${this.maxAttempts} lần).`);
                 return;
             }
+            if (this.startingAttempt) return;
+            this.startingAttempt = true;
+            try {
+                const response = await fetch(@json(route('activities.attempts.store', $activity->id)), {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Không thể bắt đầu lần làm bài.');
+                this.rawQuestions = data.questions;
+                this.init();
+                this.attemptId = data.attempt_id;
+                this.startedAtIso = data.started_at;
+            } catch (error) {
+                alert(error.message);
+                return;
+            } finally { this.startingAttempt = false; }
             this.questions.forEach((q, idx) => {
                 if (q.question_type === 'matching') {
                     this.answers[idx] = {};
@@ -1404,13 +1424,27 @@ function courseQuizApp() {
             });
             this.currentIndex = 0;
             this.elapsedSeconds = 0;
-            this.startedAtIso = new Date().toISOString();
+
             if (this.timeLimitMinutes > 0) {
                 this.timeRemaining = this.timeLimitMinutes * 60;
             }
             this.currentReviewAttempt = null;
             this.viewMode = 'taking';
             this.startTimer();
+        },
+
+        askTutorForCurrentQuestion() {
+            if (!this.attemptId || this.submitting || this.viewMode !== 'taking') return;
+            const context = { lessonId: @json((string) $lesson->id), questionId: String(this.currentQuestion.id), attemptId: String(this.attemptId) };
+            if (window.parent !== window) {
+                window.parent.postMessage({ type: 'ai-tutor-question', activityId: @json((string) $activity->id), context }, window.location.origin);
+            } else if (document.querySelector('[data-tai-chat]')) {
+                document.dispatchEvent(new CustomEvent('ai-tutor-question', { detail: context }));
+            } else {
+                const url = new URL(@json(route('lessons.show', $lesson->id)), window.location.origin);
+                url.search = new URLSearchParams({ layout: 'tutor', activity: @json((string) $activity->id), question_id: context.questionId, attempt_id: context.attemptId });
+                window.open(url, '_blank', 'noopener');
+            }
         },
 
         openReview(attempt) {
@@ -1488,7 +1522,8 @@ function courseQuizApp() {
                     max_score: 100,
                     time_spent_seconds: this.elapsedSeconds,
                     answers_payload: payload,
-                    started_at: this.startedAtIso
+                    started_at: this.startedAtIso,
+                    attempt_id: this.attemptId
                 })
             })
             .then(r => r.json())

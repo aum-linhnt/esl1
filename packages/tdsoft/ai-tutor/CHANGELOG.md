@@ -1,5 +1,30 @@
 # Changelog
 
+## Current-question quiz chat — unreleased
+
+- Server snapshots at quiz start and question chat for inline/manual/random quizzes.
+- Attempt owner, membership, access, status and deadline rechecked at conversation and core AI execution.
+- Separate question/attempt drafts, safe context switching and same-origin iframe integration.
+- Quiz snapshot/conversation attempt migrations; submission updates the started attempt.
+- Website tests enforce SQLite in all environment sources and reject other configured databases.
+
+## Lesson answer policy — unreleased
+
+- Website lesson policy editor for administrators, owning/assigned teachers and course managers.
+- Forward LMS migration with safe existing-lesson defaults; legacy lesson updates preserve omitted policy fields.
+- Trusted LessonContext carries teacher solution permission and an exam override; browser cannot change these.
+- Explicit hint progression 1–4, policy-specific caps and immediate exam/no_answer refusal without AI charges.
+- Retry/replay preserves stage and action; policy changes reset progress and invalidate incompatible prepared contexts.
+- Next-hint controls in both chat views, mock/provider and authorization regression tests.
+
+## Chat recovery — unreleased
+
+- Same-conversation, explicitly confirmed new attempts after known safe failures and credit release.
+- Server-side recovery states, linked retry history and one child per failed turn under the conversation lock.
+- Completed-result replay and interrupted retries preserve IDs; ambiguous/unsettled outcomes stay blocked.
+- Reuse prepared RAG payloads with permission/source rechecks instead of charging query embeddings again.
+- No schema migration or change to the immutable execution/ledger replay contract; rebuild frontend assets.
+
 ## Credit admin — unreleased
 
 - Admin rule editor and additive credit grants through a dedicated LMS adapter.

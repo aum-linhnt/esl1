@@ -15,6 +15,16 @@ use TDSoft\AiTutor\Tests\FoundationTestCase;
 
 final class WebsiteAdapterTest extends FoundationTestCase
 {
+    public function test_lesson_policy_and_exam_settings_come_from_the_lms(): void
+    {
+        DB::table('lessons')->where('id', 1)->update([
+            'ai_answer_policy' => 'teacher_controlled', 'ai_teacher_solution_allowed' => true, 'ai_exam_mode' => true,
+        ]);
+        $context = (new WebsiteLmsAdapter)->getLessonContext('1', '1');
+        $this->assertSame('teacher_controlled', $context->answerPolicy);
+        $this->assertTrue($context->teacherAllowsSolution);
+        $this->assertTrue($context->isExam);
+    }
     public function test_credit_admin_identity_requires_active_admin_and_recipients_must_exist(): void
     {
         $adapter = new \App\Integrations\AiTutor\WebsiteCreditAdministrator;
@@ -88,6 +98,9 @@ final class WebsiteAdapterTest extends FoundationTestCase
             $t->integer('order')->default(1);
             $t->boolean('is_free_trial')->default(false);
             $t->boolean('is_visible')->default(true);
+            $t->string('ai_answer_policy')->default('hints_only');
+            $t->boolean('ai_teacher_solution_allowed')->default(false);
+            $t->boolean('ai_exam_mode')->default(false);
         });
         Schema::create('activities', function (Blueprint $t) {
             $t->id();

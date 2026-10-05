@@ -180,7 +180,7 @@ class Activity extends Model
      */
     public function getUserAttempts(int $userId)
     {
-        return $this->quizAttempts()->where('user_id', $userId)->get();
+        return $this->quizAttempts()->where('user_id', $userId)->where('status', QuizAttempt::STATUS_COMPLETED)->get();
     }
 
     /**
@@ -188,7 +188,7 @@ class Activity extends Model
      */
     public function getUserLatestAttempt(int $userId): ?QuizAttempt
     {
-        return $this->quizAttempts()->where('user_id', $userId)->latest('attempt_number')->first();
+        return $this->quizAttempts()->where('user_id', $userId)->where('status', QuizAttempt::STATUS_COMPLETED)->latest('attempt_number')->first();
     }
 
     /**
@@ -196,7 +196,7 @@ class Activity extends Model
      */
     public function getUserHighestAttempt(int $userId): ?QuizAttempt
     {
-        return $this->quizAttempts()->where('user_id', $userId)->orderByDesc('score')->first();
+        return $this->quizAttempts()->where('user_id', $userId)->where('status', QuizAttempt::STATUS_COMPLETED)->orderByDesc('score')->first();
     }
 
     /**

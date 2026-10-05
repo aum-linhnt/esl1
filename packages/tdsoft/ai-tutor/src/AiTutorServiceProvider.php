@@ -3,6 +3,7 @@
 namespace TDSoft\AiTutor;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Database\Events\MigrationsStarted;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\ServiceProvider;
@@ -36,6 +37,13 @@ final class AiTutorServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Laravel's routing pipeline renders controller exceptions before outer
+        // middleware can catch them. Register the same sanitized API response there.
+        $this->callAfterResolving(ExceptionHandler::class, function ($handler) {
+            if (method_exists($handler, 'renderable')) {
+                $handler->renderable(fn (Core\AiException $error) => Http\HandleAiErrors::response($error));
+            }
+        });
         $this->app['events']->listen(MigrationsStarted::class, [Core\MigrationPreflight::class, 'handle']);
         if ($this->app->runningInConsole()) {
             $this->commands([Core\SchemaCheckCommand::class, Licensing\LicenseCommand::class]);

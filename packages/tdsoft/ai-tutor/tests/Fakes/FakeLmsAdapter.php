@@ -11,6 +11,12 @@ final class FakeLmsAdapter implements LmsContextAdapter
 {
     public bool $allowed = true;
 
+    public string $answerPolicy = 'hints_only';
+
+    public bool $teacherAllowsSolution = false;
+
+    public bool $isExam = false;
+
     public function canAccessLesson(string $userId, string $lessonId): bool
     {
         return $this->allowed;
@@ -22,7 +28,8 @@ final class FakeLmsAdapter implements LmsContextAdapter
             throw new AiException('AI_CONTEXT_FORBIDDEN');
         }
 
-        return new LessonContext('course-1', $lessonId, 'Safe lesson context');
+        return new LessonContext('course-1', $lessonId, 'Safe lesson context',
+            answerPolicy: $this->answerPolicy, teacherAllowsSolution: $this->teacherAllowsSolution, isExam: $this->isExam);
     }
 
     public function getQuestionContext(string $userId, string $questionId, string $lessonId): QuestionContext

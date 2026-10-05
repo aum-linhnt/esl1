@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Lesson;
 use App\Models\Activity;
-use App\Models\User;
 use App\Models\Enrollment;
+use App\Models\Lesson;
+use App\Models\User;
+use App\Services\LMS\QuizAttemptContextService;
 use Illuminate\Http\Request;
 
 class LessonController extends Controller
@@ -64,13 +65,16 @@ class LessonController extends Controller
             Activity::TYPE_PDF_DOCUMENT, Activity::TYPE_FILE, Activity::TYPE_URL => 'resources',
             default => 'lesson',
         };
+
         $requestedActivity = $request->validate(['activity' => 'nullable|integer'])['activity'] ?? null;
         $selectedActivity = $requestedActivity
             ? $visibleActivities->firstWhere('id', (int) $requestedActivity)
             : $visibleActivities->first(fn ($activity) => $canPreviewAsStaff || ((! $isTrialMode || $activity->is_free_trial) && $activity->isAvailable()));
+
         if ($requestedActivity && ! $selectedActivity) {
             abort(404);
         }
+
         $canStudySelected = $selectedActivity && ($canPreviewAsStaff || ((! $isTrialMode || $selectedActivity->is_free_trial) && $selectedActivity->isAvailable()));
         $activityGroups = $visibleActivities->groupBy($activityTab);
         $initialTab = $selectedActivity ? $activityTab($selectedActivity) : 'lesson';
@@ -117,34 +121,11 @@ class LessonController extends Controller
                 ->get();
         }
 
-        // Resolve Quiz questions if source is bank_manual or bank_random
+        // Resolve the preview through the same course-scoped source as attempt snapshots.
         if ($activity->type === Activity::TYPE_QUIZ && is_array($activity->content)) {
             $content = $activity->content;
-            $sourceMode = $content['source_mode'] ?? 'inline';
-
-            if ($sourceMode === 'bank_manual' && !empty($content['question_ids'])) {
-                $bankQuestions = \App\Models\QuestionBank::whereIn('id', $content['question_ids'])->get();
-                $content['questions'] = $bankQuestions->map(fn($q) => $q->toQuizFormat())->values()->toArray();
-                $activity->content = $content;
-            } elseif ($sourceMode === 'bank_random') {
-                $count = (int) ($content['random_count'] ?? 10);
-                $query = \App\Models\QuestionBank::where(function ($q) use ($courseId) {
-                    $q->where('course_id', $courseId)->orWhereNull('course_id');
-                });
-
-                if (!empty($content['skill_filter']) && $content['skill_filter'] !== 'all') {
-                    $query->where('skill', $content['skill_filter']);
-                }
-                if (!empty($content['difficulty_filter']) && $content['difficulty_filter'] !== 'all') {
-                    $query->where('difficulty', $content['difficulty_filter']);
-                }
-
-                $bankQuestions = $query->inRandomOrder()->take($count)->get();
-                if ($bankQuestions->isNotEmpty()) {
-                    $content['questions'] = $bankQuestions->map(fn($q) => $q->toQuizFormat())->values()->toArray();
-                    $activity->content = $content;
-                }
-            }
+            $content['questions'] = app(QuizAttemptContextService::class)->questions($activity);
+            $activity->content = $content;
         }
 
         $quizAttempts = collect();
@@ -181,11 +162,15 @@ class LessonController extends Controller
         if ($lesson->course->canPreviewFor($user, $enrollment)) {
             return null;
         }
+
         abort_if(!$lesson->course->is_published || !$lesson->is_visible || ($activity && !$activity->is_visible), 404);
+
         if ($activity) {
             abort_unless($activity->isAvailable(), 403, 'Hoạt động chưa mở hoặc đã hết thời gian truy cập.');
         }
+
         $reason = null;
+
         if ($enrollment && !$enrollment->hasValidAccess()) {
             // Revoked enrollment must never fall back to free trial access.
             $reason = 'Quyền truy cập khóa học đã hết hạn, bị đình chỉ hoặc đã hủy. Vui lòng liên hệ quản trị viên.';

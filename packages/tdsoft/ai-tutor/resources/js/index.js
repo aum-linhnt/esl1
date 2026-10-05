@@ -2,6 +2,16 @@ export const AI_TUTOR_ASSET_VERSION = '0.2.0-dev';
 
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 const statusTimers = new WeakMap();
+function recoveryNotice(message) {
+    if (message.recovery === 'new_attempt') return 'Yêu cầu đã thất bại và không còn giữ credit. Sau khi khắc phục lỗi, chọn “Thử lại bằng yêu cầu mới”.';
+    if (message.recovery === 'reconciliation') return 'Chưa xác định được kết quả hoặc credit đang chờ đối soát. Liên hệ quản trị viên và tải lại hội thoại; không tạo lần thử mới.';
+    if (message.recovery === 'blocked') return 'Không thể thử lại yêu cầu này. Tải lại hội thoại hoặc liên hệ quản trị viên. Bạn vẫn có thể bắt đầu hội thoại mới.';
+    return 'Yêu cầu chưa hoàn tất. Tải lại hội thoại hoặc thử lại cùng mã yêu cầu.';
+}
+function newRetryAttempt(pending) {
+    return { message: pending.message, request_id: crypto.randomUUID(), idempotency_key: crypto.randomUUID(),
+        sent_at: new Date().toISOString(), retry_of_message_id: pending.message_id, next_hint: pending.next_hint ?? false };
+}
 async function json(url, method = 'GET', data) {
     const response = await fetch(url, {
         method, credentials: 'same-origin',
@@ -185,13 +195,29 @@ function messageTime(row, value) {
     time.dateTime = new Date(value).toISOString();
     time.textContent = formatMessageTime(value);
 }
+function chatContextKey(actor, lesson, question = null, attempt = null) {
+    return 'tai-chat:' + actor + ':' + lesson + (question ? ':' + JSON.stringify([attempt, question]) : '');
+}
+function validateChatContext({ lessonId, questionId = null, attemptId = null }) {
+    const valid = value => typeof value === 'string' && value.length > 0 && value.length <= 191;
+    if (!valid(lessonId) || (questionId !== null && !valid(questionId)) || (attemptId !== null && !valid(attemptId))
+        || ((questionId === null) !== (attemptId === null))) throw new Error('AI_CONTEXT_INVALID');
+    return { lessonId, questionId, attemptId };
+}
 function chat(root) {
     const api = root.dataset.api;
     let lesson = root.dataset.lesson;
+    let question = root.dataset.question || null, attempt = root.dataset.attempt || null;
     const form = root.querySelector('[data-chat-form]');
     const history = root.querySelector('[data-history]');
     const retry = root.querySelector('[data-retry]');
     const mode = root.querySelector('[data-mode]');
+    const nextHint = root.querySelector('[data-next-hint]');
+    let hintLevel = 0, maxHintLevel = 3;
+    const updateHint = message => {
+        hintLevel = message.metadata?.hint_level ?? 1;
+        maxHintLevel = message.metadata?.max_hint_level ?? 3;
+    };
     const quickPrompts = root.querySelectorAll('[data-quick-prompt]');
     const creditBadge = root.querySelector('[data-credit-balance]');
     const clearWelcome = () => root.querySelector('.lesson-chat-welcome')?.remove();
@@ -229,7 +255,7 @@ function chat(root) {
     new MutationObserver(() => {
         if (followHistory) history.scrollTop = history.scrollHeight;
     }).observe(history, { childList: true, subtree: true, characterData: true });
-    let storageKey = 'tai-chat:' + root.dataset.actor + ':' + lesson;
+    let storageKey = chatContextKey(root.dataset.actor, lesson, question, attempt);
     let conversation = null, pending = null, busy = false;
     try {
         const saved = JSON.parse(sessionStorage.getItem(storageKey) ?? '{}');
@@ -245,8 +271,14 @@ function chat(root) {
         busy = state;
         quickPrompts.forEach(button => { button.disabled = state || pending !== null; });
         form.querySelector('button[type="submit"]').disabled = state || pending !== null;
-        retry.disabled = state;
+        retry.disabled = state || ['reconciliation', 'blocked'].includes(pending?.recovery);
         retry.hidden = pending === null;
+        retry.textContent = pending?.recovery === 'new_attempt' ? 'Thử lại bằng yêu cầu mới'
+            : pending?.recovery === 'reconciliation' ? 'Đang chờ đối soát' : 'Thử lại cùng yêu cầu';
+        if (nextHint) {
+            nextHint.disabled = state || pending !== null || !conversation || hintLevel === 0 || hintLevel >= maxHintLevel;
+            nextHint.textContent = hintLevel > 0 && hintLevel < maxHintLevel ? 'Xin gợi ý cấp ' + (hintLevel + 1) : 'Xin gợi ý tiếp theo';
+        }
         mode.disabled = state || conversation !== null;
         root.querySelector('[data-reload]').disabled = state;
         root.querySelector('[data-export]').disabled = state || conversation === null;
@@ -255,6 +287,7 @@ function chat(root) {
     };
     const resetConversation = () => {
         conversation = pending = null;
+        hintLevel = 0;
         form.elements.message.value = '';
         history.replaceChildren();
         mode.disabled = false;
@@ -283,21 +316,31 @@ function chat(root) {
             history.replaceChildren();
             mode.value = data.conversation.teaching_mode;
             for (const message of data.messages) {
+                if (message.status === 'completed') updateHint(message);
                 learnerMessage(message.user_content, message.created_at);
                 const { row, body: block } = messageContainer('tutor');
                 history.append(row);
                 paragraph(block, (row === block ? 'Gia sư: ' : '') + (message.content ?? message.status));
                 sources(message, block);
                 messageTime(row, message.completed_at);
-                if (pending && message.request_id === pending.request_id && message.status === 'completed') {
-                    pending = null;
+                if (pending && message.request_id === pending.request_id) {
+                    if (message.status === 'completed') {
+                        if (form.elements.message.value === pending.message) form.elements.message.value = '';
+                        pending = null;
+                        if (creditBadge) creditBadge.textContent = message.credit_balance === null ? 'Credit không giới hạn' : 'Còn ' + message.credit_balance + ' credit';
+                        status(root, 'Đã khôi phục kết quả hoàn tất. Credit đã dùng: ' + (message.metadata?.credit_units ?? 0));
+                    } else {
+                        pending.message_id = message.id;
+                        pending.recovery = message.recovery;
+                        status(root, recoveryNotice(message));
+                    }
                 }
             }
             save();
         } catch (error) { status(root, error.message); }
         finally { controls(false); }
     }
-    async function send() {
+    async function send(advanceHint = false) {
         if (busy) return;
         controls(true);
         status(root, 'Đang xử lý… Không gửi lại bằng mã yêu cầu mới khi kết nối gián đoạn.');
@@ -305,12 +348,12 @@ function chat(root) {
         const output = paragraph(block, '');
         try {
             if (!conversation) {
-                const created = await json(api + '/conversations', 'POST', { lesson_id: lesson, teaching_mode: mode.value });
+                const created = await json(api + '/conversations', 'POST', { lesson_id: lesson, teaching_mode: mode.value, question_id: question, attempt_id: attempt });
                 conversation = created.id;
                 save();
             }
             if (!pending) {
-                pending = { message: form.elements.message.value, request_id: crypto.randomUUID(), idempotency_key: crypto.randomUUID(), sent_at: new Date().toISOString() };
+                pending = { message: form.elements.message.value, request_id: crypto.randomUUID(), idempotency_key: crypto.randomUUID(), sent_at: new Date().toISOString(), next_hint: advanceHint };
                 save();
             }
             clearWelcome();
@@ -320,7 +363,9 @@ function chat(root) {
             const response = await fetch(api + '/conversations/' + conversation + '/messages', {
                 method: 'POST', credentials: 'same-origin',
                 headers: { Accept: 'text/event-stream', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
-                body: JSON.stringify({ message: pending.message, request_id: pending.request_id, idempotency_key: pending.idempotency_key }),
+                body: JSON.stringify({ message: pending.message, request_id: pending.request_id, idempotency_key: pending.idempotency_key,
+                    next_hint: pending.next_hint ?? false,
+                    ...(pending.retry_of_message_id ? { retry_of_message_id: pending.retry_of_message_id, confirm_retry: true } : {}) }),
             });
             if (!response.ok || !response.headers.get('content-type')?.includes('text/event-stream')) {
                 const data = await response.json();
@@ -341,6 +386,7 @@ function chat(root) {
                     if (event === 'delta') output.textContent += data.text;
                     if (event === 'error') throw new Error(data.code);
                     if (event === 'completed') {
+                        updateHint(data);
                         completed = true;
                         if (creditBadge && data.credit_balance !== undefined) {
                             creditBadge.textContent = data.credit_balance === null ? 'Credit không giới hạn' : 'Còn ' + data.credit_balance + ' credit';
@@ -361,16 +407,36 @@ function chat(root) {
             save();
         } catch (error) {
             status(root, error.message);
-        } finally { controls(false); }
+        } finally {
+            controls(false);
+            if (pending) await reload();
+        }
     }
     form.addEventListener('submit', event => { event.preventDefault(); if (!pending) send(); });
+    nextHint?.addEventListener('click', () => {
+        if (busy || pending || hintLevel === 0 || hintLevel >= maxHintLevel) return;
+        if (!form.elements.message.value.trim()) form.elements.message.value = 'Hãy cho tôi gợi ý tiếp theo cho nội dung đang trao đổi.';
+        save();
+        send(true);
+    });
     quickPrompts.forEach(button => button.addEventListener('click', () => {
         if (busy || pending) return;
         form.elements.message.value = button.dataset.quickPrompt;
         save();
         form.requestSubmit();
     }));
-    retry.addEventListener('click', send);
+    retry.addEventListener('click', async () => {
+        if (busy || !pending) return;
+        // Refresh durable state before deciding whether a NEW paid attempt is safe.
+        await reload();
+        if (!pending || busy || ['reconciliation', 'blocked'].includes(pending.recovery)) return;
+        if (pending.recovery === 'new_attempt') {
+            if (!confirm('Yêu cầu trước đã thất bại và không còn giữ credit. Tạo lần thử mới trong hội thoại này? Lần thử mới có thể sử dụng credit.')) return;
+            pending = newRetryAttempt(pending);
+            save();
+        }
+        await send();
+    });
     root.querySelector('[data-reload]').addEventListener('click', reload);
     root.querySelector('[data-export]').addEventListener('click', () => {
         if (!busy && conversation) window.open(api + '/conversations/' + conversation + '/export', '_blank', 'noopener');
@@ -415,18 +481,22 @@ function chat(root) {
             save();
             return send();
         },
-        async setContext({ lessonId }) {
+        async setContext(context) {
+            const { lessonId, questionId, attemptId } = validateChatContext(context);
             await ready;
-            if (busy) throw new Error('AI_CONVERSATION_BUSY');
-            if (typeof lessonId !== 'string' || !lessonId || lessonId.length > 191) throw new Error('AI_CONTEXT_INVALID');
+            if (busy || pending) throw new Error('AI_CONVERSATION_BUSY');
             controls(true);
             try {
-                await json(api + '/context?lesson_id=' + encodeURIComponent(lessonId));
+                await json(api + '/context?' + new URLSearchParams({ lesson_id: lessonId,
+                    ...(questionId ? { question_id: questionId, attempt_id: attemptId } : {}) }));
                 save();
                 lesson = lessonId;
+                question = questionId;
+                attempt = attemptId;
                 root.dataset.lesson = lesson;
-                storageKey = 'tai-chat:' + root.dataset.actor + ':' + lesson;
+                storageKey = chatContextKey(root.dataset.actor, lesson, question, attempt);
                 conversation = pending = null;
+                hintLevel = 0;
                 form.elements.message.value = '';
                 mode.value = 'hints_first';
                 try {
@@ -435,9 +505,10 @@ function chat(root) {
                     pending = saved.pending ?? null;
                     form.elements.message.value = saved.draft ?? pending?.message ?? '';
                 } catch {}
-                root.querySelector('[data-lesson-label]').textContent = lesson;
+                const label = root.querySelector('[data-lesson-label]');
+                if (label) label.textContent = question ? 'Câu hỏi ' + question : 'Bài học ' + lesson;
                 history.replaceChildren();
-                status(root, 'Đã chuyển ngữ cảnh bài học.');
+                status(root, question ? 'Đang hỗ trợ câu hỏi đã chọn trong lần làm bài này.' : 'Đã chuyển ngữ cảnh bài học.');
             } finally { controls(false); }
             return reload();
         },
@@ -834,6 +905,27 @@ function boot() {
         const client = chat(root);
         const shell = root.closest('[data-tai-widget]');
         if (shell) window.AITutor = widget(shell, client);
+        const selectQuestion = async context => {
+            try {
+                await client.setContext(context);
+                if (shell) window.AITutor.open();
+                window.dispatchEvent(new CustomEvent('ai-tutor-open'));
+                root.querySelector('[name="message"]').focus();
+            } catch (error) {
+                status(root, error.message === 'AI_CONVERSATION_BUSY'
+                    ? 'Hãy xử lý yêu cầu đang chờ trước khi chuyển câu hỏi.'
+                    : 'Không thể mở câu hỏi này. Kiểm tra lần làm bài và quyền truy cập.');
+            }
+        };
+        document.addEventListener('ai-tutor-question', event => selectQuestion(event.detail));
+        root.querySelector('[data-lesson-context]')?.addEventListener('click', () => selectQuestion({ lessonId: lesson }));
+        window.addEventListener('message', event => {
+            const frame = document.querySelector('[data-activity-frame]');
+            if (event.origin !== window.location.origin || !frame || event.source !== frame.contentWindow
+                || event.data?.type !== 'ai-tutor-question'
+                || String(event.data.activityId) !== frame.dataset.activityId) return;
+            selectQuestion(event.data.context);
+        });
     });
     document.querySelectorAll('[data-tai-knowledge]').forEach(knowledge);
 }

@@ -9,6 +9,7 @@ use TDSoft\AiTutor\Billing\BillingManager;
 use TDSoft\AiTutor\Billing\CreditCalculator;
 use TDSoft\AiTutor\Billing\CreditLedger;
 use TDSoft\AiTutor\Contracts\ActorResolver;
+use TDSoft\AiTutor\Contracts\AttemptQuestionContextAdapter;
 use TDSoft\AiTutor\Contracts\Entitlements;
 use TDSoft\AiTutor\Contracts\LmsContextAdapter;
 use Throwable;
@@ -34,7 +35,7 @@ final class AiExecutionService
             throw new AiException('AI_ACTOR_INVALID');
         }
         $request = new AiRequest($request->feature, $actor, $request->payload, $request->requestId,
-            $request->idempotencyKey, $request->courseId, $request->lessonId, $request->questionId);
+            $request->idempotencyKey, $request->courseId, $request->lessonId, $request->questionId, attemptId: $request->attemptId);
         $module = config('ai-tutor.features.'.$request->feature);
         if (! is_string($module)) {
             throw new AiException('AI_FEATURE_INVALID');
@@ -54,7 +55,14 @@ final class AiExecutionService
             }
             $context = $lesson;
             if ($request->questionId !== null) {
-                $context = $this->lms->getQuestionContext($request->actor->id, $request->questionId, $request->lessonId);
+                if ($request->attemptId !== null) {
+                    if (! $this->lms instanceof AttemptQuestionContextAdapter) {
+                        throw new AiException('AI_CONTEXT_FORBIDDEN');
+                    }
+                    $context = $this->lms->getAttemptQuestionContext($request->actor->id, $request->questionId, $request->lessonId, $request->attemptId);
+                } else {
+                    $context = $this->lms->getQuestionContext($request->actor->id, $request->questionId, $request->lessonId);
+                }
                 if ($context->questionId !== $request->questionId || $context->lesson->lessonId !== $lesson->lessonId || $context->lesson->courseId !== $lesson->courseId) {
                     throw new AiException('AI_CONTEXT_FORBIDDEN');
                 }
