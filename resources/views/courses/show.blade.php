@@ -1,10 +1,20 @@
 @extends('layouts.app')
 @section('content')
 <div class="w-full space-y-5 sm:space-y-6 min-w-0">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
     <a href="{{ route('courses.index') }}" class="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 rounded-full transition-colors">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         <span>Danh sách khóa học</span>
     </a>
+        @if($layoutLesson ?? null)
+            @include('lessons.partials.layout-toggle', ['lesson' => $layoutLesson, 'tutorLayout' => false, 'toggleText' => 'Chuyển giao diện', 'preserveActivity' => false])
+        @else
+            <button type="button" disabled title="Chưa có bài học được mở để chuyển giao diện" style="display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #475569;border-radius:10px;background:#1e293b;color:#94a3b8;font-size:12px;opacity:.55;cursor:not-allowed">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M15 9v11"/></svg>
+                Chuyển giao diện
+            </button>
+        @endif
+    </div>
 
     {{-- COURSE HERO CARD --}}
     <div class="card-dark p-3.5 sm:p-7 rounded-2xl sm:rounded-3xl border-slate-800/80 relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 shadow-xl min-w-0 max-w-full">

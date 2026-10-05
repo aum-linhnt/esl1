@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "504555c1f65e93284b1ec529b4d96629",
+    "content-hash": "e499366c7385faaaab72429b86c44bed",
     "packages": [
         {
             "name": "brick/math",
@@ -6078,6 +6078,50 @@
             "time": "2026-08-21T12:09:28+00:00"
         },
         {
+            "name": "tdsoft/ai-tutor",
+            "version": "0.1.x-dev",
+            "dist": {
+                "type": "path",
+                "url": "packages/tdsoft/ai-tutor",
+                "reference": "bcf7b806ae2fa608adb693ec95b4a551f657bcc3"
+            },
+            "require": {
+                "composer-runtime-api": "^2.2",
+                "ext-sodium": "*",
+                "illuminate/console": "^13.17",
+                "illuminate/contracts": "^13.17",
+                "illuminate/database": "^13.17",
+                "illuminate/encryption": "^13.17",
+                "illuminate/http": "^13.17",
+                "illuminate/queue": "^13.17",
+                "illuminate/routing": "^13.17",
+                "illuminate/support": "^13.17",
+                "illuminate/view": "^13.17",
+                "php": "^8.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "TDSoft\\AiTutor\\AiTutorServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "TDSoft\\AiTutor\\": "src/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Self-hosted AI Tutor foundation with LMS adapters and local billing",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
             "name": "tijsverkoyen/css-to-inline-styles",
             "version": "v2.4.0",
             "source": {
@@ -8644,7 +8688,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "tdsoft/ai-tutor": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

@@ -9,7 +9,8 @@
         "php": "^8.3",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
-        "spatie/laravel-permission": "^8.3"
+        "spatie/laravel-permission": "^8.3",
+        "tdsoft/ai-tutor": "0.1.x-dev"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -21,6 +22,16 @@
         "nunomaduro/collision": "^8.6",
         "phpunit/phpunit": "^12.5.12"
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/tdsoft/ai-tutor",
+            "options": {
+                "symlink": true,
+                "versions": {"tdsoft/ai-tutor": "0.1.x-dev"}
+            }
+        }
+    ],
     "autoload": {
         "psr-4": {
             "App\\": "app/",
@@ -46,6 +57,7 @@
             "Composer\\Config::disableProcessTimeout",
             "@php artisan dev"
         ],
+        "test:ai-tutor": "@php vendor/bin/phpunit -c packages/tdsoft/ai-tutor/tests/phpunit.xml",
         "test": [
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"

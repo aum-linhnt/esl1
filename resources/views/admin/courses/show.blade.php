@@ -1049,7 +1049,7 @@
     {{-- MODAL 1: ADD LESSON MODAL                                         --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <div x-show="showAddLessonModal" x-cloak style="display: none;" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-        <div class="admin-card max-w-lg w-full p-6 space-y-4 border-indigo-500/40 shadow-2xl" @click.away="showAddLessonModal = false">
+        <div class="admin-card max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto border-indigo-500/40 shadow-2xl" @click.away="showAddLessonModal = false">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">+</span>
@@ -1060,6 +1060,7 @@
 
             <form method="POST" action="{{ route('admin.courses.lessons.store', $course->id) }}" class="space-y-3.5">
                 @csrf
+                @include('lessons.partials.ai-policy-fields')
                 <div>
                     <label class="block text-[10px] uppercase font-bold text-gray-300 mb-1">Tiêu đề bài học:</label>
                     <input type="text" name="title" required placeholder="VD: Bài 5: Daily Routines & Activities" class="login-input !py-2 text-xs">
@@ -1109,7 +1110,7 @@
     {{-- MODAL 2: EDIT LESSON MODAL                                        --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <div x-show="showEditLessonModal" x-cloak style="display: none;" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-        <div class="admin-card max-w-lg w-full p-6 space-y-4 border-slate-700 shadow-2xl" @click.away="showEditLessonModal = false">
+        <div class="admin-card max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto border-slate-700 shadow-2xl" @click.away="showEditLessonModal = false">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">✏️</span>
@@ -1119,6 +1120,7 @@
             </div>
 
             <form :action="'/admin/courses/{{ $course->id }}/lessons/' + editLessonData.id" method="POST" class="space-y-3.5">
+                @include('lessons.partials.ai-policy-fields', ['policyModel' => 'editLessonData'])
                 @csrf
                 @method('PUT')
 
@@ -2590,6 +2592,9 @@ function curriculumStudioApp() {
 
         // Edit Lesson Model
         editLessonData: {
+            ai_answer_policy: 'hints_only',
+            ai_teacher_solution_allowed: false,
+            ai_exam_mode: false,
             id: null,
             title: '',
             description: '',
@@ -2789,7 +2794,10 @@ function curriculumStudioApp() {
                 order: lesson.order,
                 estimated_minutes: lesson.estimated_minutes,
                 unlock_condition_score: lesson.unlock_condition_score,
-                is_free_trial: !!lesson.is_free_trial
+                is_free_trial: !!lesson.is_free_trial,
+                ai_answer_policy: lesson.ai_answer_policy || 'hints_only',
+                ai_teacher_solution_allowed: !!lesson.ai_teacher_solution_allowed,
+                ai_exam_mode: !!lesson.ai_exam_mode
             };
             this.showEditLessonModal = true;
         },
@@ -3404,4 +3412,3 @@ function curriculumStudioApp() {
 }
 </script>
 @endsection
-

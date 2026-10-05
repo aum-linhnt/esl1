@@ -11,6 +11,7 @@ class Lesson extends Model
     protected $fillable = [
         'course_id', 'title', 'description', 'summary', 'order',
         'estimated_minutes', 'unlock_condition_score', 'is_free_trial', 'is_visible',
+        'ai_answer_policy', 'ai_teacher_solution_allowed', 'ai_exam_mode',
     ];
 
     protected function casts(): array
@@ -20,12 +21,38 @@ class Lesson extends Model
             'is_visible' => 'boolean',
             'order' => 'integer',
             'unlock_condition_score' => 'integer',
+            'ai_teacher_solution_allowed' => 'boolean',
+            'ai_exam_mode' => 'boolean',
         ];
     }
 
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function canManageAiTutorPolicy(User $user): bool
+    {
+        return $this->course !== null && self::canManageAiTutorForCourse($user, $this->course);
+    }
+
+    public static function canManageAiTutorForCourse(User $user, Course $course): bool
+    {
+        if ($user->isBlocked() || $user->isTrialExpired()) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($user->isTeacher() && (string) $course->created_by === (string) $user->id) {
+            return true;
+        }
+
+        $enrollment = $user->getEnrollment($course->id);
+
+        return $enrollment && $enrollment->hasValidAccess() && $enrollment->canManageCourseContent();
     }
 
     public function activities(): HasMany
@@ -61,20 +88,23 @@ class Lesson extends Model
 
     public function isUnlockedFor(User $user): bool
     {
-        // System admin, teachers always have access
-        if ($user->isAdmin() || $user->isTeacher()) {
+        if ($user->isAdmin()) {
             return true;
         }
 
-        // Must be enrolled with valid active access
         $enrollment = $user->getEnrollment($this->course_id);
-        if (!$enrollment || !$enrollment->hasValidAccess()) {
+
+        if ($this->course->canPreviewFor($user, $enrollment)) {
+            return true;
+        }
+
+        if (!$this->course->is_published || !$this->is_visible) {
             return false;
         }
 
-        // Course instructors / managers bypass lesson completion requirements
-        if ($enrollment->canGradeStudents()) {
-            return true;
+        // Learners must be enrolled with valid access.
+        if (!$enrollment || !$enrollment->hasValidAccess()) {
+            return false;
         }
 
         // First lesson is unlocked once enrolled
