@@ -1,0 +1,69 @@
+/* ─── ESL LMS: AI Chat Widget & Mascot ─── */
+
+/* 1. Speech Bubble Suggestion */
+html.light .chat-speech-bubble {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1) !important;
+}
+
+html.light .chat-bubble-dismiss {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #64748b !important;
+}
+html.light .chat-bubble-dismiss:hover {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+/* 2. Floating Mascot Button */
+html.light .chat-mascot-btn {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 8px 20px -4px rgba(0,0,0,0.1) !important;
+}
+html.light .chat-mascot-btn:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+}
+
+/* 3. Chat Window & Drawer */
+html.light .chat-popup-window {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+html.light #chat-messages {
+    background-color: #f8fafc !important;
+}
+html.light .chat-bot-bubble {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #0f172a !important;
+}
+html.light .chat-bot-bubble p {
+    color: #0f172a !important;
+}
+html.light .chat-input-area {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+}
+html.light #chat-input {
+    background-color: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+html.light #chat-input::placeholder {
+    color: #94a3b8 !important;
+}
+html.light #chat-submit-btn {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+}
+html.light #chat-submit-btn:hover {
+    background-color: #e2e8f0 !important;
+    color: var(--theme-primary, #4f46e5) !important;
+}

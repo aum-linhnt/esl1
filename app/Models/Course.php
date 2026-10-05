@@ -88,6 +88,11 @@ class Course extends Model
         return $this->hasMany(Lesson::class)->orderBy('order');
     }
 
+    public function activities(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(Activity::class, Lesson::class);
+    }
+
     public function enrollments(): HasMany
     {
         return $this->hasMany(Enrollment::class);
@@ -101,25 +106,6 @@ class Course extends Model
     }
 
     // ─── Enrollment & Visibility Helpers ───
-
-    public function canPreviewFor(User $user, ?Enrollment $enrollment = null): bool
-    {
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        if ($user->isTeacher() && $user->id !== null && $this->created_by !== null
-            && (string) $this->created_by === (string) $user->id) {
-            return true;
-        }
-
-        return $enrollment !== null
-            && $this->id !== null && $user->id !== null
-            && (string) $enrollment->course_id === (string) $this->id
-            && (string) $enrollment->user_id === (string) $user->id
-            && $enrollment->hasValidAccess()
-            && $enrollment->canGradeStudents();
-    }
 
     public function activeEnrollmentsCount(): int
     {
@@ -206,3 +192,5 @@ class Course extends Model
         return url('storage/' . $this->thumbnail);
     }
 }
+
+

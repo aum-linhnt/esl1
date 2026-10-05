@@ -81,6 +81,7 @@ class AiServiceOptimizationTest extends TestCase
             'Environment & Climate',
             'B1',
             3,
+            'all',
             ['mcq', 'multiple_select', 'fill_blank']
         );
 

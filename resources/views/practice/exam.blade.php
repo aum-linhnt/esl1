@@ -1343,8 +1343,9 @@
             },
 
             get currentPassageText() {
-                if (this.currentQ && this.currentQ.meta_data && this.currentQ.meta_data.passage_content) {
-                    return this.currentQ.meta_data.passage_content;
+                if (this.currentQ && this.currentQ.meta_data) {
+                    if (this.currentQ.meta_data.passage_content) return this.currentQ.meta_data.passage_content;
+                    if (this.currentQ.meta_data.passage) return this.currentQ.meta_data.passage;
                 }
                 if (this.currentQ && this.currentQ.passage) {
                     return this.currentQ.passage;

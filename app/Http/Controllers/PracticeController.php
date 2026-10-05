@@ -9,6 +9,7 @@ use App\Models\AssessmentSubmission;
 use App\Models\LearnerSkill;
 use App\Models\Course;
 use App\Services\Assessment\AssessmentService;
+use App\Services\ActionLogService;
 use Illuminate\Http\Request;
 
 class PracticeController extends Controller
@@ -173,6 +174,11 @@ class PracticeController extends Controller
             ->orderBy('attempt_number', 'asc')
             ->get();
 
+        // Log exam view
+        if ($exam instanceof \App\Models\ExamSet) {
+            ActionLogService::logViewExam($user, $exam, $testKey);
+        }
+
         return view('practice.exam', [
             'exam' => $exam,
             'questions' => $questions,
@@ -211,6 +217,12 @@ class PracticeController extends Controller
                 'audio_recordings' => $audioRecordings,
             ]
         );
+
+        // Log exam submission
+        if ($exam instanceof \App\Models\ExamSet) {
+            $score = $result['accuracy_rate'] ?? $result['score'] ?? null;
+            ActionLogService::logSubmitExam($user, $exam, $testKey, $score);
+        }
 
         return view('practice.scorecard', [
             'exam' => $exam,
@@ -409,9 +421,11 @@ class PracticeController extends Controller
 
     private function getQuestionsForExam(array $exam)
     {
-        // 1. If explicit Question IDs are set
+        // 1. If explicit Question IDs are set (preserve exact order of questions in exam)
         if (!empty($exam['question_ids']) && is_array($exam['question_ids'])) {
-            return QuestionBank::whereIn('id', $exam['question_ids'])->get();
+            $ids = $exam['question_ids'];
+            $items = QuestionBank::withTrashed()->whereIn('id', $ids)->get()->keyBy('id');
+            return collect($ids)->map(fn($id) => $items->get($id))->filter()->values();
         }
 
         // 2. If exam has predefined sections (e.g. mock tests with vocabulary, grammar, reading, listening)

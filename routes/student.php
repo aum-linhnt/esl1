@@ -74,7 +74,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/gradebook/{courseId}', [GradebookController::class, 'courseDetail'])->name('gradebook.show');
 
     // Activity Completion (Hoàn thành hoạt động)
-    Route::post('/activities/{activityId}/attempts', [\App\Http\Controllers\QuizAttemptController::class, 'store'])->name('activities.attempts.store');
     Route::post('/activities/{activityId}/complete', [ActivityCompletionController::class, 'complete'])->name('activities.complete');
     Route::get('/api/lesson/{lessonId}/completion-status', [ActivityCompletionController::class, 'status'])->name('api.lesson.completion');
 
@@ -106,5 +105,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Centralized File Upload (Web Session)
     Route::post('/files/upload', [\App\Http\Controllers\FileController::class, 'upload'])->name('files.upload');
     Route::post('/files/upload-temp', [\App\Http\Controllers\FileController::class, 'uploadTemp'])->name('files.upload-temp');
+
+    // ─── Notification Center (Web & AJAX) ───
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::delete('/notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::delete('/notifications', [\App\Http\Controllers\NotificationController::class, 'clearAll'])->name('notifications.clearAll');
+
+    // ─── Messenger / Direct Chat (Web & AJAX) ───
+    Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
+    Route::post('/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
+    Route::get('/messages/start/{userId}', [\App\Http\Controllers\MessageController::class, 'startDirect'])->name('messages.startDirect');
+
+    // ─── Client AJAX Endpoints for Header Badges & Popups ───
+    Route::prefix('ajax')->group(function () {
+        Route::get('/notifications', [\App\Http\Controllers\Api\NotificationApiController::class, 'index'])->name('ajax.notifications.index');
+        Route::get('/notifications/unread-count', [\App\Http\Controllers\Api\NotificationApiController::class, 'unreadCount'])->name('ajax.notifications.unreadCount');
+        Route::post('/notifications/{id}/read', [\App\Http\Controllers\Api\NotificationApiController::class, 'markAsRead'])->name('ajax.notifications.markAsRead');
+        Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Api\NotificationApiController::class, 'markAllAsRead'])->name('ajax.notifications.markAllAsRead');
+
+        Route::get('/messages/conversations', [\App\Http\Controllers\Api\MessageApiController::class, 'conversations'])->name('ajax.messages.conversations');
+        Route::get('/messages/unread-count', [\App\Http\Controllers\Api\MessageApiController::class, 'unreadCount'])->name('ajax.messages.unreadCount');
+        Route::get('/messages/conversations/{id}', [\App\Http\Controllers\Api\MessageApiController::class, 'showConversation'])->name('ajax.messages.showConversation');
+        Route::post('/messages/conversations/{id}/messages', [\App\Http\Controllers\Api\MessageApiController::class, 'sendMessage'])->name('ajax.messages.sendMessage');
+        Route::post('/messages/direct', [\App\Http\Controllers\Api\MessageApiController::class, 'sendDirect'])->name('ajax.messages.sendDirect');
+        Route::post('/messages/conversations/{id}/read', [\App\Http\Controllers\Api\MessageApiController::class, 'markAsRead'])->name('ajax.messages.markAsRead');
+        Route::get('/messages/users/search', [\App\Http\Controllers\Api\MessageApiController::class, 'searchUsers'])->name('ajax.messages.searchUsers');
+    });
 });
 

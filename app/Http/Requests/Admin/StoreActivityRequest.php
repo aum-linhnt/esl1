@@ -27,6 +27,8 @@ class StoreActivityRequest extends FormRequest
             'passing_grade' => 'nullable|numeric|min:0|max:100',
             'max_attempts' => 'nullable|integer|min:1|max:99',
             'time_limit_minutes' => 'nullable|integer|min:1|max:600',
+            'content' => 'nullable',
+            'file_id' => 'nullable',
         ];
     }
 

@@ -19,7 +19,7 @@
             <h3 class="text-base font-bold text-white flex items-center gap-2">
                 <span>🤖 Cấu hình Google Gemini AI</span>
             </h3>
-            <span class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-mono font-semibold border {{ $isConfigured ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-amber-400 bg-amber-500/10 border-amber-500/20' }}">
+            <span class="gemini-status-badge {{ $isConfigured ? 'status-configured' : 'status-fallback' }} inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-mono font-semibold border {{ $isConfigured ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-amber-400 bg-amber-500/10 border-amber-500/20' }}">
                 <span class="w-2 h-2 rounded-full {{ $isConfigured ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse' }}"></span>
                 {{ $geminiStatus }}
             </span>
@@ -122,7 +122,177 @@
     </div>
 
     {{-- ───────────────────────────────────────────────────────── --}}
-    {{-- 2. SYSTEM PARAMETERS --}}
+    {{-- 2. SYSTEM THEME & COLOR PALETTE BRANDING --}}
+    {{-- ───────────────────────────────────────────────────────── --}}
+    <div class="admin-card p-6 space-y-5 border border-slate-700/60" 
+         x-data="{
+             selectedMode: '{{ $themeConfig['mode'] }}',
+             selectedAccent: '{{ $themeConfig['accent'] }}',
+             enableGlow: {{ $themeConfig['glow'] ? 'true' : 'false' }},
+             palettes: {{ json_encode($themeConfig['palettes']) }},
+             get currentPalette() {
+                 return this.palettes[this.selectedAccent] || this.palettes['indigo'];
+             }
+         }">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+            <div>
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <span>🎨 Cấu hình Giao diện & Màu sắc Mặc định (Theme & Branding)</span>
+                </h3>
+                <p class="text-xs text-gray-400 mt-0.5">Thiết lập chế độ hiển thị, màu nhận diện thương hiệu và hiệu ứng Neon Glow mặc định toàn hệ thống</p>
+            </div>
+            <span class="theme-palettes-badge text-xs px-2.5 py-1 rounded-full font-mono font-semibold bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 self-start sm:self-auto">
+                7 Palettes Chuẩn
+            </span>
+        </div>
+
+        <form method="POST" action="{{ route('admin.settings.updateTheme') }}" class="space-y-6">
+            @csrf
+
+            {{-- 1. Mode Selection --}}
+            <div>
+                <label class="block text-xs font-semibold text-gray-300 mb-2">1. Chế độ hiển thị mặc định (Appearance Mode):</label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {{-- Dark Mode --}}
+                    <label class="theme-mode-card relative flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all"
+                           :class="selectedMode === 'dark' ? 'active' : ''">
+                        <input type="radio" name="theme_mode" value="dark" x-model="selectedMode" class="sr-only">
+                        <div class="theme-mode-icon-box w-8 h-8 rounded-lg flex items-center justify-center text-amber-400 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold">Giao diện Tối (Dark)</p>
+                            <p class="text-[10px] opacity-70">Nền đêm hiện đại, bảo vệ mắt</p>
+                        </div>
+                    </label>
+
+                    {{-- Light Mode --}}
+                    <label class="theme-mode-card relative flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all"
+                           :class="selectedMode === 'light' ? 'active' : ''">
+                        <input type="radio" name="theme_mode" value="light" x-model="selectedMode" class="sr-only">
+                        <div class="theme-mode-icon-box w-8 h-8 rounded-lg flex items-center justify-center text-amber-500 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold">Giao diện Sáng (Light)</p>
+                            <p class="text-[10px] opacity-70">Nền trắng tinh gọn, thanh lịch</p>
+                        </div>
+                    </label>
+
+                    {{-- Auto Mode --}}
+                    <label class="theme-mode-card relative flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all"
+                           :class="selectedMode === 'auto' ? 'active' : ''">
+                        <input type="radio" name="theme_mode" value="auto" x-model="selectedMode" class="sr-only">
+                        <div class="theme-mode-icon-box w-8 h-8 rounded-lg flex items-center justify-center text-cyan-400 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold">Hệ thống (Auto)</p>
+                            <p class="text-[10px] opacity-70">Tự động theo OS người dùng</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            {{-- 2. Accent Palette Selection --}}
+            <div>
+                <label class="block text-xs font-semibold text-gray-300 mb-2">2. Bảng màu chủ đạo (Primary Accent Brand Color):</label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
+                    @foreach($themeConfig['palettes'] as $key => $palette)
+                        <label class="palette-swatch-card relative flex flex-col items-center p-2.5 rounded-xl border cursor-pointer transition-all text-center group"
+                               :class="selectedAccent === '{{ $key }}' ? 'active scale-[1.03]' : ''">
+                            <input type="radio" name="theme_accent" value="{{ $key }}" x-model="selectedAccent" class="sr-only">
+                            
+                            {{-- Color Circle Swatch --}}
+                            <div class="w-8 h-8 rounded-xl shadow-md flex items-center justify-center mb-1.5 transition-transform group-hover:scale-105"
+                                 style="background: {{ $palette['gradient'] }};">
+                                <svg x-show="selectedAccent === '{{ $key }}'" class="w-4 h-4 text-white drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </div>
+
+                            <span class="text-[11px] font-bold block truncate w-full">{{ $palette['name'] }}</span>
+                            <span class="text-[9px] font-mono opacity-70 uppercase">{{ $palette['primary'] }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- 3. Neon Glow Effect Toggle --}}
+            <div class="flex items-center justify-between p-3.5 rounded-xl border"
+                 :class="selectedMode === 'light' ? 'bg-white border-slate-200' : 'bg-slate-900/60 border-slate-800'">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">✨</span>
+                    <div>
+                        <p class="text-xs font-bold" :class="selectedMode === 'light' ? 'text-slate-900' : 'text-white'">Hiệu ứng Neon Glow (Ambient Lighting)</p>
+                        <p class="text-[10px]" :class="selectedMode === 'light' ? 'text-slate-500' : 'text-gray-400'">Hiển thị viền sáng mờ ảo quanh nút bấm chính và thẻ trạng thái</p>
+                    </div>
+                </div>
+
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="theme_glow" value="1" x-model="enableGlow" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                </label>
+            </div>
+
+            {{-- 4. Live Interactive Preview Box --}}
+            <div class="p-4 rounded-xl border space-y-3 transition-colors duration-300"
+                 :class="selectedMode === 'light' ? 'bg-white border-slate-200 text-slate-900 shadow-sm' : 'bg-slate-950 border-slate-800 text-white'">
+                <div class="flex items-center justify-between text-xs pb-2 border-b"
+                     :class="selectedMode === 'light' ? 'border-slate-200' : 'border-slate-800'">
+                    <span class="font-bold flex items-center gap-1.5">
+                        <span>👁️ Live Preview Swatch</span>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded font-bold"
+                              :class="selectedMode === 'light' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-800 text-slate-300'"
+                              x-text="currentPalette.name + ' (' + selectedMode.toUpperCase() + ')'"></span>
+                    </span>
+                    <span class="text-[10px]" :class="selectedMode === 'light' ? 'text-slate-500' : 'text-slate-400'">Mô phỏng tức thì</span>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 pt-1">
+                    {{-- Simulated Primary Button --}}
+                    <button type="button" 
+                            class="px-4 py-2 rounded-xl text-xs font-bold text-white transition-all shadow-md"
+                            :style="'background: ' + currentPalette.gradient + '; box-shadow: 0 0 16px ' + (enableGlow ? currentPalette.glow : 'transparent')">
+                        Nút bấm chính (Button)
+                    </button>
+
+                    {{-- Simulated Active Pill --}}
+                    <div class="px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-2"
+                         :style="'border-color: ' + currentPalette.primary + '; color: ' + currentPalette.primary + '; background: ' + (selectedMode === 'light' ? '#ffffff' : 'rgba(15, 23, 42, 0.8)')">
+                        <span class="w-2 h-2 rounded-full animate-pulse" :style="'background-color: ' + currentPalette.primary"></span>
+                        <span>Trạng thái kích hoạt</span>
+                    </div>
+
+                    {{-- Simulated Badge --}}
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold text-white shadow-sm"
+                          :style="'background-color: ' + currentPalette.primary">
+                        +150 XP
+                    </span>
+                </div>
+            </div>
+
+            {{-- Submit Button --}}
+            <div class="flex items-center justify-end pt-2">
+                <button type="submit" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Lưu Cấu hình Giao diện Mặc định</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {{-- ───────────────────────────────────────────────────────── --}}
+    {{-- 3. SYSTEM PARAMETERS --}}
     {{-- ───────────────────────────────────────────────────────── --}}
     <div class="admin-card p-6 space-y-4">
         <h3 class="text-base font-bold text-white">⚙️ Tham số Vận hành Đào tạo & Gamification XP</h3>

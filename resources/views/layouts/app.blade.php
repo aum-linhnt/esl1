@@ -6,22 +6,56 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Dashboard' }} - ESL LMS</title>
     <meta name="description" content="ESL LMS - Hệ thống quản lý học tập tiếng Anh thông minh">
-    <style>
-        [x-cloak] { display: none !important; }
-        .card-dark {
-            background: rgba(15, 23, 42, 0.78) !important;
-            border: 1px solid rgba(51, 65, 85, 0.6) !important;
-            border-radius: 1rem !important;
-            backdrop-filter: blur(16px) !important;
-            -webkit-backdrop-filter: blur(16px) !important;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.25) !important;
-        }
-        .bg-clip-text {
-            -webkit-background-clip: text !important;
-            background-clip: text !important;
-            -webkit-text-fill-color: transparent !important;
-        }
-    </style>
+
+    {{-- Immediate Anti-FOUC Theme Script --}}
+    <script>
+        (function() {
+            try {
+                const defaultMode = '{{ config('theme.mode', 'dark') }}';
+                const defaultAccent = '{{ config('theme.accent', 'indigo') }}';
+                const defaultGlow = {{ config('theme.glow', true) ? 'true' : 'false' }};
+
+                const savedMode = localStorage.getItem('esl_theme_mode') || defaultMode;
+                const savedAccent = localStorage.getItem('esl_theme_accent') || defaultAccent;
+                const savedGlow = localStorage.getItem('esl_theme_glow') !== null 
+                    ? localStorage.getItem('esl_theme_glow') === 'true' 
+                    : defaultGlow;
+
+                const isDark = savedMode === 'dark' || (savedMode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                const root = document.documentElement;
+
+                if (isDark) {
+                    root.classList.add('dark');
+                    root.classList.remove('light');
+                } else {
+                    root.classList.remove('dark');
+                    root.classList.add('light');
+                }
+
+                root.setAttribute('data-accent', savedAccent);
+                root.setAttribute('data-glow', savedGlow ? 'true' : 'false');
+
+                const palettes = {
+                    blue: { primary: '#3b82f6', hover: '#2563eb', gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', glow: 'rgba(59, 130, 246, 0.35)', badgeBg: 'rgba(59, 130, 246, 0.15)', badgeText: '#93c5fd' },
+                    indigo: { primary: '#6366f1', hover: '#4f46e5', gradient: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', glow: 'rgba(99, 102, 241, 0.35)', badgeBg: 'rgba(99, 102, 241, 0.15)', badgeText: '#a5b4fc' },
+                    purple: { primary: '#8b5cf6', hover: '#7c3aed', gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', glow: 'rgba(139, 92, 246, 0.35)', badgeBg: 'rgba(139, 92, 246, 0.15)', badgeText: '#c4b5fd' },
+                    emerald: { primary: '#10b981', hover: '#059669', gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', glow: 'rgba(16, 185, 129, 0.35)', badgeBg: 'rgba(16, 185, 129, 0.15)', badgeText: '#6ee7b7' },
+                    amber: { primary: '#f59e0b', hover: '#d97706', gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', glow: 'rgba(245, 158, 11, 0.35)', badgeBg: 'rgba(245, 158, 11, 0.15)', badgeText: '#fcd34d' },
+                    rose: { primary: '#f43f5e', hover: '#e11d48', gradient: 'linear-gradient(135deg, #f43f5e 0%, #be123c 100%)', glow: 'rgba(244, 63, 94, 0.35)', badgeBg: 'rgba(244, 63, 94, 0.15)', badgeText: '#fda4af' },
+                    cyan: { primary: '#06b6d4', hover: '#0891b2', gradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', glow: 'rgba(6, 182, 212, 0.35)', badgeBg: 'rgba(6, 182, 212, 0.15)', badgeText: '#67e8f9' }
+                };
+                const pal = palettes[savedAccent] || palettes.indigo;
+                root.style.setProperty('--theme-primary', pal.primary);
+                root.style.setProperty('--theme-primary-hover', pal.hover);
+                root.style.setProperty('--theme-gradient', pal.gradient);
+                root.style.setProperty('--theme-primary-glow', pal.glow);
+                root.style.setProperty('--theme-border-glow', pal.glow.replace('0.35', '0.5'));
+                root.style.setProperty('--theme-badge-bg', pal.badgeBg);
+                root.style.setProperty('--theme-badge-text', pal.badgeText);
+            } catch(e) {}
+        })();
+    </script>
+    <style>[x-cloak] { display: none !important; }</style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-fsel-dark text-white min-h-screen antialiased selection:bg-indigo-500 selection:text-white overflow-x-hidden max-w-full" 
@@ -63,7 +97,7 @@
     @include('components.bottom-nav')
 
     {{-- Floating Chat Assistant --}}
-    <div class="fixed floating-ai-btn right-3 sm:right-6 z-50 flex flex-col items-end">
+    <div class="fixed floating-ai-btn right-3 sm:right-6 bottom-20 lg:bottom-6 z-50 flex flex-col items-end">
         {{-- Chat Popup --}}
         <div x-show="chatOpen" 
              x-cloak
@@ -75,7 +109,7 @@
              x-transition:leave-start="opacity-100 scale-100 translate-y-0" 
              x-transition:leave-end="opacity-0 scale-95 translate-y-4" 
              @click.outside="chatOpen = false" 
-             class="w-[calc(100vw-2rem)] max-w-sm sm:w-96 bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl">
+             class="chat-popup-window w-[calc(100vw-2rem)] max-w-sm sm:w-96 bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl">
             
             {{-- Chat Header --}}
             <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-teal-500 px-4 py-3.5 flex items-center justify-between shadow-md">
@@ -102,7 +136,7 @@
                     <div class="w-7 h-7 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex-shrink-0 flex items-center justify-center text-xs">
                         🤖
                     </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[85%]">
+                    <div class="chat-bot-bubble bg-slate-900 border border-slate-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[85%]">
                         <p class="text-xs text-gray-200 leading-relaxed">Xin chào! 👋 Tôi là trợ lý ảo ESL. Bạn cần hỗ trợ từ vựng, ngữ pháp hay hướng dẫn bài học nào không?</p>
                         <span class="text-[9px] text-gray-500 mt-1 block">Vừa xong</span>
                     </div>
@@ -114,7 +148,7 @@
                 $chatUser = auth()->user();
                 $chatRemaining = \App\Http\Controllers\AiChatController::getRemainingQuestions($chatUser?->id, request()->ip());
             @endphp
-            <div class="border-t border-slate-800/80 p-3 bg-slate-900/95">
+            <div class="chat-input-area border-t border-slate-800/80 p-3 bg-slate-900/95">
                 {{-- Daily Quota Counter --}}
                 <div class="text-[12px] text-slate-400 font-normal px-0.5 pb-2">
                     Lượt hỏi hôm nay: <span id="chat-quota-text" class="{{ $chatRemaining > 0 ? 'text-slate-300 font-semibold' : 'text-rose-400 font-semibold' }}">{{ $chatRemaining }}/10</span>
@@ -149,12 +183,12 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-90"
-                 class="hidden sm:flex items-center relative bg-[#172338] text-slate-100 text-xs sm:text-sm font-medium px-4 py-2.5 rounded-2xl shadow-2xl border border-slate-700/80 select-none whitespace-nowrap cursor-pointer hover:border-sky-500/40 transition-colors"
+                 class="chat-speech-bubble hidden sm:flex items-center relative bg-[#172338] text-slate-100 text-xs sm:text-sm font-medium px-4 py-2.5 rounded-2xl shadow-2xl border border-slate-700/80 select-none whitespace-nowrap cursor-pointer hover:border-sky-500/40 transition-colors"
                  @click="chatOpen = true">
                 
                 {{-- Dismiss Button (x) at top-left --}}
                 <button @click.stop="showChatBubble = false" 
-                        class="absolute -top-2 -left-2 w-4 h-4 rounded bg-[#22324e] border border-slate-600 text-slate-400 hover:text-white flex items-center justify-center text-[11px] leading-none shadow-md hover:scale-110 transition-transform cursor-pointer"
+                        class="chat-bubble-dismiss absolute -top-2 -left-2 w-4 h-4 rounded bg-[#22324e] border border-slate-600 text-slate-400 hover:text-white flex items-center justify-center text-[11px] leading-none shadow-md hover:scale-110 transition-transform cursor-pointer"
                         title="Đóng gợi ý">
                     &times;
                 </button>
@@ -164,7 +198,7 @@
 
             {{-- Squircle Robot Mascot Button (Mobile: Only Icon) --}}
             <button @click="chatOpen = true" 
-                    class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#172338] hover:bg-[#1e2f4a] border border-slate-700/90 hover:border-sky-400/60 shadow-xl shadow-black/50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center p-2 sm:p-2.5 cursor-pointer backdrop-blur-md group flex-shrink-0"
+                    class="chat-mascot-btn w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#172338] hover:bg-[#1e2f4a] border border-slate-700/90 hover:border-sky-400/60 shadow-xl shadow-black/50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center p-2 sm:p-2.5 cursor-pointer backdrop-blur-md group flex-shrink-0"
                     title="Trợ lý học tập ESL AI">
                 <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md transition-transform group-hover:scale-110" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <!-- Left Antenna -->

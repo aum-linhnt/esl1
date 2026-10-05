@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Laravel\Sanctum\HasApiTokens;
 use Carbon\Carbon;
 
 #[Fillable([
@@ -22,7 +23,7 @@ use Carbon\Carbon;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, HasApiTokens;
 
     protected function casts(): array
     {
@@ -232,14 +233,44 @@ class User extends Authenticatable
             $path = substr($path, 8);
         }
 
-        // Verify that the file actually exists on disk before attempting to serve it
+        // Verify that the file actually exists on disk or storage fake before attempting to serve it
         $storageDiskPath = storage_path('app/public/' . $path);
         $publicDirectPath = public_path('storage/' . $path);
 
-        if (file_exists($storageDiskPath) || file_exists($publicDirectPath)) {
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path) || file_exists($storageDiskPath) || file_exists($publicDirectPath)) {
             return asset('storage/' . $path);
         }
 
         return $defaultAvatar;
+    }
+
+    // ─── Notifications & Messaging Relationships ───
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class)->latest('created_at');
+    }
+
+    public function unreadNotifications(): HasMany
+    {
+        return $this->hasMany(Notification::class)->where('is_read', false)->latest('created_at');
+    }
+
+    public function conversations(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_participants')
+            ->withPivot('last_read_at')
+            ->withTimestamps()
+            ->orderByDesc('last_message_at');
+    }
+
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function unreadNotificationsCount(): int
+    {
+        return $this->notifications()->where('is_read', false)->count();
     }
 }

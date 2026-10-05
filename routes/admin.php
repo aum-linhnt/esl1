@@ -14,35 +14,50 @@ use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\SubmissionController as AdminSubmissionController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\ActionLogController as AdminActionLogController;
 use App\Http\Controllers\AssignmentSubmissionController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Dedicated Enterprise Admin Portal Routes ───
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:admin,teacher'])->prefix('admin')->name('admin.')->group(function () {
     // Admin Dashboard
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [AdminDashboardController::class, 'index']);
 
-    // User Management (Full CRUD + Profile + Batch Actions)
-    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
-    Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
-    Route::get('/users/{id}', [AdminUserController::class, 'show'])->name('users.show');
-    Route::get('/users/{id}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{id}', [AdminUserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
-    Route::post('/users/{userId}/role', [AdminUserController::class, 'updateRole'])->name('users.updateRole');
-    Route::post('/users/{userId}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
-    Route::post('/users/{userId}/coins', [AdminUserController::class, 'updateCoins'])->name('users.updateCoins');
-    Route::post('/users/{userId}/activate', [AdminUserController::class, 'activateUser'])->name('users.activate');
+    // ─── Strictly Admin-Only Subsystem (Users, Roles, Settings, System Logs) ───
+    Route::middleware('role:admin')->group(function () {
+        // User Management (Full CRUD + Profile + Batch Actions)
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
+        Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
+        Route::get('/users/{id}', [AdminUserController::class, 'show'])->name('users.show');
+        Route::get('/users/{id}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{id}', [AdminUserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+        Route::post('/users/{userId}/role', [AdminUserController::class, 'updateRole'])->name('users.updateRole');
+        Route::post('/users/{userId}/toggle-status', [AdminUserController::class, 'toggleStatus'])->name('users.toggleStatus');
+        Route::post('/users/{userId}/coins', [AdminUserController::class, 'updateCoins'])->name('users.updateCoins');
+        Route::post('/users/{userId}/activate', [AdminUserController::class, 'activateUser'])->name('users.activate');
 
-    // Role & Permission Management
-    Route::get('/roles', [AdminRoleController::class, 'index'])->name('roles.index');
-    Route::get('/roles/create', [AdminRoleController::class, 'create'])->name('roles.create');
-    Route::post('/roles', [AdminRoleController::class, 'store'])->name('roles.store');
-    Route::get('/roles/{id}/edit', [AdminRoleController::class, 'edit'])->name('roles.edit');
-    Route::put('/roles/{id}', [AdminRoleController::class, 'update'])->name('roles.update');
-    Route::delete('/roles/{id}', [AdminRoleController::class, 'destroy'])->name('roles.destroy');
+        // Role & Permission Management
+        Route::get('/roles', [AdminRoleController::class, 'index'])->name('roles.index');
+        Route::get('/roles/create', [AdminRoleController::class, 'create'])->name('roles.create');
+        Route::post('/roles', [AdminRoleController::class, 'store'])->name('roles.store');
+        Route::get('/roles/{id}/edit', [AdminRoleController::class, 'edit'])->name('roles.edit');
+        Route::put('/roles/{id}', [AdminRoleController::class, 'update'])->name('roles.update');
+        Route::delete('/roles/{id}', [AdminRoleController::class, 'destroy'])->name('roles.destroy');
+
+        // LMS System Settings & AI Configuration
+        Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
+        Route::post('/settings/api-key', [AdminSettingController::class, 'updateApiKey'])->name('settings.updateApiKey');
+        Route::post('/settings/theme', [AdminSettingController::class, 'updateTheme'])->name('settings.updateTheme');
+        Route::post('/settings/test-connection', [AdminSettingController::class, 'testConnection'])->name('settings.testConnection');
+        Route::post('/settings/clear-cache', [AdminSettingController::class, 'clearCache'])->name('settings.clearCache');
+
+        // User Action Logs (Nhật ký thao tác)
+        Route::get('/logs', [AdminActionLogController::class, 'index'])->name('logs.index');
+        Route::get('/logs/export', [AdminActionLogController::class, 'exportCsv'])->name('logs.export');
+    });
 
     // Course Management (CRUD only)
     Route::get('/courses', [AdminCourseController::class, 'index'])->name('courses.index');
@@ -53,6 +68,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::put('/courses/{courseId}', [AdminCourseController::class, 'update'])->name('courses.update');
     Route::delete('/courses/{courseId}', [AdminCourseController::class, 'destroy'])->name('courses.destroy');
     Route::post('/courses/{courseId}/toggle-publish', [AdminCourseController::class, 'togglePublish'])->name('courses.togglePublish');
+    Route::post('/courses/{courseId}/duplicate', [AdminCourseController::class, 'duplicate'])->name('courses.duplicate');
 
     // Course Enrollment Management
     Route::post('/courses/{courseId}/enroll', [AdminCourseEnrollmentController::class, 'manualEnroll'])->name('courses.manualEnroll');
@@ -97,6 +113,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::put('/questions/testlet/update', [AdminQuestionBankController::class, 'updateTestlet'])->name('questions.updateTestlet');
     Route::post('/questions/testlet/destroy', [AdminQuestionBankController::class, 'destroyTestlet'])->name('questions.destroyTestlet');
     Route::get('/questions/{id}/json', [AdminQuestionBankController::class, 'showJson'])->name('questions.showJson');
+    Route::get('/questions/{id}/versions', [AdminQuestionBankController::class, 'versions'])->name('questions.versions');
     Route::put('/questions/{id}', [AdminQuestionBankController::class, 'update'])->name('questions.update');
     Route::delete('/questions/{id}', [AdminQuestionBankController::class, 'destroy'])->name('questions.destroy');
     Route::post('/questions/bulk-delete', [AdminQuestionBankController::class, 'bulkDestroy'])->name('questions.bulkDestroy');
@@ -124,12 +141,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/enrollments', [AdminReportController::class, 'enrollments'])->name('reports.enrollments');
     Route::get('/reports/grades', [AdminReportController::class, 'grades'])->name('reports.grades');
+    Route::get('/reports/activity-grades', [AdminReportController::class, 'activityGrades'])->name('reports.activity_grades');
     Route::get('/reports/completions', [AdminReportController::class, 'completions'])->name('reports.completions');
     Route::get('/reports/export/{type}', [AdminReportController::class, 'exportCsv'])->name('reports.export');
 
-    // LMS System Settings & AI Configuration
-    Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
-    Route::post('/settings/api-key', [AdminSettingController::class, 'updateApiKey'])->name('settings.updateApiKey');
-    Route::post('/settings/test-connection', [AdminSettingController::class, 'testConnection'])->name('settings.testConnection');
-    Route::post('/settings/clear-cache', [AdminSettingController::class, 'clearCache'])->name('settings.clearCache');
 });
+

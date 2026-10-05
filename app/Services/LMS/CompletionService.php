@@ -129,15 +129,15 @@ class CompletionService
         $attempt = null;
         $effectiveScore = $score;
 
-        // 1. If Activity is QUIZ: settle the started attempt (or a legacy submission) and aggregate score
+        // 1. If Activity is QUIZ: Create QuizAttempt and calculate aggregate score
         if ($activity->type === Activity::TYPE_QUIZ) {
             $attemptNumber = QuizAttempt::where('activity_id', $activity->id)
                 ->where('user_id', $user->id)
-                ->max('attempt_number') + 1;
+                ->count() + 1;
 
             $isAttemptPassed = ($passingGrade <= 0) || ($score >= $passingGrade);
 
-            $attemptData = [
+            $attempt = QuizAttempt::create([
                 'activity_id' => $activity->id,
                 'user_id' => $user->id,
                 'attempt_number' => $attemptNumber,
@@ -150,21 +150,7 @@ class CompletionService
                 'answers_payload' => $answersPayload,
                 'started_at' => $startedAt,
                 'completed_at' => Carbon::now(),
-            ];
-
-            if (!empty($data['attempt_id'])) {
-                $attempt = QuizAttempt::whereKey($data['attempt_id'])
-                    ->where('activity_id', $activity->id)
-                    ->where('user_id', $user->id)
-                    ->where('status', QuizAttempt::STATUS_IN_PROGRESS)
-                    ->lockForUpdate()
-                    ->firstOrFail();
-
-                unset($attemptData['attempt_number'], $attemptData['started_at']);
-                $attempt->update($attemptData);
-            } else {
-                $attempt = QuizAttempt::create($attemptData);
-            }
+            ]);
 
             // Calculate aggregate score by grading method (highest, last, average, first)
             $effectiveScore = $activity->calculateGradingMethodScore($user->id);

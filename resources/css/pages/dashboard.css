@@ -1,0 +1,241 @@
+/* ─── ESL LMS: Student Dashboard Styles ─── */
+
+/* 1. Hero Banner */
+html.light .hero-banner {
+    background: linear-gradient(135deg, #ffffff 0%, #f8faff 45%, #eef2ff 100%) !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 10px 30px -5px rgba(99, 102, 241, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
+}
+html.light .hero-banner h2,
+html.light .hero-banner h2 span:not(.hero-username) {
+    color: #0f172a !important;
+}
+html.light .hero-banner .hero-username {
+    color: var(--theme-primary, #4f46e5) !important;
+}
+html.light .hero-banner .hero-subtitle {
+    color: #475569 !important;
+}
+html.light .hero-banner .hero-level-badge {
+    background-color: #f0fdfa !important;
+    border-color: #99f6e4 !important;
+    color: #0f766e !important;
+}
+html.light .hero-banner .hero-glow-1 {
+    background-color: rgba(99, 102, 241, 0.08) !important;
+}
+html.light .hero-banner .hero-glow-2 {
+    background-color: rgba(56, 189, 248, 0.08) !important;
+}
+
+/* 2. Hero Quick Stat Boxes */
+html.light .hero-stat-box {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.04) !important;
+}
+html.light .hero-stat-box:hover {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.08) !important;
+}
+html.light .hero-stat-box .stat-box-label {
+    color: #64748b !important;
+}
+html.light .hero-stat-box .stat-box-val {
+    color: #0f172a !important;
+}
+
+/* 3. Daily Quests */
+html.light .quest-refresh-badge {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+    color: #475569 !important;
+}
+html.light .quest-item-completed {
+    background-color: #f0fdf4 !important;
+    border-color: #bbf7d0 !important;
+}
+html.light .quest-item-completed:hover {
+    background-color: #dcfce7 !important;
+}
+html.light .quest-item-completed .quest-icon {
+    background-color: #dcfce7 !important;
+    border-color: #86efac !important;
+    color: #15803d !important;
+}
+html.light .quest-item-pending {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+html.light .quest-item-pending:hover {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 4px 14px -2px rgba(0,0,0,0.05) !important;
+}
+html.light .quest-item-pending .quest-icon {
+    background-color: #eef2ff !important;
+    border-color: #e0e7ff !important;
+    color: #4f46e5 !important;
+}
+html.light .quest-title {
+    color: #0f172a !important;
+}
+html.light .quest-desc {
+    color: #64748b !important;
+}
+html.light .quest-done-badge {
+    background-color: #dcfce7 !important;
+    border-color: #86efac !important;
+    color: #166534 !important;
+}
+html.light .quest-xp-badge {
+    background-color: #fef3c7 !important;
+    border-color: #fde68a !important;
+    color: #b45309 !important;
+}
+html.light .quest-action-link,
+html.light .section-action-link {
+    color: var(--theme-primary, #4f46e5) !important;
+    font-weight: 700 !important;
+}
+html.light .quest-action-link:hover,
+html.light .section-action-link:hover {
+    color: var(--theme-primary-hover, #4338ca) !important;
+}
+
+/* 4. Progress Tracks */
+html.light .progress-track,
+html.light .bg-slate-950.rounded-full {
+    background-color: #e2e8f0 !important;
+    border-color: #cbd5e1 !important;
+}
+html.light .progress-text {
+    color: #64748b !important;
+}
+
+/* 5. Weekly Streak Widget */
+html.light .weekly-days-pill {
+    background-color: #eef2ff !important;
+    border-color: #c7d2fe !important;
+    color: #4338ca !important;
+}
+html.light .day-label-today {
+    color: #d97706 !important;
+    font-weight: 800 !important;
+}
+html.light .day-label-active {
+    color: #b45309 !important;
+}
+html.light .day-label-inactive {
+    color: #94a3b8 !important;
+}
+html.light .day-node-today {
+    background-color: #fffbeb !important;
+    border-color: #f59e0b !important;
+    color: #d97706 !important;
+}
+html.light .day-node-missed {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+    color: #94a3b8 !important;
+}
+html.light .day-node-missed span {
+    color: #94a3b8 !important;
+}
+html.light .day-node-future {
+    background-color: #f8fafc !important;
+    border: 1px dashed #e2e8f0 !important;
+}
+html.light .day-node-future .dot-future {
+    background-color: #cbd5e1 !important;
+}
+html.light .streak-footer-label {
+    color: #64748b !important;
+}
+html.light .streak-badge-pill {
+    background-color: #fffbeb !important;
+    border-color: #fde68a !important;
+    color: #b45309 !important;
+}
+
+/* 6. Leaderboard Widget */
+html.light .leaderboard-period-badge {
+    background-color: #fef3c7 !important;
+    border-color: #fde68a !important;
+    color: #b45309 !important;
+}
+html.light .leaderboard-row-first {
+    background-color: #fffbeb !important;
+    border-color: #fde68a !important;
+}
+html.light .leaderboard-row-second {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+html.light .leaderboard-row-third {
+    background-color: #fff7ed !important;
+    border-color: #fed7aa !important;
+}
+html.light .leaderboard-row-current {
+    background-color: #eef2ff !important;
+    border-color: #a5b4fc !important;
+}
+html.light .leaderboard-row-normal {
+    background-color: #ffffff !important;
+    border-color: #f1f5f9 !important;
+}
+html.light .leaderboard-row-normal:hover {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+html.light .leaderboard-user-name {
+    color: #0f172a !important;
+}
+html.light .leaderboard-row:hover .leaderboard-user-name {
+    color: var(--theme-primary, #4f46e5) !important;
+}
+html.light .leaderboard-you-badge {
+    background-color: #e0e7ff !important;
+    border-color: #c7d2fe !important;
+    color: #3730a3 !important;
+}
+html.light .leaderboard-xp-badge {
+    background-color: #f0fdf4 !important;
+    border-color: #bbf7d0 !important;
+    color: #047857 !important;
+}
+html.light .pinned-user-rank {
+    background: linear-gradient(135deg, #eef2ff 0%, #f0f7ff 100%) !important;
+    border: 1px solid #c7d2fe !important;
+    box-shadow: 0 4px 14px -2px rgba(99,102,241,0.12) !important;
+}
+html.light .pinned-rank-num {
+    background-color: #4f46e5 !important;
+    border-color: #4338ca !important;
+    color: #ffffff !important;
+}
+html.light .pinned-rank-label {
+    color: #4338ca !important;
+}
+html.light .pinned-rank-user {
+    color: #1e1b4b !important;
+}
+html.light .pinned-rank-xp {
+    color: #047857 !important;
+}
+html.light .pinned-rank-encourage {
+    border-color: #c7d2fe !important;
+    color: #4338ca !important;
+}
+html.light .pinned-rank-encourage span {
+    color: #4338ca !important;
+}
+
+/* 7. Skill Mastery Radar */
+html.light .skill-row-label {
+    color: #334155 !important;
+}
+html.light .skill-row-score {
+    color: #0f172a !important;
+}

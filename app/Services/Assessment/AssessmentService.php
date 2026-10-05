@@ -48,7 +48,7 @@ class AssessmentService
             $questionList = $questions;
         } else {
             $qIds = array_keys($submittedAnswers);
-            $questionList = QuestionBank::whereIn('id', $qIds)->get();
+            $questionList = QuestionBank::withTrashed()->whereIn('id', $qIds)->get();
         }
 
         $totalQuestions = count($questionList);

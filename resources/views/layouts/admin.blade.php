@@ -5,6 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    {{-- Immediate Anti-FOUC Theme Script --}}
+    <script>
+        (function() {
+            try {
+                const defaultMode = '{{ config('theme.mode', 'dark') }}';
+                const defaultAccent = '{{ config('theme.accent', 'indigo') }}';
+                const defaultGlow = {{ config('theme.glow', true) ? 'true' : 'false' }};
+
+                const savedMode = localStorage.getItem('esl_theme_mode') || defaultMode;
+                const savedAccent = localStorage.getItem('esl_theme_accent') || defaultAccent;
+                const savedGlow = localStorage.getItem('esl_theme_glow') !== null 
+                    ? localStorage.getItem('esl_theme_glow') === 'true' 
+                    : defaultGlow;
+
+                const isDark = savedMode === 'dark' || (savedMode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                const root = document.documentElement;
+
+                if (isDark) {
+                    root.classList.add('dark');
+                    root.classList.remove('light');
+                } else {
+                    root.classList.remove('dark');
+                    root.classList.add('light');
+                }
+
+                root.setAttribute('data-accent', savedAccent);
+                root.setAttribute('data-glow', savedGlow ? 'true' : 'false');
+
+                const palettes = {
+                    blue: { primary: '#3b82f6', hover: '#2563eb', gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', glow: 'rgba(59, 130, 246, 0.35)', badgeBg: 'rgba(59, 130, 246, 0.15)', badgeText: '#93c5fd' },
+                    indigo: { primary: '#6366f1', hover: '#4f46e5', gradient: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', glow: 'rgba(99, 102, 241, 0.35)', badgeBg: 'rgba(99, 102, 241, 0.15)', badgeText: '#a5b4fc' },
+                    purple: { primary: '#8b5cf6', hover: '#7c3aed', gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', glow: 'rgba(139, 92, 246, 0.35)', badgeBg: 'rgba(139, 92, 246, 0.15)', badgeText: '#c4b5fd' },
+                    emerald: { primary: '#10b981', hover: '#059669', gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', glow: 'rgba(16, 185, 129, 0.35)', badgeBg: 'rgba(16, 185, 129, 0.15)', badgeText: '#6ee7b7' },
+                    amber: { primary: '#f59e0b', hover: '#d97706', gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', glow: 'rgba(245, 158, 11, 0.35)', badgeBg: 'rgba(245, 158, 11, 0.15)', badgeText: '#fcd34d' },
+                    rose: { primary: '#f43f5e', hover: '#e11d48', gradient: 'linear-gradient(135deg, #f43f5e 0%, #be123c 100%)', glow: 'rgba(244, 63, 94, 0.35)', badgeBg: 'rgba(244, 63, 94, 0.15)', badgeText: '#fda4af' },
+                    cyan: { primary: '#06b6d4', hover: '#0891b2', gradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', glow: 'rgba(6, 182, 212, 0.35)', badgeBg: 'rgba(6, 182, 212, 0.15)', badgeText: '#67e8f9' }
+                };
+                const pal = palettes[savedAccent] || palettes.indigo;
+                root.style.setProperty('--theme-primary', pal.primary);
+                root.style.setProperty('--theme-primary-hover', pal.hover);
+                root.style.setProperty('--theme-gradient', pal.gradient);
+                root.style.setProperty('--theme-primary-glow', pal.glow);
+                root.style.setProperty('--theme-border-glow', pal.glow.replace('0.35', '0.5'));
+                root.style.setProperty('--theme-badge-bg', pal.badgeBg);
+                root.style.setProperty('--theme-badge-text', pal.badgeText);
+            } catch(e) {}
+        })();
+    </script>
+
     <title>{{ $title ?? 'ESL LMS Admin Portal' }} - Quản trị Hệ thống</title>
 
     <!-- Google Fonts -->
@@ -14,56 +63,13 @@
 
     <!-- Alpine.js & Tailwind CSS via Vite -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @stack('styles')
 
-    <style>
-        [x-cloak] { display: none !important; }
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #070a12;
-        }
-        .admin-sidebar-link {
-            display: flex;
-            items-center: center;
-            gap: 0.75rem;
-            padding: 0.625rem 0.875rem;
-            border-radius: 0.625rem;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            color: #94a3b8;
-            transition: all 0.2s ease;
-        }
-        .admin-sidebar-link:hover {
-            color: #ffffff;
-            background-color: rgba(30, 41, 59, 0.6);
-        }
-        .admin-sidebar-link.active {
-            color: #ffffff;
-            background: linear-gradient(90deg, rgba(99, 102, 241, 0.25) 0%, rgba(59, 130, 246, 0.15) 100%);
-            border: 1px solid rgba(99, 102, 241, 0.4);
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
-        }
-        .admin-card {
-            background-color: #0f172a;
-            border: 1px solid rgba(51, 65, 85, 0.6);
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-        }
-        select,
-        select.login-input {
-            transition: none !important;
-            cursor: pointer;
-        }
-        select option {
-            background-color: #0f172a !important;
-            color: #ffffff !important;
-        }
-    </style>
+    <style>[x-cloak] { display: none !important; }</style>
 </head>
-<body class="min-h-screen text-gray-100 antialiased" x-data="{ sidebarOpen: true, mobileMenuOpen: false }">
+<body class="bg-[#0b1120] text-gray-100 min-h-screen antialiased selection:bg-indigo-500 selection:text-white" x-data="{ sidebarOpen: true, mobileMenuOpen: false }">
 
     {{-- 1. ADMIN SIDEBAR --}}
-    <aside class="fixed inset-y-0 left-0 z-50 bg-[#090d1a] border-r border-slate-800/80 transition-all duration-300 flex flex-col"
+    <aside class="admin-sidebar fixed inset-y-0 left-0 z-50 bg-[#090d1a] border-r border-slate-800/80 transition-all duration-300 flex flex-col"
            :class="sidebarOpen ? 'w-64' : 'w-20 hidden md:flex'">
 
         {{-- Brand Header --}}
@@ -97,6 +103,7 @@
                 <span x-show="sidebarOpen">Tổng quan (Dashboard)</span>
             </a>
 
+            @if(Auth::user()?->isAdmin())
             <div class="pt-3 pb-1">
                 <p x-show="sidebarOpen" class="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Hệ thống Đào tạo</p>
             </div>
@@ -110,6 +117,7 @@
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 <span x-show="sidebarOpen">Vai trò & Phân quyền</span>
             </a>
+            @endif
 
             <a href="{{ route('admin.courses.index') }}" class="admin-sidebar-link {{ request()->routeIs('admin.courses.*') ? 'active' : '' }}">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
@@ -145,32 +153,31 @@
                 <span x-show="sidebarOpen">Gamification & Badges</span>
             </a>
 
+            <a href="{{ route('admin.reports.index') }}" class="admin-sidebar-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                <svg class="w-4 h-4 flex-shrink-0 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span x-show="sidebarOpen">Báo cáo & Thống kê</span>
+            </a>
+
+            @if(Auth::user()?->isAdmin())
             <div class="pt-3 pb-1">
                 <p x-show="sidebarOpen" class="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Hệ thống</p>
             </div>
+
+            <a href="{{ route('admin.logs.index') }}" class="admin-sidebar-link {{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
+                <svg class="w-4 h-4 flex-shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span x-show="sidebarOpen">Nhật ký thao tác</span>
+            </a>
 
             <a href="{{ route('admin.settings.index') }}" class="admin-sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 <span x-show="sidebarOpen">Cấu hình LMS</span>
             </a>
-            @if(Route::has('ai-tutor.license.index') && app(\TDSoft\AiTutor\Contracts\LicenseAdministrator::class)->allows())
-                <a href="{{ route('ai-tutor.knowledge') }}" class="admin-sidebar-link {{ request()->routeIs('ai-tutor.knowledge') ? 'active' : '' }}">
-                    <span aria-hidden="true">📚</span><span x-show="sidebarOpen">Knowledge Gia sư AI</span>
-                </a>
-                <a href="{{ route('ai-tutor.license.index') }}" class="admin-sidebar-link">
-                    <span aria-hidden="true">🔑</span><span x-show="sidebarOpen">License Gia sư AI</span>
-                </a>
-            @endif
-            @if(Route::has('ai-tutor.credits.index') && app(\TDSoft\AiTutor\Contracts\CreditAdministrator::class)->actorId() !== null)
-                <a href="{{ route('ai-tutor.credits.index') }}" class="admin-sidebar-link {{ request()->routeIs('ai-tutor.credits.*') ? 'active' : '' }}">
-                    <span aria-hidden="true">💳</span><span x-show="sidebarOpen">Rule &amp; Credit AI</span>
-                </a>
             @endif
         </nav>
 
         {{-- Footer Actions: Back to Student Portal & Logout --}}
         <div class="p-3 border-t border-slate-800/80 space-y-2">
-            <a href="{{ route('dashboard') }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-gray-300 bg-slate-800/60 hover:bg-slate-700/60 hover:text-white transition-colors" :class="!sidebarOpen && 'justify-center'">
+            <a href="{{ route('dashboard') }}" class="admin-back-btn w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-gray-300 bg-slate-800/60 hover:bg-slate-700/60 hover:text-white transition-colors" :class="!sidebarOpen && 'justify-center'">
                 <svg class="w-4 h-4 text-fsel-teal flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 <span x-show="sidebarOpen">{{ __('messages.nav.back_to_student') }}</span>
             </a>
@@ -190,21 +197,27 @@
          :class="sidebarOpen ? 'md:ml-64' : 'md:ml-20'">
 
         {{-- Admin Top Navigation Bar --}}
-        <header class="sticky top-0 z-40 bg-[#090d1a]/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-3 flex items-center justify-between">
+        <header class="admin-header sticky top-0 z-40 bg-[#090d1a]/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-3 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-400 hover:text-white md:hidden">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
             </div>
 
-            {{-- Right Admin Actions: Language Switcher & Profile Info --}}
-            <div class="flex items-center gap-4">
+            {{-- Right Admin Actions: Theme Switcher, Language Switcher & Profile Info --}}
+            <div class="flex items-center gap-3">
+                {{-- Theme Switcher (Color Palette & Dark/Light Mode) --}}
+                <x-theme-switcher />
+
                 {{-- Moodle-Style Language Switcher --}}
                 <x-language-switcher />
 
+                {{-- Notifications & Messages Dropdown / Icon --}}
+                <x-header-notifications />
+
                 <div class="flex items-center gap-3">
                     <div class="text-right hidden sm:block">
-                        <span class="text-xs font-bold text-white block">{{ Auth::user()->name }}</span>
+                        <span class="admin-user-name text-xs font-bold text-slate-900 dark:text-white block">{{ Auth::user()->name }}</span>
                         <span class="text-[10px] text-fsel-teal font-mono uppercase font-semibold">{{ Auth::user()->role }}</span>
                     </div>
                     <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-xs font-black text-white shadow-md overflow-hidden">
@@ -233,12 +246,12 @@
         @endif
 
         {{-- Main Page Content --}}
-        <main class="flex-1 p-4 sm:p-8">
+        <main class="admin-main flex-1 p-4 sm:p-8">
             @yield('content')
         </main>
 
         {{-- Admin Footer --}}
-        <footer class="border-t border-slate-800/60 px-4 sm:px-8 py-4 text-xs text-gray-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <footer class="admin-footer border-t border-slate-800/60 px-4 sm:px-8 py-4 text-xs text-gray-500 flex flex-col sm:flex-row items-center justify-between gap-2">
             <span>ESL English LMS &copy; {{ date('Y') }} — ESL E-Learning Platform.</span>
             <span class="font-mono text-[11px]">System Status: Operational</span>
         </footer>

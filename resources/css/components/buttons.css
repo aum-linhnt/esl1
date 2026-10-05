@@ -1,0 +1,208 @@
+/* ─── ESL LMS: Buttons, Form Controls & Badges ─── */
+
+/* 1. Form Inputs */
+.login-input {
+    width: 100%;
+    background-color: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(51, 65, 85, 0.7);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: #ffffff;
+    font-size: 0.875rem;
+    outline: none;
+    transition: all 0.2s ease;
+}
+.login-input::placeholder {
+    color: #94a3b8;
+}
+.login-input:focus {
+    border-color: var(--theme-primary, #6366f1);
+    box-shadow: 0 0 0 1px var(--theme-primary, #6366f1);
+}
+
+select,
+select.login-input {
+    transition: none !important;
+    cursor: pointer;
+}
+select option {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+}
+
+html.light select,
+html.light .login-input,
+html.light select.login-input,
+html.light input[type="text"],
+html.light input[type="password"],
+html.light input[type="email"],
+html.light input[type="search"],
+html.light input[type="number"],
+html.light input[type="date"],
+html.light input[type="datetime-local"],
+html.light textarea {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+html.light .login-input::placeholder {
+    color: #94a3b8 !important;
+}
+html.light select option {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+
+/* 2. Core CTA Buttons */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, var(--theme-primary, #6366f1) 0%, var(--theme-primary-hover, #4f46e5) 100%);
+    color: #ffffff !important;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px -2px rgba(99, 102, 241, 0.35);
+    cursor: pointer;
+}
+.btn-primary:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px -2px rgba(99, 102, 241, 0.5);
+}
+
+.btn-outline {
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    background: transparent;
+}
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #ffffff;
+}
+
+/* Text in primary buttons must always be white */
+html.light .btn-theme,
+html.light .btn-primary,
+html.light .bg-gradient-btn,
+html.light button[type="submit"].bg-indigo-600 {
+    color: #ffffff !important;
+}
+
+/* 3. Navigation & Action Buttons */
+html.light .course-back-btn {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+html.light .course-back-btn:hover {
+    color: var(--theme-primary, #4f46e5) !important;
+    border-color: var(--theme-primary, #4f46e5) !important;
+    background-color: #f8fafc !important;
+}
+
+html.light .lesson-action-btn {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+html.light .lesson-action-btn:hover {
+    background-color: #f8fafc !important;
+    border-color: var(--theme-primary, #4f46e5) !important;
+    color: var(--theme-primary, #4f46e5) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+}
+
+html.light .lesson-locked-badge {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+    color: #94a3b8 !important;
+}
+
+html.light .lesson-nav-btn {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+html.light .lesson-nav-btn:hover {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+}
+
+/* 4. Global Light-Mode Button & Badge Darkness Elimination (Wildcard Match) */
+html.light a[class*="bg-slate-800"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item):not(.footer-link),
+html.light button[class*="bg-slate-800"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item),
+html.light a[class*="bg-slate-900"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item):not(.footer-link),
+html.light button[class*="bg-slate-900"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item),
+html.light a[class*="bg-slate-950"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item):not(.footer-link),
+html.light button[class*="bg-slate-950"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item),
+html.light a[class*="bg-fsel-navy"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item):not(.footer-link),
+html.light button[class*="bg-fsel-navy"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item),
+html.light .header-lang-btn,
+html.light .lesson-action-btn,
+html.light .course-back-btn,
+html.light .lesson-nav-btn {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light a[class*="bg-slate-800"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item):hover,
+html.light button[class*="bg-slate-800"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item):hover,
+html.light a[class*="bg-slate-900"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item):hover,
+html.light button[class*="bg-slate-900"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item):hover,
+html.light a[class*="bg-slate-950"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item):hover,
+html.light button[class*="bg-slate-950"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item):hover,
+html.light a[class*="bg-fsel-navy"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item):hover,
+html.light button[class*="bg-fsel-navy"]:not(.header-profile-item):not(.header-profile-logout):not(.header-lang-item):hover,
+html.light .header-lang-btn:hover,
+html.light .lesson-action-btn:hover,
+html.light .course-back-btn:hover,
+html.light .lesson-nav-btn:hover {
+    background-color: #f8fafc !important;
+    border-color: var(--theme-primary, #4f46e5) !important;
+    color: var(--theme-primary, #4f46e5) !important;
+}
+
+html.light a[class*="bg-slate-800"] span,
+html.light button[class*="bg-slate-800"] span,
+html.light a[class*="bg-slate-900"] span,
+html.light button[class*="bg-slate-900"] span,
+html.light .header-lang-btn span,
+html.light .lesson-action-btn span,
+html.light .course-back-btn span,
+html.light .lesson-nav-btn span {
+    color: inherit !important;
+}
+
+html.light a[class*="bg-slate-800"] svg,
+html.light button[class*="bg-slate-800"] svg,
+html.light a[class*="bg-slate-900"] svg,
+html.light button[class*="bg-slate-900"] svg,
+html.light .lesson-action-btn svg,
+html.light .course-back-btn svg,
+html.light .lesson-nav-btn svg {
+    color: inherit !important;
+}
+
+/* 5. Non-button badge & pill background conversion */
+html.light [class*="bg-slate-800"]:not(button):not(a):not(.card-dark),
+html.light [class*="bg-slate-900"]:not(button):not(a):not(.card-dark):not(header):not(aside):not(body):not([class*="gradient"]):not([class*="bg-emerald"]):not([class*="bg-teal"]):not([class*="bg-purple"]):not([class*="bg-blue"]):not([class*="bg-amber"]),
+html.light [class*="bg-fsel-navy"]:not(button):not(a) {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+    color: #334155 !important;
+}
