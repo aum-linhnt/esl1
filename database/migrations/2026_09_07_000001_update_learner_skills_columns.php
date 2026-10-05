@@ -9,6 +9,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return; // SQLite stores these enum columns as text already.
+        }
         DB::statement("ALTER TABLE learner_skills MODIFY COLUMN skill_type VARCHAR(50) NOT NULL");
         DB::statement("ALTER TABLE learner_skills MODIFY COLUMN assessed_level VARCHAR(20) NOT NULL DEFAULT 'A1'");
     }

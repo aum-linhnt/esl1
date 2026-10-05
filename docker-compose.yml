@@ -5,7 +5,7 @@ services:
     working_dir: /app
     ports:
       - "${APP_PORT:-8000}:80"
-    environment:
+    environment: &app-environment
       WEB_DOCUMENT_ROOT: /app/public
       APP_ENV: local
       APP_DEBUG: "true"
@@ -16,6 +16,18 @@ services:
       DB_DATABASE: ${DOCKER_DB_DATABASE:-esl}
       DB_USERNAME: ${DOCKER_DB_USERNAME:-esl}
       DB_PASSWORD: ${DOCKER_DB_PASSWORD:-esl_secret}
+    volumes:
+      - ./:/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  scheduler:
+    image: webdevops/php-apache:8.3
+    restart: unless-stopped
+    working_dir: /app
+    command: ["php", "artisan", "schedule:work"]
+    environment: *app-environment
     volumes:
       - ./:/app
     depends_on:
