@@ -1,36 +1,26 @@
 @extends('layouts.app')
 @section('content')
 <div class="w-full space-y-5 sm:space-y-6 min-w-0">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-    <a href="{{ route('courses.index') }}" class="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 rounded-full transition-colors">
+    <a href="{{ route('courses.index') }}" class="course-back-btn inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 rounded-full transition-colors">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         <span>Danh sách khóa học</span>
     </a>
-        @if($layoutLesson ?? null)
-            @include('lessons.partials.layout-toggle', ['lesson' => $layoutLesson, 'tutorLayout' => false, 'toggleText' => 'Chuyển giao diện', 'preserveActivity' => false])
-        @else
-            <button type="button" disabled title="Chưa có bài học được mở để chuyển giao diện" style="display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #475569;border-radius:10px;background:#1e293b;color:#94a3b8;font-size:12px;opacity:.55;cursor:not-allowed">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M15 9v11"/></svg>
-                Chuyển giao diện
-            </button>
-        @endif
-    </div>
 
     {{-- COURSE HERO CARD --}}
-    <div class="card-dark p-3.5 sm:p-7 rounded-2xl sm:rounded-3xl border-slate-800/80 relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 shadow-xl min-w-0 max-w-full">
+    <div class="card-dark course-hero-card p-3.5 sm:p-7 rounded-2xl sm:rounded-3xl border-slate-800/80 relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 shadow-xl min-w-0 max-w-full">
         {{-- Level & Meta Badges --}}
         <div class="flex items-center gap-2 flex-wrap mb-3">
             <span class="bg-gradient-to-r from-fsel-blue to-indigo-600 text-white text-[11px] font-black px-2.5 py-1 rounded-lg font-mono flex items-center gap-1 shadow-sm">
                 <span>🎯</span>
                 <span>{{ $course->level }}</span>
             </span>
-            <span class="bg-slate-800/80 text-gray-300 border border-slate-700/60 text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1 font-mono">
+            <span class="course-meta-pill bg-slate-800/80 text-gray-300 border border-slate-700/60 text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1 font-mono">
                 <span>📚</span>
                 <span>{{ $lessonsWithStatus->count() }} bài học</span>
             </span>
             @php $totalMins = $course->lessons->sum('estimated_minutes'); @endphp
             @if($totalMins > 0)
-                <span class="bg-slate-800/80 text-gray-300 border border-slate-700/60 text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1 font-mono">
+                <span class="course-meta-pill bg-slate-800/80 text-gray-300 border border-slate-700/60 text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1 font-mono">
                     <span>⏱️</span>
                     <span>~{{ $totalMins }} phút</span>
                 </span>
@@ -67,7 +57,7 @@
                             </span>
                             @if(isset($enrollment->role_meta))
                                 <span class="font-bold px-2.5 py-1 rounded-lg border text-[11px] {{ $enrollment->role_meta['badge_class'] }}">
-                                    {{ $enrollment->role_meta['icon'] }} {{ $enrollment->role_meta['name'] }}
+                                    {{ $enrollment->role_meta['name'] }}
                                 </span>
                             @endif
                         </div>
@@ -148,7 +138,7 @@
                 <span>📚</span>
                 <span>Nội dung bài học</span>
             </h3>
-            <span class="text-xs font-mono text-gray-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+            <span class="lesson-count-badge text-xs font-mono text-gray-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
                 {{ $lessonsWithStatus->count() }} bài
             </span>
         </div>
@@ -165,7 +155,7 @@
                 <div class="card-dark p-3 sm:p-4 flex items-center justify-between gap-2.5 sm:gap-3 rounded-xl sm:rounded-2xl border-slate-800/80 hover:border-slate-700 transition-all min-w-0 max-w-full overflow-hidden {{ ($isEnrolled && !$unlocked) ? 'opacity-60' : '' }}">
                     <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 overflow-hidden">
                         {{-- Lesson Order Number Avatar --}}
-                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-bold font-mono text-xs sm:text-sm shadow-sm
+                        <div class="lesson-order-avatar w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-bold font-mono text-xs sm:text-sm shadow-sm
                             {{ $completed ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : ($unlocked ? 'bg-fsel-blue/20 text-fsel-blue border border-fsel-blue/30' : ($isTrial ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'bg-slate-800 text-gray-400 border border-slate-700')) }}">
                             @if($completed)
                                 <span>✓</span>
@@ -224,7 +214,7 @@
                                     <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 </a>
                             @else
-                                <span class="text-xs text-gray-500 bg-slate-900 border border-slate-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1 font-mono">
+                                <span class="lesson-locked-badge text-xs text-gray-500 bg-slate-900 border border-slate-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1 font-mono">
                                     <span>🔒</span>
                                     <span class="hidden sm:inline">Chưa mở</span>
                                 </span>
@@ -236,7 +226,7 @@
                                     <span>Học thử</span>
                                 </a>
                             @else
-                                <a href="{{ route('lessons.show', $lesson->id) }}" class="bg-slate-800 hover:bg-slate-700 text-gray-300 hover:text-white border border-slate-700 text-[11px] sm:text-xs font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all flex items-center gap-1 shadow-sm whitespace-nowrap" title="Xem danh sách hoạt động">
+                                <a href="{{ route('lessons.show', $lesson->id) }}" class="lesson-action-btn bg-slate-800 hover:bg-slate-700 text-gray-300 hover:text-white border border-slate-700 text-[11px] sm:text-xs font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all flex items-center gap-1 shadow-sm whitespace-nowrap" title="Xem danh sách hoạt động">
                                     <span>🔒</span>
                                     <span>Xem nội dung</span>
                                 </a>

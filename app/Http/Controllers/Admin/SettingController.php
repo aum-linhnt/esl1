@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\AI\GeminiApiService;
+use App\Services\SettingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Artisan;
 
 class SettingController extends Controller
 {
+    public function __construct(private SettingService $settings) {}
+
     public function index()
     {
         $geminiService = app(GeminiApiService::class);
@@ -38,13 +41,20 @@ class SettingController extends Controller
             'gemini_max_rpm' => config('services.gemini.max_rpm', 15),
         ];
 
+        $themeConfig = [
+            'mode' => config('theme.mode', 'dark'),
+            'accent' => config('theme.accent', 'indigo'),
+            'glow' => config('theme.glow', true),
+            'palettes' => config('theme.palettes', []),
+        ];
+
         return view('admin.settings.index', compact(
-            'geminiStatus', 'isConfigured', 'maskedKey', 'dbDriver', 'systemSettings'
+            'geminiStatus', 'isConfigured', 'maskedKey', 'dbDriver', 'systemSettings', 'themeConfig'
         ));
     }
 
     /**
-     * Save the Gemini API Key & Model to .env file.
+     * Save the Gemini API Key & models (encrypted key, stored in DB settings).
      */
     public function updateApiKey(Request $request)
     {
@@ -54,38 +64,17 @@ class SettingController extends Controller
             'model_pro' => 'nullable|string|max:100',
         ]);
 
-        $newKey = trim($request->input('api_key'));
-        $modelFlash = trim($request->input('model_flash', 'gemini-1.5-flash'));
-        $modelPro = trim($request->input('model_pro', 'gemini-1.5-pro'));
+        $values = ['gemini.api_key' => trim($request->input('api_key'))];
 
-        $envPath = base_path('.env');
-        $envContent = file_get_contents($envPath);
-
-        // Update or append GEMINI_API_KEY
-        if (str_contains($envContent, 'GEMINI_API_KEY=')) {
-            $envContent = preg_replace('/^GEMINI_API_KEY=.*$/m', "GEMINI_API_KEY={$newKey}", $envContent);
-        } else {
-            $envContent .= "\nGEMINI_API_KEY={$newKey}\n";
+        // Only override models when provided; otherwise keep current value / .env default.
+        if ($request->filled('model_flash')) {
+            $values['gemini.model_flash'] = trim($request->input('model_flash'));
+        }
+        if ($request->filled('model_pro')) {
+            $values['gemini.model_pro'] = trim($request->input('model_pro'));
         }
 
-        // Update or append GEMINI_MODEL_FLASH
-        if (str_contains($envContent, 'GEMINI_MODEL_FLASH=')) {
-            $envContent = preg_replace('/^GEMINI_MODEL_FLASH=.*$/m', "GEMINI_MODEL_FLASH={$modelFlash}", $envContent);
-        } else {
-            $envContent .= "GEMINI_MODEL_FLASH={$modelFlash}\n";
-        }
-
-        // Update or append GEMINI_MODEL_PRO
-        if (str_contains($envContent, 'GEMINI_MODEL_PRO=')) {
-            $envContent = preg_replace('/^GEMINI_MODEL_PRO=.*$/m', "GEMINI_MODEL_PRO={$modelPro}", $envContent);
-        } else {
-            $envContent .= "GEMINI_MODEL_PRO={$modelPro}\n";
-        }
-
-        file_put_contents($envPath, $envContent);
-
-        // Clear config cache so the new key takes effect
-        Artisan::call('config:clear');
+        $this->settings->setMany($values, $request->user()?->id);
 
         return redirect()->route('admin.settings.index')
             ->with('success', 'API Key đã được lưu thành công! Hệ thống AI sẽ sử dụng Gemini API thật.');
@@ -96,9 +85,7 @@ class SettingController extends Controller
      */
     public function testConnection(): JsonResponse
     {
-        // Re-read config after potential .env change
-        Artisan::call('config:clear');
-
+        // Config already reflects DB settings (applied at boot), so a fresh instance picks them up.
         $geminiService = new GeminiApiService();
         $result = $geminiService->testConnection();
 
@@ -107,6 +94,7 @@ class SettingController extends Controller
 
     public function clearCache(Request $request)
     {
+        // cache:clear also drops cached settings; they are reloaded from the DB on next access.
         Artisan::call('cache:clear');
         Artisan::call('view:clear');
         Artisan::call('route:clear');
@@ -115,4 +103,26 @@ class SettingController extends Controller
         return redirect()->route('admin.settings.index')
             ->with('success', 'Đã dọn dẹp bộ nhớ đệm (Cache, Route, Config & View) thành công!');
     }
+
+    /**
+     * Update default platform UI theme, accent palette and glow effect.
+     */
+    public function updateTheme(Request $request)
+    {
+        $request->validate([
+            'theme_mode' => 'required|in:dark,light,auto',
+            'theme_accent' => 'required|in:blue,indigo,purple,emerald,amber,rose,cyan',
+            'theme_glow' => 'nullable',
+        ]);
+
+        $this->settings->setMany([
+            'theme.mode' => $request->input('theme_mode'),
+            'theme.accent' => $request->input('theme_accent'),
+            'theme.glow' => $request->has('theme_glow'),
+        ], $request->user()?->id);
+
+        return redirect()->route('admin.settings.index')
+            ->with('success', 'Đã lưu cấu hình giao diện & màu sắc mặc định của hệ thống thành công!');
+    }
 }
+

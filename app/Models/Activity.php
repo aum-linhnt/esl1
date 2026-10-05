@@ -24,6 +24,7 @@ class Activity extends Model
     const TYPE_ASSIGNMENT      = 'assignment';
     const TYPE_FORUM           = 'forum';
     const TYPE_LABEL           = 'label';
+    const TYPE_H5P             = 'h5p';
 
     // ─── Completion Type Constants ───
     const COMPLETION_MANUAL      = 'manual';
@@ -90,6 +91,10 @@ class Activity extends Model
         self::TYPE_LABEL => [
             'icon' => '🏷️', 'label' => 'Nhãn / Tiêu đề', 'category' => 'structure',
             'color' => 'gray', 'description' => 'Nhãn phân cách hoặc tiêu đề nhóm (chỉ hiển thị)',
+        ],
+        self::TYPE_H5P => [
+            'icon' => '🧩', 'label' => 'H5P Tương tác', 'category' => 'interactive',
+            'color' => 'sky', 'description' => 'Nội dung tương tác H5P (kéo thả, điền từ, video tương tác...)',
         ],
     ];
 
@@ -180,7 +185,7 @@ class Activity extends Model
      */
     public function getUserAttempts(int $userId)
     {
-        return $this->quizAttempts()->where('user_id', $userId)->where('status', QuizAttempt::STATUS_COMPLETED)->get();
+        return $this->quizAttempts()->where('user_id', $userId)->get();
     }
 
     /**
@@ -188,7 +193,7 @@ class Activity extends Model
      */
     public function getUserLatestAttempt(int $userId): ?QuizAttempt
     {
-        return $this->quizAttempts()->where('user_id', $userId)->where('status', QuizAttempt::STATUS_COMPLETED)->latest('attempt_number')->first();
+        return $this->quizAttempts()->where('user_id', $userId)->latest('attempt_number')->first();
     }
 
     /**
@@ -196,7 +201,7 @@ class Activity extends Model
      */
     public function getUserHighestAttempt(int $userId): ?QuizAttempt
     {
-        return $this->quizAttempts()->where('user_id', $userId)->where('status', QuizAttempt::STATUS_COMPLETED)->orderByDesc('score')->first();
+        return $this->quizAttempts()->where('user_id', $userId)->orderByDesc('score')->first();
     }
 
     /**
@@ -362,5 +367,16 @@ class Activity extends Model
     public function isTrial(): bool
     {
         return (bool) ($this->is_free_trial || ($this->lesson && $this->lesson->is_free_trial));
+    }
+
+    /**
+     * Get the extracted URL for an H5P activity package.
+     */
+    public function getH5pExtractedUrl(): ?string
+    {
+        if ($this->type !== self::TYPE_H5P || !$this->file) {
+            return null;
+        }
+        return app(\App\Services\H5P\H5PPackageService::class)->getExtractedUrl($this->file);
     }
 }

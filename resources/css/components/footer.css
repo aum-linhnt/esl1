@@ -1,0 +1,43 @@
+/* ─── ESL LMS: Footer & App Store Badges ─── */
+
+html.light .site-footer {
+    background-color: #ffffff !important;
+    border-top: 1px solid #e2e8f0 !important;
+}
+
+html.light .brand-logo-text,
+html.light .brand-letter-e {
+    color: #0f172a !important;
+}
+
+html.light .footer-heading {
+    color: #0f172a !important;
+}
+
+html.light .footer-desc,
+html.light .footer-link {
+    color: #64748b !important;
+}
+html.light .footer-link:hover {
+    color: var(--theme-primary, #4f46e5) !important;
+}
+
+html.light .app-store-btn {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+html.light .app-store-btn:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-1px);
+}
+html.light .app-store-btn svg {
+    color: #0f172a !important;
+    fill: currentColor !important;
+}
+html.light .app-store-btn span {
+    color: #0f172a !important;
+    font-weight: 600 !important;
+}

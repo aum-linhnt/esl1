@@ -107,6 +107,22 @@
                 <textarea name="explanation" rows="2" x-model="editModal.data.explanation" class="login-input text-xs"></textarea>
             </div>
 
+            {{-- Question Versioning Control --}}
+            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-700/80 flex items-center justify-between gap-3">
+                <div class="space-y-0.5">
+                    <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                        <span>🛡️</span>
+                        <span>Bảo toàn lịch sử bài thi (Tự động tạo Version mới)</span>
+                    </span>
+                    <span class="text-[11px] text-slate-400 block leading-tight">
+                        Khi nội dung thay đổi, hệ thống sẽ lưu bản ghi hiện tại thành lịch sử và tạo <strong class="text-indigo-400">v<span x-text="(editModal.data.version || 1) + 1"></span></strong>. Các bài thi học viên đã nộp trước đây sẽ giữ nguyên 100% không bị ảnh hưởng.
+                    </span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                    <input type="checkbox" name="create_new_version" value="1" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 bg-slate-800 border-slate-700">
+                </label>
+            </div>
+
             <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
                 <button type="button" @click="editModal.open = false" class="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white">
                     Hủy bỏ

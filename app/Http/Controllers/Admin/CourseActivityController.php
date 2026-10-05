@@ -41,7 +41,18 @@ class CourseActivityController extends Controller
         }
 
         // Build structured JSON based on modern activity type
-        $content = $this->buildActivityContent($request, $type, $fileId);
+        if ($request->has('content') && is_array($request->input('content')) && !empty($request->input('content'))) {
+            $content = $request->input('content');
+        } else {
+            $content = $this->buildActivityContent($request, $type, $fileId);
+        }
+
+        if ($type === 'h5p' && $fileId) {
+            $fileRecord = \App\Models\File::find($fileId);
+            if ($fileRecord) {
+                app(\App\Services\H5P\H5PPackageService::class)->extractPackage($fileRecord);
+            }
+        }
 
         $activity = Activity::create([
             'lesson_id' => $lessonId,
@@ -96,6 +107,9 @@ class CourseActivityController extends Controller
         // Decrement file reference count if activity has a file
         if ($activity->file_id) {
             $fileService = app(FileStorageService::class);
+            if ($activity->type === 'h5p' && $activity->file && $activity->file->reference_count <= 1) {
+                app(\App\Services\H5P\H5PPackageService::class)->deleteExtracted($activity->file->hash);
+            }
             $fileService->decrementReference($activity->file);
         }
 
@@ -184,6 +198,16 @@ class CourseActivityController extends Controller
             $updateData['content'] = $request->input('content');
         }
 
+        if ($request->has('file_id')) {
+            $updateData['file_id'] = $request->input('file_id');
+            if ($request->input('file_id') && ($request->input('type', $activity->type) === 'h5p')) {
+                $fileRecord = \App\Models\File::find($request->input('file_id'));
+                if ($fileRecord) {
+                    app(\App\Services\H5P\H5PPackageService::class)->extractPackage($fileRecord);
+                }
+            }
+        }
+
         $activity->update($updateData);
 
         if ($request->expectsJson()) {
@@ -257,6 +281,13 @@ class CourseActivityController extends Controller
 
         $fileRecord = $fileService->store($uploaded, $request->user()?->id);
 
+        $isH5p = strtolower($fileRecord->extension) === 'h5p';
+        $h5pData = null;
+        if ($isH5p) {
+            $h5pService = app(\App\Services\H5P\H5PPackageService::class);
+            $h5pData = $h5pService->extractPackage($fileRecord);
+        }
+
         return response()->json([
             'success' => true,
             'file_id' => $fileRecord->id,
@@ -265,6 +296,8 @@ class CourseActivityController extends Controller
             'file_original_name' => $fileRecord->original_name,
             'file_url' => $fileRecord->getUrl(),
             'is_duplicate' => $fileRecord->reference_count > 1,
+            'is_h5p' => $isH5p,
+            'h5p_data' => $h5pData,
         ]);
     }
 
@@ -385,6 +418,15 @@ class CourseActivityController extends Controller
 
             case 'label':
                 return ['text' => $request->input('label_text', $request->title)];
+
+            case 'h5p':
+                $source = $request->input('h5p_source', $fileId ? 'upload' : 'url');
+                return [
+                    'source' => $source,
+                    'embed_url' => $request->input('h5p_embed_url', ''),
+                    'instructions' => $request->input('h5p_instructions', ''),
+                    'aspect_ratio' => $request->input('h5p_aspect_ratio', '16:9'),
+                ];
 
             default:
                 return ['raw_text' => $request->input('raw_text', '')];

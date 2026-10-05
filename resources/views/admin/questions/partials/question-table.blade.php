@@ -82,9 +82,12 @@
                                    class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer">
                         </td>
 
-                        {{-- ID --}}
-                        <td class="px-4 py-3.5 font-mono text-[11px] text-gray-500 font-bold">
-                            #{{ $q->id }}
+                        {{-- ID & Version --}}
+                        <td class="px-4 py-3.5 whitespace-nowrap font-mono text-[11px] text-gray-500 font-bold">
+                            <div>#{{ $q->id }}</div>
+                            <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30" title="Phiên bản câu hỏi">
+                                v{{ $q->version ?? 1 }}
+                            </span>
                         </td>
 
                         {{-- Skill / CEFR --}}

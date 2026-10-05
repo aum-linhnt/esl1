@@ -1,0 +1,483 @@
+/* ─── ESL LMS: Admin Portal Specific Styles ─── */
+
+/* 1. Admin Tables & Data Rows (Light Mode) */
+html.light .admin-table th {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    border-color: #e2e8f0 !important;
+}
+
+html.light .admin-table td {
+    border-color: #f1f5f9 !important;
+    color: #334155 !important;
+}
+
+html.light .admin-table tr:hover td {
+    background-color: #f8fafc !important;
+}
+
+/* 2. Admin Metric Cards */
+html.light .admin-stat-card {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+}
+
+html.light .admin-stat-label {
+    color: #64748b !important;
+}
+
+html.light .admin-stat-val {
+    color: #0f172a !important;
+}
+
+/* 3. Status Badges */
+html.light .status-fallback,
+html.light .gemini-status-badge.status-fallback {
+    background-color: #fef3c7 !important;
+    border-color: #fde68a !important;
+    color: #92400e !important;
+}
+
+html.light .status-configured,
+html.light .gemini-status-badge.status-configured {
+    background-color: #dcfce7 !important;
+    border-color: #bbf7d0 !important;
+    color: #166534 !important;
+}
+
+html.light .theme-palettes-badge {
+    background-color: #eef2ff !important;
+    border-color: #c7d2fe !important;
+    color: #4338ca !important;
+}
+
+/* 4. Theme Mode Cards (Dark & Light) */
+.theme-mode-card {
+    background-color: #0f172a;
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    color: #e2e8f0;
+    transition: all 0.2s ease;
+}
+.theme-mode-card:hover {
+    border-color: #64748b;
+}
+.theme-mode-card.active {
+    background-color: rgba(99, 102, 241, 0.25);
+    border-color: #6366f1;
+    color: #ffffff;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+}
+.theme-mode-icon-box {
+    background-color: #020617;
+    border: 1px solid rgba(51, 65, 85, 0.6);
+}
+
+html.light .theme-mode-card {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #1e293b !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+html.light .theme-mode-card:hover {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+}
+html.light .theme-mode-card.active {
+    background-color: #eef2ff !important;
+    border: 2px solid #4f46e5 !important;
+    color: #312e81 !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15) !important;
+}
+html.light .theme-mode-icon-box {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* 5. Theme Palette Preview Swatches */
+.palette-swatch-card {
+    background-color: #0f172a;
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    transition: all 0.2s ease;
+}
+.palette-swatch-card:hover {
+    border-color: #64748b;
+}
+.palette-swatch-card.active {
+    border-color: #ffffff;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
+html.light .palette-swatch-card {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+html.light .palette-swatch-card:hover {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+}
+html.light .palette-swatch-card.active {
+    background-color: #eef2ff !important;
+    border: 2px solid var(--theme-primary, #4f46e5) !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15) !important;
+}
+html.light .palette-swatch-card span {
+    color: #0f172a !important;
+}
+html.light .palette-swatch-card span.font-mono {
+    color: #64748b !important;
+}
+
+/* 6. Admin Portal Global Layout Theming (Light & Dark) */
+html.dark .admin-header,
+html:not(.light) .admin-header {
+    background-color: rgba(9, 13, 26, 0.95) !important;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.7) !important;
+}
+
+html.dark .admin-sidebar,
+html:not(.light) .admin-sidebar {
+    background-color: #090d1a !important;
+    border-right: 1px solid rgba(51, 65, 85, 0.7) !important;
+}
+
+html.dark .admin-main,
+html:not(.light) .admin-main {
+    background-color: #0b1120 !important;
+}
+
+html.dark .admin-footer,
+html:not(.light) .admin-footer {
+    border-top: 1px solid rgba(51, 65, 85, 0.5) !important;
+    color: #64748b !important;
+}
+
+/* Light Mode Admin Layout */
+html.light .admin-header {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+}
+
+html.light .admin-sidebar {
+    background-color: #ffffff !important;
+    border-right: 1px solid #e2e8f0 !important;
+    box-shadow: 1px 0 3px rgba(0, 0, 0, 0.02) !important;
+}
+
+html.light .admin-main {
+    background-color: #f8fafc !important;
+}
+
+html.light .admin-footer {
+    border-top: 1px solid #e2e8f0 !important;
+    color: #64748b !important;
+}
+
+/* 7. Admin Dashboard Sub-Widgets & Streams (Light Mode Polish) */
+html.light .admin-metric-subbox {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+html.light .admin-metric-subbox:hover {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05) !important;
+}
+html.light .admin-metric-subbox .subbox-label {
+    color: #64748b !important;
+}
+html.light .admin-metric-subbox .subbox-val {
+    color: #0f172a !important;
+}
+html.light .admin-metric-subbox .subbox-desc {
+    color: #94a3b8 !important;
+}
+
+html.light .admin-badge-summary {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+}
+html.light .admin-badge-summary .admin-badge-label {
+    color: #475569 !important;
+}
+html.light .admin-badge-summary .admin-badge-val {
+    color: var(--theme-primary, #4f46e5) !important;
+}
+
+html.light .admin-diag-badge {
+    background-color: var(--theme-badge-bg) !important;
+    border-color: var(--theme-border-glow) !important;
+    color: var(--theme-primary-hover, var(--theme-primary)) !important;
+}
+
+html.light .admin-cefr-track {
+    background-color: #e2e8f0 !important;
+}
+
+html.light .admin-feed-list {
+    border-color: #f1f5f9 !important;
+}
+html.light .admin-feed-list > div {
+    border-color: #f1f5f9 !important;
+}
+html.light .admin-feed-title {
+    color: #0f172a !important;
+}
+html.light .admin-feed-subtitle {
+    color: #64748b !important;
+}
+
+html.light .admin-sub-avatar {
+    background-color: var(--theme-badge-bg) !important;
+    border: 1px solid var(--theme-border-glow) !important;
+    color: var(--theme-primary) !important;
+}
+
+html.light .admin-user-avatar {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%) !important;
+    color: #1e293b !important;
+}
+
+html.light .admin-role-badge {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    color: var(--theme-primary, #4f46e5) !important;
+}
+
+html.light .admin-btn-secondary {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+html.light .admin-btn-secondary:hover {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+html.light .admin-action-link {
+    color: var(--theme-primary, #4f46e5) !important;
+}
+html.light .admin-action-link:hover {
+    color: var(--theme-primary-hover, #4338ca) !important;
+}
+
+/* ─── 8. Course Curriculum Studio & Moodle LMS Editor (Light Mode Polish) ─── */
+html.light .curriculum-tabs-nav {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light .curriculum-toolbar {
+    background: linear-gradient(90deg, #ffffff 0%, #f8faff 50%, #ffffff 100%) !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+}
+
+html.light .curriculum-toolbar .toolbar-title {
+    color: #0f172a !important;
+}
+
+html.light .curriculum-toolbar .toolbar-meta {
+    color: #64748b !important;
+}
+
+html.light .curriculum-toolbar .toolbar-meta strong {
+    color: #0f172a !important;
+}
+
+html.light .curriculum-hint-banner {
+    background-color: #f5f3ff !important;
+    border-color: #ddd6fe !important;
+    color: #5b21b6 !important;
+}
+
+html.light .lesson-item {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 6px 16px -4px rgba(15, 23, 42, 0.04) !important;
+}
+
+html.light .lesson-header {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+
+html.light .lesson-header .lesson-title {
+    color: #0f172a !important;
+}
+
+html.light .lesson-header .lesson-meta {
+    color: #64748b !important;
+}
+
+html.light .lesson-order-badge {
+    background-color: #eef2ff !important;
+    border-color: #c7d2fe !important;
+    color: #4338ca !important;
+}
+
+html.light .lesson-action-btn {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    color: #475569 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+html.light .lesson-action-btn:hover {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+}
+
+html.light .activities-sortable {
+    background-color: #f8fafc !important;
+    border-top: 1px solid #f1f5f9 !important;
+}
+
+html.light .activity-card {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+    color: #1e293b !important;
+}
+
+html.light .activity-card:hover {
+    border-color: #c7d2fe !important;
+    box-shadow: 0 4px 12px -2px rgba(99, 102, 241, 0.08) !important;
+}
+
+html.light .activity-card.is-hidden {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    opacity: 0.7 !important;
+}
+
+html.light .activity-card .activity-title {
+    color: #0f172a !important;
+}
+
+html.light .activity-card .activity-desc {
+    color: #64748b !important;
+}
+
+html.light .activity-action-btn {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+
+html.light .activity-action-btn:hover {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+}
+
+html.light .empty-dropzone {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #64748b !important;
+}
+
+/* Light mode for modal & drawer panels in studio */
+html.light .studio-modal-panel,
+html.light [x-show="showAddLessonModal"] .admin-card,
+html.light [x-show="showEditLessonModal"] .admin-card,
+html.light [x-show="showPaletteModal"] .admin-card,
+html.light [x-show="showQuestionModal"] .admin-card,
+html.light [x-show="showImportModal"] .admin-card {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    color: #0f172a !important;
+}
+
+html.light [x-show="showPaletteModal"] .admin-card h3,
+html.light [x-show="showAddLessonModal"] .admin-card h3,
+html.light [x-show="showEditLessonModal"] .admin-card h3 {
+    color: #0f172a !important;
+}
+
+html.light [x-show="showPaletteModal"] .border-slate-800,
+html.light [x-show="showAddLessonModal"] .border-slate-800,
+html.light [x-show="showEditLessonModal"] .border-slate-800 {
+    border-color: #f1f5f9 !important;
+}
+
+/* Palette type buttons in light mode */
+html.light [x-show="showPaletteModal"] button.group {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+
+html.light [x-show="showPaletteModal"] button.group:hover {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 4px 12px -2px rgba(99, 102, 241, 0.08) !important;
+}
+
+html.light [x-show="showPaletteModal"] button.group .font-bold {
+    color: #0f172a !important;
+}
+
+html.light [x-show="showPaletteModal"] button.group:hover .font-bold {
+    color: #4f46e5 !important;
+}
+
+html.light [x-show="showPaletteModal"] button.group .text-gray-400 {
+    color: #64748b !important;
+}
+
+/* Activity Settings Drawer Light Mode */
+html.light [x-show="showDrawer"] > div {
+    background-color: #ffffff !important;
+    border-left: 1px solid #e2e8f0 !important;
+    box-shadow: -4px 0 25px rgba(0, 0, 0, 0.08) !important;
+    color: #0f172a !important;
+}
+
+html.light [x-show="showDrawer"] .bg-slate-900\/90,
+html.light [x-show="showDrawer"] .bg-slate-900 {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+
+html.light [x-show="showDrawer"] .bg-slate-950\/60,
+html.light [x-show="showDrawer"] .bg-slate-950 {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+}
+
+html.light [x-show="showDrawer"] h3,
+html.light [x-show="showDrawer"] .text-white {
+    color: #0f172a !important;
+}
+
+html.light [x-show="showDrawer"] label {
+    color: #334155 !important;
+}
+
+html.light [x-show="showDrawer"] .text-gray-400,
+html.light [x-show="showDrawer"] .text-gray-500 {
+    color: #64748b !important;
+}
+
+html.light [x-show="showDrawer"] .border-slate-800,
+html.light [x-show="showDrawer"] .border-slate-700 {
+    border-color: #e2e8f0 !important;
+}
+
+html.light [x-show="showDrawer"] button:not(.btn-primary):not([class*="bg-indigo"]):not([class*="bg-teal"]):not([class*="bg-rose"]) {
+    color: #475569 !important;
+}
+
+html.light [x-show="showDrawer"] button:hover:not(.btn-primary) {
+    color: #0f172a !important;
+}
+

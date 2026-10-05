@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCourseRequest;
 use App\Http\Requests\Admin\UpdateCourseRequest;
+use App\Models\Activity;
 use App\Models\Course;
 use App\Models\QuestionBank;
 use App\Models\UserProgress;
+use App\Services\ActionLogService;
 use App\Services\Storage\FileStorageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class CourseController extends Controller
@@ -207,5 +211,109 @@ class CourseController extends Controller
 
         $status = $course->is_published ? 'Xuất bản (Published)' : 'Ẩn (Draft)';
         return back()->with('success', "Khóa học '{$course->title}' đã chuyển sang trạng thái {$status}.");
+    }
+
+    /**
+     * Duplicate an existing course along with all its lessons, activities, and course-specific question bank items.
+     */
+    public function duplicate(Request $request, $courseId)
+    {
+        $originalCourse = Course::with(['lessons.activities'])->findOrFail($courseId);
+
+        try {
+            $newCourse = DB::transaction(function () use ($originalCourse, $request) {
+                // 1. Replicate course base attributes
+                $newCourse = $originalCourse->replicate();
+                $newCourse->title = $originalCourse->title . ' (Bản sao)';
+
+                // Generate unique slug
+                $baseSlug = Str::slug($newCourse->title);
+                $uniqueSlug = $baseSlug . '-' . Str::lower(Str::random(6));
+                while (Course::where('slug', $uniqueSlug)->exists()) {
+                    $uniqueSlug = $baseSlug . '-' . Str::lower(Str::random(6));
+                }
+                $newCourse->slug = $uniqueSlug;
+
+                // Position at end of courses list
+                $maxOrder = Course::max('order') ?? 0;
+                $newCourse->order = $maxOrder + 1;
+                $newCourse->is_published = false; // Safe default: draft mode
+
+                if ($request->user()) {
+                    $newCourse->created_by = $request->user()->id;
+                }
+
+                $newCourse->save();
+
+                // 2. Clone course-specific question bank questions if any
+                $courseQuestions = QuestionBank::where('course_id', $originalCourse->id)->get();
+                $questionIdMap = [];
+                foreach ($courseQuestions as $oldQ) {
+                    $newQ = $oldQ->replicate();
+                    $newQ->course_id = $newCourse->id;
+                    $newQ->save();
+                    $questionIdMap[$oldQ->id] = $newQ->id;
+                }
+
+                // 3. Deep-clone lessons and their activities
+                foreach ($originalCourse->lessons as $oldLesson) {
+                    $newLesson = $oldLesson->replicate();
+                    $newLesson->course_id = $newCourse->id;
+                    $newLesson->save();
+
+                    foreach ($oldLesson->activities as $oldAct) {
+                        $newAct = $oldAct->replicate();
+                        $newAct->lesson_id = $newLesson->id;
+
+                        // If quiz activity references old course question bank IDs, remap them
+                        if ($oldAct->type === Activity::TYPE_QUIZ && is_array($oldAct->content)) {
+                            $content = $oldAct->content;
+                            if (!empty($content['question_ids']) && is_array($content['question_ids'])) {
+                                $updatedIds = [];
+                                foreach ($content['question_ids'] as $qid) {
+                                    $updatedIds[] = $questionIdMap[$qid] ?? $qid;
+                                }
+                                $content['question_ids'] = $updatedIds;
+                                $newAct->content = $content;
+                            }
+                        }
+
+                        $newAct->save();
+                    }
+                }
+
+                return $newCourse;
+            });
+
+            if ($request->user()) {
+                ActionLogService::log(
+                    'duplicate_course',
+                    $request->user(),
+                    $newCourse,
+                    "Nhân bản khóa học từ ID #{$originalCourse->id} ({$originalCourse->title}) thành ID #{$newCourse->id} ({$newCourse->title})"
+                );
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Đã nhân bản khóa học thành công!",
+                    'course' => $newCourse,
+                    'redirect_url' => route('admin.courses.show', $newCourse->id),
+                ]);
+            }
+
+            return redirect()->route('admin.courses.show', $newCourse->id)
+                ->with('success', "Đã nhân bản khóa học thành công! Bản sao '{$newCourse->title}' đã sẵn sàng để chỉnh sửa (trạng thái Bản nháp).");
+        } catch (\Throwable $e) {
+            Log::error('Course duplicate failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Có lỗi xảy ra trong quá trình sao chép khóa học: ' . $e->getMessage(),
+                ], 500);
+            }
+            return back()->with('error', 'Có lỗi xảy ra trong quá trình sao chép khóa học: ' . $e->getMessage());
+        }
     }
 }

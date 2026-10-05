@@ -26,18 +26,15 @@ class AiGeneratorController extends Controller
     }
 
     /**
-     * AJAX endpoint to generate candidate questions.
+     * AJAX endpoint to generate candidate questions according to real exam standards.
      */
     public function generate(Request $request): JsonResponse
     {
         try {
             $topic = trim((string) $request->input('topic', ''));
-            if (empty($topic)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Vui lòng nhập chủ đề bài thi (Topic).',
-                ], 422);
-            }
+            $examStandard = (string) $request->input('exam_standard', 'thpt_qg');
+            $mode = (string) $request->input('mode', 'standard');
+            $section = $request->input('section');
 
             // Clean difficulty (accepts "Level B1", "B1", etc.)
             $rawDiff = (string) $request->input('difficulty', 'B1');
@@ -55,19 +52,23 @@ class AiGeneratorController extends Controller
                 difficulty: $cleanDiff,
                 count: $count,
                 skill: $skill,
-                questionTypes: (!empty($qType) && $qType !== 'all') ? [$qType] : ['mcq']
+                questionTypes: (!empty($qType) && $qType !== 'all') ? [$qType] : ['mcq'],
+                examStandard: $examStandard,
+                mode: $mode,
+                section: $section
             );
 
             return response()->json([
                 'success' => true,
                 'count' => count($questions),
+                'exam_standard' => $examStandard,
                 'questions' => $questions,
             ]);
         } catch (\Throwable $e) {
             Log::error('AI Generator Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Lỗi khi sinh câu hỏi: ' . $e->getMessage(),
+                'message' => 'Lỗi khi sinh đề thi: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -103,6 +104,54 @@ class AiGeneratorController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Lỗi khi lưu câu hỏi: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Save generated questions directly as an ExamSet (Bài thi hoàn chỉnh).
+     * Students can immediately take this exam in the CBT room at /practice/exam/{key}.
+     */
+    public function saveExamSet(Request $request): JsonResponse
+    {
+        try {
+            $questions = $request->input('questions');
+            if (empty($questions) || !is_array($questions)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không có câu hỏi nào để tạo đề thi.',
+                ], 422);
+            }
+
+            $user = $request->user();
+            $examData = [
+                'title' => trim((string) $request->input('title', 'Đề Thi Tiếng Anh Chuẩn Hóa AI')),
+                'key' => trim((string) $request->input('key', '')),
+                'difficulty' => (string) $request->input('difficulty', 'B1'),
+                'duration_minutes' => (int) $request->input('duration_minutes', 60),
+                'reward_coins' => (int) $request->input('reward_coins', 30),
+                'description' => (string) $request->input('description', ''),
+                'is_published' => (bool) $request->input('is_published', true),
+                'skill' => (string) $request->input('skill', 'full_mock'),
+            ];
+
+            $examSet = $this->aiExerciseGenerator->saveAsExamSet($questions, $examData, $user->id);
+
+            return response()->json([
+                'success' => true,
+                'exam_id' => $examSet->id,
+                'exam_key' => $examSet->key,
+                'exam_title' => $examSet->title,
+                'question_count' => $examSet->question_count,
+                'exam_url' => route('practice.exam', $examSet->key),
+                'manage_url' => route('admin.exams.index'),
+                'message' => "Đã tạo đề thi thành công! Đề thi đã sẵn sàng trong Phòng thi trực tuyến CBT.",
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('AI Save ExamSet Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi lưu đề thi: ' . $e->getMessage(),
             ], 500);
         }
     }

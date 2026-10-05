@@ -1,0 +1,61 @@
+/* ─── ESL LMS: Mobile Bottom App Navigation Bar ─── */
+
+.bottom-nav-bar {
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Light Mode Styles for Bottom Navigation */
+html.light .bottom-nav-bar {
+    background-color: rgba(255, 255, 255, 0.96) !important;
+    border-top: 1px solid #e2e8f0 !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light .bottom-nav-item {
+    color: #64748b !important;
+}
+
+html.light .bottom-nav-item:hover {
+    color: #0f172a !important;
+}
+
+html.light .bottom-nav-item.active {
+    font-weight: 700 !important;
+}
+
+/* Active colors in light mode */
+html.light .bottom-nav-item.active-home {
+    color: #0284c7 !important;
+}
+html.light .bottom-nav-item.active-home .bottom-nav-icon-wrap {
+    background-color: #f0f9ff !important;
+    color: #0284c7 !important;
+    box-shadow: 0 0 0 1px rgba(2, 132, 199, 0.2) !important;
+}
+
+html.light .bottom-nav-item.active-courses {
+    color: #4f46e5 !important;
+}
+html.light .bottom-nav-item.active-courses .bottom-nav-icon-wrap {
+    background-color: #eef2ff !important;
+    color: #4f46e5 !important;
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2) !important;
+}
+
+html.light .bottom-nav-item.active-practice {
+    color: #0d9488 !important;
+}
+html.light .bottom-nav-item.active-practice .bottom-nav-icon-wrap {
+    background-color: #f0fdfa !important;
+    color: #0d9488 !important;
+    box-shadow: 0 0 0 1px rgba(13, 148, 136, 0.2) !important;
+}
+
+html.light .bottom-nav-item.active-leaderboard {
+    color: #d97706 !important;
+}
+html.light .bottom-nav-item.active-leaderboard .bottom-nav-icon-wrap {
+    background-color: #fffbeb !important;
+    color: #d97706 !important;
+    box-shadow: 0 0 0 1px rgba(217, 119, 6, 0.2) !important;
+}

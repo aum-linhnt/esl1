@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class QuizAttempt extends Model
 {
-    protected $hidden = ['question_snapshot'];
-
     protected $fillable = [
         'activity_id',
         'user_id',
@@ -20,7 +18,6 @@ class QuizAttempt extends Model
         'is_passed',
         'time_spent_seconds',
         'answers_payload',
-        'question_snapshot',
         'started_at',
         'completed_at',
     ];
@@ -35,7 +32,6 @@ class QuizAttempt extends Model
             'is_passed' => 'boolean',
             'time_spent_seconds' => 'integer',
             'answers_payload' => 'array',
-            'question_snapshot' => 'array',
             'started_at' => 'datetime',
             'completed_at' => 'datetime',
         ];

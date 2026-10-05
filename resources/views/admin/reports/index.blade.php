@@ -45,26 +45,14 @@
 
     {{-- Quick Links --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <a href="{{ route('admin.reports.enrollments') }}" class="card-dark p-5 hover:border-fsel-blue/50 transition-all duration-300 group">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-fsel-blue/20 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-fsel-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                </div>
-                <div>
-                    <h3 class="text-sm font-semibold text-white group-hover:text-fsel-blue transition-colors">Báo cáo Ghi danh</h3>
-                    <p class="text-xs text-gray-500">Chi tiết ghi danh theo khóa học</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-500 group-hover:text-fsel-blue ml-auto transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </div>
-        </a>
-        <a href="{{ route('admin.reports.grades') }}" class="card-dark p-5 hover:border-fsel-purple/50 transition-all duration-300 group">
+        <a href="{{ route('admin.reports.activity_grades') }}" class="card-dark p-5 hover:border-fsel-purple/50 transition-all duration-300 group">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-fsel-purple/20 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-fsel-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                    <svg class="w-5 h-5 text-fsel-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-white group-hover:text-fsel-purple transition-colors">Báo cáo Điểm số</h3>
-                    <p class="text-xs text-gray-500">Thống kê điểm và xếp loại</p>
+                    <h3 class="text-sm font-semibold text-white group-hover:text-fsel-purple transition-colors">Báo cáo Điểm số từng Hoạt động</h3>
+                    <p class="text-xs text-gray-500">Thống kê điểm số, tỷ lệ đạt theo từng HĐ</p>
                 </div>
                 <svg class="w-5 h-5 text-gray-500 group-hover:text-fsel-purple ml-auto transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </div>
@@ -75,10 +63,22 @@
                     <svg class="w-5 h-5 text-fsel-teal" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-white group-hover:text-fsel-teal transition-colors">Báo cáo Hoàn thành</h3>
-                    <p class="text-xs text-gray-500">Theo dõi hoạt động hoàn thành</p>
+                    <h3 class="text-sm font-semibold text-white group-hover:text-fsel-teal transition-colors">Báo cáo Hoàn thành theo Khóa học</h3>
+                    <p class="text-xs text-gray-500">Tỷ lệ hoàn thành & ma trận HĐ theo khóa</p>
                 </div>
                 <svg class="w-5 h-5 text-gray-500 group-hover:text-fsel-teal ml-auto transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </div>
+        </a>
+        <a href="{{ route('admin.reports.enrollments') }}" class="card-dark p-5 hover:border-fsel-blue/50 transition-all duration-300 group">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-fsel-blue/20 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-fsel-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-white group-hover:text-fsel-blue transition-colors">Báo cáo Ghi danh</h3>
+                    <p class="text-xs text-gray-500">Chi tiết học viên ghi danh theo khóa học</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-500 group-hover:text-fsel-blue ml-auto transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </div>
         </a>
     </div>

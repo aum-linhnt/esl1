@@ -29,6 +29,7 @@ class FileStorageService
             'application/x-rar-compressed',
             'application/x-7z-compressed',
             'application/gzip',
+            'application/x-h5p',
         ],
         'audio' => [
             'audio/mpeg',
@@ -417,7 +418,7 @@ class FileStorageService
     {
         return [
             'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'csv',
-            'zip', 'rar', '7z', 'gz',
+            'zip', 'rar', '7z', 'gz', 'h5p',
             'mp3', 'wav', 'ogg', 'm4a', 'webm',
             'mp4',
             'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg',

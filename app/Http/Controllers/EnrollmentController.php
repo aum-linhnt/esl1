@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Services\LMS\EnrollmentService;
+use App\Services\ActionLogService;
 use Illuminate\Http\Request;
 
 class EnrollmentController extends Controller
@@ -44,6 +45,8 @@ class EnrollmentController extends Controller
 
         $enrollment = $this->enrollmentService->enrollUser($user, $course, 'student', $expiresAt);
 
+        ActionLogService::logEnroll($user, $course);
+
         $durationMsg = $expiresAt ? ' (Thời hạn: ' . $course->enrollment_duration_days . ' ngày, đến ' . $expiresAt->format('d/m/Y') . ')' : '';
 
         return redirect()->route('courses.show', $courseId)
@@ -64,6 +67,8 @@ class EnrollmentController extends Controller
             return redirect()->route('courses.show', $courseId)
                 ->with('error', 'Không thể hủy ghi danh. Khóa học đã hoàn thành hoặc chưa ghi danh.');
         }
+
+        ActionLogService::logUnenroll($user, $course);
 
         return redirect()->route('courses.index')
             ->with('success', 'Đã hủy ghi danh khóa học "' . $course->title . '".');

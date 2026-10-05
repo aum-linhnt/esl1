@@ -10,7 +10,3 @@ Artisan::command('inspire', function () {
 
 Schedule::command('storage:clean-temp')->daily();
 
-Schedule::command('db:backup')
-    ->dailyAt(config('backup.daily_time'))
-    ->timezone(config('backup.timezone'))
-    ->withoutOverlapping(1440);

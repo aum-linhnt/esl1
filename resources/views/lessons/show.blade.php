@@ -1,14 +1,7 @@
 @extends('layouts.app')
 @section('content')
-<x-ai-tutor::widget :course-id="(string) $course->id" :lesson-id="(string) $lesson->id" />
-@if($lesson->canManageAiTutorPolicy(auth()->user()))
-    <a href="{{ route('courses.lessons.ai-policy.edit', [$course->id, $lesson->id]) }}" class="inline-block text-sm text-indigo-400 mb-3">Cấu hình Gia sư AI</a>
-@endif
 <div class="w-full space-y-6">
-    <div style="display:flex;justify-content:flex-end">
-        @include('lessons.partials.layout-toggle', ['tutorLayout' => false])
-    </div>
-    <a href="{{ route('courses.show', $course->id) }}" class="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 rounded-full transition-colors">
+    <a href="{{ route('courses.show', $course->id) }}" class="course-back-btn inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 rounded-full transition-colors">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         <span class="truncate">{{ $course->title }}</span>
     </a>
@@ -29,7 +22,7 @@
     @endif
 
     {{-- LESSON HEADER CARD --}}
-    <div class="card-dark p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-slate-800/80 bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 shadow-xl">
+    <div class="card-dark lesson-hero-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-slate-800/80 bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 shadow-xl">
         <div class="space-y-3">
             <div class="flex items-center gap-2 flex-wrap">
                 <span class="bg-gradient-to-r from-fsel-blue to-indigo-600 text-white text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-lg shadow-sm">
@@ -42,7 +35,7 @@
                     </span>
                 @endif
                 @if($lesson->estimated_minutes)
-                    <span class="text-[11px] text-gray-400 font-mono flex items-center gap-1 bg-slate-800/80 px-2 py-0.5 rounded-lg">
+                    <span class="lesson-meta-pill text-[11px] text-gray-400 font-mono flex items-center gap-1 bg-slate-800/80 px-2 py-0.5 rounded-lg border border-slate-700/60">
                         <span>⏱️</span>
                         <span>{{ $lesson->estimated_minutes }} phút</span>
                     </span>
@@ -106,13 +99,12 @@
             @php
                 $isActDone = in_array($activity->id, $completedActivityIds ?? []);
                 $canTrial = (bool) $activity->is_free_trial;
-                $isLocked = !($canPreviewAsStaff ?? $course->canPreviewFor(auth()->user(), $enrollment ?? null))
-                    && ((($isTrialMode ?? false) && !$canTrial) || !$activity->isAvailable());
+                $isLocked = ($isTrialMode ?? false) && !$canTrial;
             @endphp
             @if($isLocked)
                 {{-- Visible but unclickable locked activity --}}
                 <div class="card-dark p-3.5 sm:p-4 flex items-center justify-between gap-3 rounded-xl sm:rounded-2xl border border-slate-800/80 bg-slate-900/40 opacity-60 cursor-not-allowed select-none"
-                     title="Hoạt động yêu cầu ghi danh hợp lệ và phải trong thời gian được phép truy cập.">
+                     title="Hoạt động này không mở học thử. Vui lòng ghi danh khóa học để tham gia.">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
                         {{-- Activity Type Icon (Locked) --}}
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm bg-slate-800/90 text-gray-400 border border-slate-700/60">
@@ -190,7 +182,7 @@
     {{-- NAVIGATION CONTROLS --}}
     <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between gap-3">
         @if($prevLesson)
-            <a href="{{ route('lessons.show', $prevLesson->id) }}" class="inline-flex items-center gap-1.5 text-xs text-gray-300 hover:text-white transition-colors px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800">
+            <a href="{{ route('lessons.show', $prevLesson->id) }}" class="lesson-nav-btn inline-flex items-center gap-1.5 text-xs text-gray-300 hover:text-white transition-colors px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 <span>Bài trước</span>
             </a>
@@ -206,7 +198,7 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 @else
-                    <span class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-400 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800" title="Cần hoàn thành các hoạt động trước">
+                    <span class="lesson-locked-badge inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-400 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800" title="Cần hoàn thành các hoạt động trước">
                         <span class="text-amber-400">🔒</span>
                         <span class="hidden sm:inline">Hoàn thành bài để mở tiếp (còn {{ $totalActivities - $completedCount }})</span>
                         <span class="sm:hidden">Còn {{ $totalActivities - $completedCount }} bài</span>

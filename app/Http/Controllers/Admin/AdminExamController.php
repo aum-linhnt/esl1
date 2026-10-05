@@ -72,7 +72,7 @@ class AdminExamController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'key' => 'nullable|string|max:100|unique:exam_sets,key',
-            'skill' => 'required|in:full_mock,reading,listening,writing,speaking',
+            'skill' => 'required|in:full_mock,reading,listening,writing,speaking,grammar,vocabulary',
             'difficulty' => 'required|in:A1,A2,B1,B2,Mixed',
             'duration_minutes' => 'required|integer|min:1|max:180',
             'reward_coins' => 'required|integer|min:0|max:500',
@@ -91,15 +91,19 @@ class AdminExamController extends Controller
         $validated['is_published'] = $request->has('is_published');
         $validated['created_by'] = $request->user()->id;
 
-        // If Full 4-Skill Mock Test, ensure sections are structured for 4 core skills
+        // If Full 4-Skill Mock Test, ensure sections are structured for core skills
         if ($validated['skill'] === 'full_mock' && empty($validated['question_ids'])) {
-            $validated['sections'] = [
-                'listening' => (int) $request->input('sections.listening', 35),
-                'reading' => (int) $request->input('sections.reading', 40),
-                'writing' => (int) $request->input('sections.writing', 2),
-                'speaking' => (int) $request->input('sections.speaking', 3),
-            ];
-            $validated['question_count'] = array_sum($validated['sections']);
+            if (!empty($validated['sections'])) {
+                $validated['question_count'] = array_sum($validated['sections']);
+            } else {
+                $validated['sections'] = [
+                    'listening' => (int) $request->input('sections.listening', 35),
+                    'reading' => (int) $request->input('sections.reading', 40),
+                    'writing' => (int) $request->input('sections.writing', 2),
+                    'speaking' => (int) $request->input('sections.speaking', 3),
+                ];
+                $validated['question_count'] = array_sum($validated['sections']);
+            }
         } elseif (!empty($validated['question_ids'])) {
             $validated['question_count'] = count($validated['question_ids']);
         } else {
@@ -130,7 +134,7 @@ class AdminExamController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'key' => 'required|string|max:100|unique:exam_sets,key,' . $exam->id,
-            'skill' => 'required|in:full_mock,reading,listening,writing,speaking',
+            'skill' => 'required|in:full_mock,reading,listening,writing,speaking,grammar,vocabulary',
             'difficulty' => 'required|in:A1,A2,B1,B2,Mixed',
             'duration_minutes' => 'required|integer|min:1|max:180',
             'reward_coins' => 'required|integer|min:0|max:500',

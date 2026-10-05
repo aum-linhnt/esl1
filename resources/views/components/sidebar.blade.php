@@ -22,14 +22,14 @@
         <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5" :class="!sidebarOpen && 'lg:justify-center lg:w-full'">
             <div class="w-9 h-9 flex-shrink-0">
                 <svg viewBox="0 0 48 48" class="w-full h-full">
-                    <circle cx="24" cy="24" r="22" fill="none" stroke="#6366f1" stroke-width="1.5" opacity="0.6"/>
-                    <circle cx="24" cy="24" r="16" fill="none" stroke="#818cf8" stroke-width="1" opacity="0.4"/>
-                    <circle cx="24" cy="24" r="4" fill="#a5b4fc"/>
+                    <circle cx="24" cy="24" r="22" fill="none" stroke="var(--theme-primary, #6366f1)" stroke-width="1.5" opacity="0.7"/>
+                    <circle cx="24" cy="24" r="16" fill="none" stroke="var(--theme-primary, #818cf8)" stroke-width="1" opacity="0.4"/>
+                    <circle cx="24" cy="24" r="4" fill="var(--theme-primary, #a5b4fc)"/>
                     <circle cx="24" cy="8" r="2" fill="#fbbf24"/>
                 </svg>
             </div>
             <div x-show="sidebarOpen" x-transition class="overflow-hidden">
-                <span class="text-xl font-bold text-white tracking-wide">E<span class="text-fsel-accent">S</span><span class="text-fsel-teal">L</span></span>
+                <span class="brand-logo-text text-xl font-bold text-white tracking-wide"><span class="brand-letter-e">E</span><span class="text-fsel-accent">S</span><span class="text-fsel-teal">L</span></span>
                 <p class="text-[8px] text-gray-400 tracking-[0.15em] -mt-0.5 italic">Reach for the stars</p>
             </div>
         </a>

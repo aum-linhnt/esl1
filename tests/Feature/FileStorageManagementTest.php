@@ -119,6 +119,9 @@ class FileStorageManagementTest extends TestCase
 
     public function test_file_api_upload_and_upload_temp_endpoints(): void
     {
+        $user = User::first();
+        $this->actingAs($user, 'sanctum');
+
         // 1. Permanent Upload
         $file = UploadedFile::fake()->image('thumbnail.png', 400, 300);
         $response = $this->postJson(route('api.v1.files.upload'), [

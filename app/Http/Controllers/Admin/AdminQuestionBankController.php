@@ -3,16 +3,24 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreTestletRequest;
+use App\Http\Requests\Admin\UpdateQuestionRequest;
+use App\Http\Requests\Admin\UpdateTestletRequest;
 use App\Models\QuestionBank;
 use App\QuestionTypes\QuestionTypeManager;
+use App\Services\Assessment\QuestionVersioningService;
 use App\Services\Storage\FileStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
-
 class AdminQuestionBankController extends Controller
 {
+    public function __construct(
+        protected QuestionVersioningService $versioningService,
+        protected FileStorageService $fileStorage
+    ) {}
+
     /**
      * Display the question bank listing with advanced filters & testlet groups.
      */
@@ -118,7 +126,7 @@ class AdminQuestionBankController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'skill' => 'required|in:reading,listening,writing,speaking',
+            'skill' => 'required|in:reading,listening,writing,speaking,grammar,vocabulary',
             'difficulty' => 'required|in:A1,A2,B1,B2,C1,Mixed',
             'question_type' => 'required|string|max:50',
             'question_text' => 'required|string',
@@ -158,13 +166,13 @@ class AdminQuestionBankController extends Controller
         // Handle Audio File upload or fallback to URL
         $audioUrl = $validated['audio_url'] ?? null;
         if ($request->hasFile('audio_file')) {
-            $audioRecord = app(FileStorageService::class)->store($request->file('audio_file'), 'questions/audio');
+            $audioRecord = $this->fileStorage->store($request->file('audio_file'), 'questions/audio');
             $audioUrl = $audioRecord->getUrl();
         }
 
         // Handle Image File upload
         if ($request->hasFile('image_file')) {
-            $imageRecord = app(FileStorageService::class)->store($request->file('image_file'), 'questions/images');
+            $imageRecord = $this->fileStorage->store($request->file('image_file'), 'questions/images');
             $metaData['image_url'] = $imageRecord->getUrl();
         }
 
@@ -184,29 +192,12 @@ class AdminQuestionBankController extends Controller
             ->with('success', "Đã thêm câu hỏi dạng '{$qType}' vào ngân hàng thành công!");
     }
 
-
     /**
      * Store an entire Reading / Listening Testlet (Passage + Multiple Sub-questions).
      */
-    public function storeTestlet(Request $request)
+    public function storeTestlet(StoreTestletRequest $request)
     {
-        $validated = $request->validate([
-            'skill' => 'required|in:reading,listening',
-            'difficulty' => 'required|in:A1,A2,B1,B2,C1',
-            'passage_title' => 'required|string|max:255',
-            'passage_content' => 'required|string',
-            'audio_url' => 'nullable|string',
-            'audio_file' => 'nullable|file|mimes:mp3,wav,ogg,m4a,webm,aac|max:25600',
-            'part' => 'nullable|integer|min:1|max:10',
-            'questions' => 'required|array|min:1',
-            'questions.*.question_text' => 'required|string',
-            'questions.*.opt_a' => 'required|string',
-            'questions.*.opt_b' => 'required|string',
-            'questions.*.opt_c' => 'required|string',
-            'questions.*.opt_d' => 'required|string',
-            'questions.*.correct_answer' => 'required|in:A,B,C,D',
-            'questions.*.explanation' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         DB::beginTransaction();
         try {
@@ -214,13 +205,12 @@ class AdminQuestionBankController extends Controller
             $passageContent = trim($validated['passage_content']);
             $audioUrl = $validated['audio_url'] ?? null;
             if ($request->hasFile('audio_file')) {
-                $audioRecord = app(FileStorageService::class)->store($request->file('audio_file'), 'questions/audio');
+                $audioRecord = $this->fileStorage->store($request->file('audio_file'), 'questions/audio');
                 $audioUrl = $audioRecord->getUrl();
             }
             $difficulty = $validated['difficulty'];
             $skill = $validated['skill'];
             $part = $validated['part'] ?? 1;
-
 
             $createdCount = 0;
             foreach ($validated['questions'] as $idx => $qData) {
@@ -231,7 +221,6 @@ class AdminQuestionBankController extends Controller
                     'D. ' . trim($qData['opt_d']),
                 ];
 
-                // Formulate correct answer
                 $correctLetter = strtoupper(trim($qData['correct_answer']));
                 $correctIndex = match($correctLetter) {
                     'B' => 1,
@@ -274,25 +263,12 @@ class AdminQuestionBankController extends Controller
     }
 
     /**
-     * Update an individual question.
+     * Update an individual question with versioning.
      */
-    public function update(Request $request, int $id)
+    public function update(UpdateQuestionRequest $request, int $id)
     {
         $question = QuestionBank::findOrFail($id);
-
-        $validated = $request->validate([
-            'difficulty' => 'required|in:A1,A2,B1,B2,C1,Mixed',
-            'question_text' => 'required|string',
-            'correct_answer' => 'required|string',
-            'explanation' => 'nullable|string',
-            'options' => 'nullable|string',
-            'audio_url' => 'nullable|string',
-            'audio_file' => 'nullable|file|mimes:mp3,wav,ogg,m4a,webm,aac|max:25600',
-            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:10240',
-            'passage_title' => 'nullable|string|max:255',
-            'passage_content' => 'nullable|string',
-            'sync_passage_to_cluster' => 'nullable|boolean',
-        ]);
+        $validated = $request->validated();
 
         $options = $question->options;
         if ($request->filled('options')) {
@@ -311,16 +287,18 @@ class AdminQuestionBankController extends Controller
 
         $audioUrl = $request->filled('audio_url') ? $request->input('audio_url') : $question->audio_url;
         if ($request->hasFile('audio_file')) {
-            $audioRecord = app(FileStorageService::class)->store($request->file('audio_file'), 'questions/audio');
+            $audioRecord = $this->fileStorage->store($request->file('audio_file'), 'questions/audio');
             $audioUrl = $audioRecord->getUrl();
         }
 
         if ($request->hasFile('image_file')) {
-            $imageRecord = app(FileStorageService::class)->store($request->file('image_file'), 'questions/images');
+            $imageRecord = $this->fileStorage->store($request->file('image_file'), 'questions/images');
             $meta['image_url'] = $imageRecord->getUrl();
         }
 
-        $question->update([
+        $shouldCreateVersion = $request->boolean('create_new_version', true);
+
+        $updateAttributes = [
             'difficulty' => $validated['difficulty'],
             'question_text' => $validated['question_text'],
             'correct_answer' => $validated['correct_answer'],
@@ -328,34 +306,48 @@ class AdminQuestionBankController extends Controller
             'options' => $options,
             'audio_url' => $audioUrl,
             'meta_data' => !empty($meta) ? $meta : null,
-        ]);
+        ];
 
+        $updatedQuestion = $this->versioningService->updateWithVersioning(
+            $question,
+            $updateAttributes,
+            $shouldCreateVersion
+        );
 
         // If requested, synchronize the updated passage across all other questions in the cluster
         if ($request->boolean('sync_passage_to_cluster') && !empty($oldPassageTitle)) {
-            $clusterQuestions = QuestionBank::where('meta_data->passage_title', $oldPassageTitle)->get();
-            foreach ($clusterQuestions as $cq) {
-                $cMeta = $cq->meta_data ?? [];
-                $cMeta['passage_title'] = $meta['passage_title'];
-                $cMeta['passage_content'] = $meta['passage_content'];
-                $cq->update(['meta_data' => $cMeta]);
-            }
+            $this->versioningService->syncPassageCluster(
+                $oldPassageTitle,
+                $meta['passage_title'] ?? '',
+                $meta['passage_content'] ?? ''
+            );
         }
 
-        return redirect()->back()->with('success', "Đã cập nhật câu hỏi #{$id} thành công!");
+        return redirect()->back()->with('success', "Đã cập nhật câu hỏi #{$id} thành công (Phiên bản v{$updatedQuestion->version})!");
+    }
+
+    /**
+     * Get version history of a specific question.
+     */
+    public function versions(int $id): JsonResponse
+    {
+        $question = QuestionBank::withTrashed()->findOrFail($id);
+        $versions = $this->versioningService->getVersionHistory($id);
+
+        return response()->json([
+            'success' => true,
+            'current_id' => $question->id,
+            'current_version' => $question->version ?: 1,
+            'versions' => $versions,
+        ]);
     }
 
     /**
      * Update a whole testlet / passage cluster (Title & Content for all its child questions).
      */
-    public function updateTestlet(Request $request)
+    public function updateTestlet(UpdateTestletRequest $request)
     {
-        $validated = $request->validate([
-            'old_passage_title' => 'required|string',
-            'passage_title' => 'required|string|max:255',
-            'passage_content' => 'required|string',
-            'difficulty' => 'nullable|in:A1,A2,B1,B2,C1',
-        ]);
+        $validated = $request->validated();
 
         $questions = QuestionBank::where('meta_data->passage_title', $validated['old_passage_title'])->get();
 
@@ -363,17 +355,15 @@ class AdminQuestionBankController extends Controller
             return redirect()->back()->with('error', 'Không tìm thấy cụm bài đọc cần cập nhật.');
         }
 
-        foreach ($questions as $q) {
-            $meta = $q->meta_data ?? [];
-            $meta['passage_title'] = $validated['passage_title'];
-            $meta['passage_content'] = $validated['passage_content'];
-            $meta['part_name'] = "Phần " . ($meta['part'] ?? 1) . ": " . $validated['passage_title'];
+        $this->versioningService->syncPassageCluster(
+            $validated['old_passage_title'],
+            $validated['passage_title'],
+            $validated['passage_content']
+        );
 
-            $updateData = ['meta_data' => $meta];
-            if (!empty($validated['difficulty'])) {
-                $updateData['difficulty'] = $validated['difficulty'];
-            }
-            $q->update($updateData);
+        if (!empty($validated['difficulty'])) {
+            QuestionBank::where('meta_data->passage_title', $validated['passage_title'])
+                ->update(['difficulty' => $validated['difficulty']]);
         }
 
         return redirect()->route('admin.questions.index', ['tab' => 'testlets'])
@@ -449,7 +439,6 @@ class AdminQuestionBankController extends Controller
             'audio_url' => $question->audio_url,
             'image_url' => $meta['image_url'] ?? null,
             'passage_title' => $meta['passage_title'] ?? null,
-
             'passage_content' => $meta['passage_content'] ?? $meta['passage'] ?? null,
             'part' => $meta['part'] ?? null,
             'created_at' => $question->created_at?->format('d/m/Y H:i'),

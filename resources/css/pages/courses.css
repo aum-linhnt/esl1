@@ -1,0 +1,90 @@
+/* ─── ESL LMS: Course & Lesson Detail Styles ─── */
+
+/* 1. Course Listing Cards */
+html.light .page-heading {
+    color: #0f172a !important;
+}
+html.light .course-card {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 15px -3px rgba(0,0,0,0.04) !important;
+}
+html.light .course-card:hover {
+    border-color: var(--theme-primary, #6366f1) !important;
+    background-color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px -4px rgba(99,102,241,0.12) !important;
+}
+html.light .course-level-badge {
+    background-color: #eef2ff !important;
+    border-color: #c7d2fe !important;
+    color: #4338ca !important;
+}
+html.light .course-lessons-count {
+    color: #64748b !important;
+}
+html.light .course-title {
+    color: #0f172a !important;
+}
+html.light .course-card:hover .course-title {
+    color: var(--theme-primary, #4f46e5) !important;
+}
+html.light .course-desc {
+    color: #475569 !important;
+}
+html.light .course-footer-link {
+    border-color: #f1f5f9 !important;
+    color: var(--theme-primary, #4f46e5) !important;
+}
+
+/* 2. Practice Shortcut Banner */
+html.light .practice-shortcut-banner {
+    background: linear-gradient(135deg, #eef2ff 0%, #f0fdf4 100%) !important;
+    border: 1px solid #c7d2fe !important;
+    box-shadow: 0 6px 20px -4px rgba(99,102,241,0.1) !important;
+}
+html.light .practice-shortcut-banner .practice-icon-box {
+    background-color: #4f46e5 !important;
+    border-color: #4338ca !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
+}
+html.light .practice-shortcut-banner .practice-title {
+    color: #1e1b4b !important;
+}
+html.light .practice-shortcut-banner .practice-desc {
+    color: #475569 !important;
+}
+
+/* 3. Hero Header Cards (Course & Lesson) */
+html.light .course-hero-card,
+html.light .lesson-hero-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8faff 45%, #eef2ff 100%) !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 10px 30px -5px rgba(99, 102, 241, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
+}
+html.light .course-hero-card h1,
+html.light .lesson-hero-card h1 {
+    color: #0f172a !important;
+}
+html.light .course-hero-card p,
+html.light .lesson-hero-card p {
+    color: #475569 !important;
+}
+
+/* 4. Lesson Meta Pills & Badges */
+html.light .course-meta-pill,
+html.light .lesson-meta-pill,
+html.light .lesson-count-badge {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+    color: #334155 !important;
+}
+
+/* 5. Lesson Order Avatar Numbers */
+html.light .lesson-order-avatar.bg-slate-800,
+html.light .lesson-order-avatar[class*="bg-slate-800"] {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+    color: #64748b !important;
+}

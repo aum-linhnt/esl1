@@ -6,31 +6,41 @@
     {{-- Top Navigation & Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <a href="{{ route('admin.courses.index') }}" class="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-white mb-2 transition-colors">
+            <a href="{{ route('admin.courses.index') }}" class="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white mb-2 transition-colors">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 Quay lại danh sách khóa học
             </a>
             <div class="flex items-center gap-2.5">
-                <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold font-mono px-2.5 py-0.5 rounded">
+                <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 text-xs font-bold font-mono px-2.5 py-0.5 rounded shadow-xs">
                     Level {{ $course->level }}
                 </span>
-                <h1 class="text-2xl font-bold text-white tracking-tight">{{ $course->title }}</h1>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{{ $course->title }}</h1>
             </div>
         </div>
 
         <div class="flex items-center gap-2">
             <form method="POST" action="{{ route('admin.courses.togglePublish', $course->id) }}">
                 @csrf
-                <button type="submit" class="text-xs font-semibold px-3 py-2 rounded-xl transition-colors {{ $course->is_published ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25' : 'bg-slate-800 text-gray-400 border border-slate-700 hover:text-white' }}">
+                <button type="submit" class="text-xs font-semibold px-3 py-2 rounded-xl transition-all shadow-xs {{ $course->is_published ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30 dark:hover:bg-emerald-500/25' : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-gray-400 dark:border-slate-700 dark:hover:text-white' }}">
                     ● {{ $course->is_published ? 'Xuất bản (Published)' : 'Bản nháp (Draft)' }}
                 </button>
             </form>
 
-            <a href="{{ route('admin.courses.edit', $course->id) }}" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-gray-300 hover:text-white border border-slate-700 transition-colors">
+            <form method="POST" action="{{ route('admin.courses.duplicate', $course->id) }}" onsubmit="return confirm('Bạn có chắc chắn muốn nhân bản khóa học này? Toàn bộ bài học, hoạt động học và câu hỏi ngân hàng của khóa sẽ được sao chép sang bản mới.')">
+                @csrf
+                <button type="submit" class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-indigo-700 border border-slate-200 shadow-xs dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold dark:text-indigo-300 dark:hover:text-indigo-200 dark:border-slate-700 transition-colors flex items-center gap-1.5" title="Nhân bản toàn bộ bài học & hoạt động">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Sao chép khóa học</span>
+                </button>
+            </form>
+
+            <a href="{{ route('admin.courses.edit', $course->id) }}" class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 shadow-xs dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold dark:text-gray-300 dark:hover:text-white dark:border-slate-700 transition-colors">
                 ⚙️ Cài đặt khóa
             </a>
 
-            <a href="{{ route('courses.show', $course->id) }}" target="_blank" class="px-3.5 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-xs font-semibold text-indigo-300 border border-indigo-500/30 transition-colors flex items-center gap-1">
+            <a href="{{ route('courses.show', $course->id) }}" target="_blank" class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-xs dark:bg-indigo-600/20 dark:hover:bg-indigo-600/30 text-xs font-semibold dark:text-indigo-300 dark:border-indigo-500/30 transition-colors flex items-center gap-1">
                 <span>Xem Cổng Học viên</span>
                 <span>↗</span>
             </a>
@@ -38,23 +48,23 @@
     </div>
 
     {{-- Modern Segmented Tabs Navigation --}}
-    <div class="bg-[#0b1020]/90 p-1.5 rounded-2xl border border-slate-800/80 shadow-lg flex flex-wrap sm:flex-nowrap items-center gap-1.5 w-fit max-w-full overflow-x-auto">
+    <div class="curriculum-tabs-nav bg-white dark:bg-[#0b1020]/90 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex flex-wrap sm:flex-nowrap items-center gap-1.5 w-fit max-w-full overflow-x-auto">
         {{-- Tab 1: Giáo trình & Học liệu --}}
         <button type="button"
                 @click="setTab('curriculum')"
                 class="group px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all duration-200 flex items-center gap-2.5 whitespace-nowrap cursor-pointer select-none"
                 :class="currentTab === 'curriculum' 
                     ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/25 border border-indigo-400/40 font-bold' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent'">
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent'">
             <div class="w-6 h-6 rounded-lg flex items-center justify-center transition-colors"
-                 :class="currentTab === 'curriculum' ? 'bg-white/20 text-white' : 'bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20'">
+                 :class="currentTab === 'curriculum' ? 'bg-white/20 text-white' : 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 group-hover:bg-indigo-500/20'">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                 </svg>
             </div>
             <span>Giáo trình & Học liệu</span>
             <span class="px-2 py-0.5 rounded-full text-xs font-mono font-bold whitespace-nowrap transition-colors"
-                  :class="currentTab === 'curriculum' ? 'bg-white/20 text-white' : 'bg-slate-800 text-indigo-300 border border-slate-700/60'">
+                  :class="currentTab === 'curriculum' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 border border-slate-200 dark:border-slate-700/60'">
                 {{ $course->lessons->count() }} bài
             </span>
         </button>
@@ -65,16 +75,16 @@
                 class="group px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all duration-200 flex items-center gap-2.5 whitespace-nowrap cursor-pointer select-none"
                 :class="currentTab === 'students' 
                     ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/25 border border-indigo-400/40 font-bold' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent'">
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent'">
             <div class="w-6 h-6 rounded-lg flex items-center justify-center transition-colors"
-                 :class="currentTab === 'students' ? 'bg-white/20 text-white' : 'bg-teal-500/10 text-teal-400 group-hover:bg-teal-500/20'">
+                 :class="currentTab === 'students' ? 'bg-white/20 text-white' : 'bg-teal-500/10 text-teal-600 dark:text-teal-400 group-hover:bg-teal-500/20'">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
             </div>
             <span>Học viên tham gia</span>
             <span class="px-2 py-0.5 rounded-full text-xs font-mono font-bold whitespace-nowrap transition-colors"
-                  :class="currentTab === 'students' ? 'bg-white/20 text-white' : 'bg-slate-800 text-teal-300 border border-slate-700/60'">
+                  :class="currentTab === 'students' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-teal-600 dark:text-teal-300 border border-slate-200 dark:border-slate-700/60'">
                 {{ count($enrolledStudents) }} học viên
             </span>
         </button>
@@ -85,16 +95,16 @@
                 class="group px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all duration-200 flex items-center gap-2.5 whitespace-nowrap cursor-pointer select-none"
                 :class="currentTab === 'question_bank' 
                     ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/25 border border-indigo-400/40 font-bold' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent'">
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent'">
             <div class="w-6 h-6 rounded-lg flex items-center justify-center transition-colors"
-                 :class="currentTab === 'question_bank' ? 'bg-white/20 text-white' : 'bg-amber-500/10 text-amber-400 group-hover:bg-amber-500/20'">
+                 :class="currentTab === 'question_bank' ? 'bg-white/20 text-white' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500/20'">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
             <span>Ngân hàng câu hỏi</span>
             <span class="px-2 py-0.5 rounded-full text-xs font-mono font-bold whitespace-nowrap transition-colors"
-                  :class="currentTab === 'question_bank' ? 'bg-white/20 text-white' : 'bg-slate-800 text-amber-300 border border-slate-700/60'"
+                  :class="currentTab === 'question_bank' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-amber-600 dark:text-amber-300 border border-slate-200 dark:border-slate-700/60'"
                   x-text="courseQuestions.length + ' câu'">
             </span>
         </button>
@@ -104,25 +114,25 @@
     <div x-show="currentTab === 'curriculum'" class="space-y-6">
         
         {{-- Toolbar & Metrics Bar --}}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800">
+        <div class="curriculum-toolbar flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-slate-50 via-indigo-50/40 to-slate-50 dark:from-slate-900 dark:via-indigo-950/40 dark:to-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="flex flex-wrap items-center gap-4 text-xs">
                 <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span class="font-bold text-white text-sm">Quản lý Chương trình & Hoạt động (LMS Studio)</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="toolbar-title font-bold text-slate-900 dark:text-white text-sm">Quản lý Chương trình & Hoạt động (LMS Studio)</span>
                 </div>
-                <div class="flex items-center gap-3 text-gray-400 font-mono text-[11px]">
-                    <span>📚 <strong class="text-white">{{ $course->lessons->count() }}</strong> bài học</span>
+                <div class="toolbar-meta flex items-center gap-3 text-slate-500 dark:text-gray-400 font-mono text-[11px]">
+                    <span>📚 <strong class="text-slate-800 dark:text-white">{{ $course->lessons->count() }}</strong> bài học</span>
                     <span>·</span>
-                    <span>⚡ <strong class="text-indigo-300">{{ $course->lessons->sum(fn($l) => $l->activities->count()) }}</strong> hoạt động</span>
+                    <span>⚡ <strong class="text-indigo-600 dark:text-indigo-300">{{ $course->lessons->sum(fn($l) => $l->activities->count()) }}</strong> hoạt động</span>
                     <span>·</span>
-                    <span>⏱ <strong class="text-teal-300">{{ $course->lessons->sum('estimated_minutes') }}</strong> phút học</span>
+                    <span>⏱ <strong class="text-teal-600 dark:text-teal-300">{{ $course->lessons->sum('estimated_minutes') }}</strong> phút học</span>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
                 <button type="button" 
                         @click="expandAllLessons = !expandAllLessons"
-                        class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-gray-300 hover:text-white border border-slate-700 transition-colors">
+                        class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 shadow-xs transition-colors">
                     <span x-text="expandAllLessons ? 'Thu gọn tất cả ▲' : 'Mở rộng tất cả ▼'"></span>
                 </button>
 
@@ -136,58 +146,59 @@
         </div>
 
         {{-- Drag-and-Drop Hint Banner --}}
-        <div class="flex items-center justify-between px-4 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs">
+        <div class="curriculum-hint-banner flex items-center justify-between px-4 py-2.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-500/10 border border-indigo-200/80 dark:border-indigo-500/20 text-indigo-800 dark:text-indigo-300 text-xs">
             <div class="flex items-center gap-2">
                 <span>💡</span>
                 <span>Bạn có thể <strong>kéo thả biểu tượng ⋮⋮</strong> để sắp xếp thứ tự các Bài học hoặc di chuyển các Hoạt động học tập giữa các bài học một cách trực quan.</span>
             </div>
-            <span class="text-[10px] font-mono bg-indigo-500/20 px-2 py-0.5 rounded text-indigo-200">Auto-save</span>
+            <span class="text-[10px] font-mono bg-indigo-100 dark:bg-indigo-500/20 px-2 py-0.5 rounded text-indigo-700 dark:text-indigo-200 border border-indigo-200/60 dark:border-transparent font-semibold">Auto-save</span>
         </div>
+
 
         {{-- Lessons Sortable Container --}}
         <div id="lessons-sortable" class="space-y-4">
             @forelse($course->lessons as $lesson)
-                <div class="admin-card overflow-hidden border-slate-800 lesson-item transition-all"
+                <div class="admin-card overflow-hidden border border-slate-200 dark:border-slate-800 lesson-item transition-all shadow-sm"
                      data-lesson-id="{{ $lesson->id }}"
                      x-data="{ lessonExpanded: true }"
                      x-effect="if (expandAllLessons !== null) lessonExpanded = expandAllLessons">
                     
                     {{-- Lesson Header Bar --}}
-                    <div class="bg-slate-900/90 p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800/80">
+                    <div class="lesson-header bg-white dark:bg-slate-900/90 p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800/80">
                         <div class="flex items-center gap-3">
                             {{-- Drag Handle for Lesson --}}
-                            <div class="lesson-handle cursor-grab active:cursor-grabbing p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-slate-800 transition-colors" title="Kéo để đổi thứ tự bài học">
+                            <div class="lesson-handle cursor-grab active:cursor-grabbing p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:text-gray-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Kéo để đổi thứ tự bài học">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
                             </div>
 
-                            <span class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 text-indigo-400 font-mono font-bold text-sm flex items-center justify-center shadow-md flex-shrink-0">
+                            <span class="lesson-order-badge w-8 h-8 rounded-xl bg-indigo-50 dark:bg-slate-800 border border-indigo-200/70 dark:border-slate-700 text-indigo-700 dark:text-indigo-400 font-mono font-bold text-sm flex items-center justify-center shadow-xs flex-shrink-0">
                                 {{ $lesson->order }}
                             </span>
 
                             <div class="min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <h3 class="text-sm font-bold text-white truncate">{{ $lesson->title }}</h3>
+                                    <h3 class="lesson-title text-sm font-bold text-slate-900 dark:text-white truncate">{{ $lesson->title }}</h3>
                                     
                                     {{-- Free Trial Badge --}}
                                     @if($lesson->is_free_trial)
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-fsel-teal/15 text-fsel-teal border border-fsel-teal/30">Free Trial</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-teal-50 dark:bg-fsel-teal/15 text-teal-700 dark:text-fsel-teal border border-teal-200 dark:border-fsel-teal/30">Free Trial</span>
                                     @endif
 
                                     {{-- Visibility Status Badge --}}
-                                    <span class="text-[9px] font-bold px-2 py-0.5 rounded border {{ $lesson->is_visible ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20' }}">
+                                    <span class="text-[9px] font-bold px-2 py-0.5 rounded border {{ $lesson->is_visible ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' : 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20' }}">
                                         {{ $lesson->is_visible ? '● Đang hiển thị' : '○ Đang ẩn' }}
                                     </span>
                                 </div>
 
-                                <div class="flex flex-wrap items-center gap-3 text-[10px] text-gray-400 font-mono mt-0.5">
+                                <div class="lesson-meta flex flex-wrap items-center gap-3 text-[10px] text-slate-500 dark:text-gray-400 font-mono mt-0.5">
                                     <span>⏱ {{ $lesson->estimated_minutes }} phút</span>
                                     <span>·</span>
                                     <span>Khóa mở: ≥{{ $lesson->unlock_condition_score }}%</span>
                                     <span>·</span>
-                                    <span class="text-indigo-400 font-bold">⚡ {{ $lesson->activities->count() }} hoạt động</span>
+                                    <span class="text-indigo-600 dark:text-indigo-400 font-bold">⚡ {{ $lesson->activities->count() }} hoạt động</span>
                                     @if($lesson->description)
                                         <span>·</span>
-                                        <span class="text-gray-400 italic truncate max-w-xs">{{ $lesson->description }}</span>
+                                        <span class="text-slate-500 dark:text-gray-400 italic truncate max-w-xs">{{ $lesson->description }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -207,7 +218,7 @@
                             <button type="button"
                                     @click="toggleLessonVisibility({{ $lesson->id }})"
                                     title="{{ $lesson->is_visible ? 'Ẩn bài học với học viên' : 'Hiển thị bài học' }}"
-                                    class="p-1.5 rounded-lg border text-xs transition-colors {{ $lesson->is_visible ? 'bg-slate-800 text-gray-300 border-slate-700 hover:text-white' : 'bg-rose-500/10 text-rose-400 border-rose-500/30' }}">
+                                    class="lesson-action-btn p-1.5 rounded-lg border text-xs transition-colors {{ $lesson->is_visible ? 'bg-white dark:bg-slate-800 text-slate-600 dark:text-gray-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700' : 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/30' }}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     @if($lesson->is_visible)
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -221,7 +232,7 @@
                             <button type="button"
                                     @click="toggleLessonTrial({{ $lesson->id }})"
                                     title="{{ $lesson->is_free_trial ? 'Học thử: Đang BẬT (Bấm để chuyển về chính thức)' : 'Học thử: Đang TẮT (Bấm để cho phép học thử)' }}"
-                                    class="p-1.5 rounded-lg border text-xs transition-colors {{ $lesson->is_free_trial ? 'bg-teal-500/20 text-teal-300 border-teal-500/40 hover:bg-teal-500/30' : 'bg-slate-800 text-gray-500 hover:text-teal-400 border-slate-700' }}">
+                                    class="lesson-action-btn p-1.5 rounded-lg border text-xs transition-colors {{ $lesson->is_free_trial ? 'bg-teal-50 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-500/40 hover:bg-teal-100 dark:hover:bg-teal-500/30' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-gray-500 hover:text-teal-600 dark:hover:text-teal-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700' }}">
                                 <span class="text-[11px] font-bold">✨</span>
                             </button>
 
@@ -229,7 +240,7 @@
                             <button type="button"
                                     @click="openEditLessonModal({{ json_encode($lesson) }})"
                                     title="Chỉnh sửa thông tin bài học"
-                                    class="p-1.5 rounded-lg bg-slate-800 text-gray-400 hover:text-white border border-slate-700 transition-colors">
+                                    class="lesson-action-btn p-1.5 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
 
@@ -237,7 +248,7 @@
                             <form method="POST" action="{{ route('admin.courses.lessons.destroy', [$course->id, $lesson->id]) }}" onsubmit="return confirm('Xóa bài học này cùng toàn bộ hoạt động bên trong?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" title="Xóa bài học" class="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors">
+                                <button type="submit" title="Xóa bài học" class="p-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-500/20 transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
                             </form>
@@ -245,7 +256,7 @@
                             {{-- Collapse / Expand Button --}}
                             <button type="button" 
                                     @click="lessonExpanded = !lessonExpanded" 
-                                    class="p-1.5 rounded-lg bg-slate-800 text-gray-400 hover:text-white border border-slate-700 transition-colors">
+                                    class="lesson-action-btn p-1.5 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                                 <svg class="w-4 h-4 transition-transform duration-200" :class="!lessonExpanded && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
                         </div>
@@ -253,7 +264,7 @@
 
                     {{-- Activities Sortable Container inside Lesson --}}
                     <div x-show="lessonExpanded"
-                         class="activities-sortable p-3 sm:p-4 space-y-2.5 bg-slate-950/40 min-h-[60px]"
+                         class="activities-sortable p-3 sm:p-4 space-y-2.5 bg-slate-50/70 dark:bg-slate-950/40 min-h-[60px] border-t border-slate-100 dark:border-slate-800/60"
                          data-lesson-id="{{ $lesson->id }}">
                         
                         @forelse($lesson->activities as $act)
@@ -262,18 +273,18 @@
                                 $availStatus = $act->getAvailabilityStatus();
                             @endphp
 
-                            <div class="activity-card p-3 rounded-xl border transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 {{ $act->is_visible ? 'bg-slate-900/80 border-slate-800/90 hover:border-slate-700' : 'bg-slate-900/40 border-dashed border-slate-800 opacity-60' }}"
+                            <div class="activity-card p-3 rounded-xl border transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs {{ $act->is_visible ? 'bg-white dark:bg-slate-900/80 border-slate-200/90 dark:border-slate-800/90 hover:border-indigo-300 dark:hover:border-slate-700 hover:shadow-sm' : 'is-hidden bg-slate-50 dark:bg-slate-900/40 border-dashed border-slate-200 dark:border-slate-800 opacity-70' }}"
                                  data-activity-id="{{ $act->id }}"
                                  data-lesson-id="{{ $lesson->id }}">
                                 
                                 <div class="flex items-center gap-3 min-w-0">
                                     {{-- Drag Handle for Activity --}}
-                                    <div class="activity-handle cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 p-1" title="Kéo để đổi vị trí hoặc chuyển sang bài học khác">
+                                    <div class="activity-handle cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 p-1" title="Kéo để đổi vị trí hoặc chuyển sang bài học khác">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
                                     </div>
 
                                     {{-- Type Icon & Badge --}}
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold flex-shrink-0 bg-{{ $typeInfo['color'] }}-500/10 text-{{ $typeInfo['color'] }}-300 border-{{ $typeInfo['color'] }}-500/20">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold flex-shrink-0 bg-{{ $typeInfo['color'] }}-50 dark:bg-{{ $typeInfo['color'] }}-500/10 text-{{ $typeInfo['color'] }}-700 dark:text-{{ $typeInfo['color'] }}-300 border-{{ $typeInfo['color'] }}-200 dark:border-{{ $typeInfo['color'] }}-500/20">
                                         <span>{{ $typeInfo['icon'] }}</span>
                                         <span class="hidden md:inline">{{ $typeInfo['label'] }}</span>
                                     </span>
@@ -281,25 +292,25 @@
                                     {{-- Title & Info --}}
                                     <div class="min-w-0">
                                         <div class="flex flex-wrap items-center gap-2">
-                                            <span class="font-semibold text-xs text-white truncate">{{ $act->title }}</span>
+                                            <span class="activity-title font-semibold text-xs text-slate-900 dark:text-white truncate">{{ $act->title }}</span>
                                             
                                             {{-- Visual Indicator: Hidden --}}
                                             @if(!$act->is_visible)
-                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
                                                     🚫 Đang ẩn
                                                 </span>
                                             @endif
 
                                             {{-- Visual Indicator: Free Trial --}}
                                             @if($act->is_free_trial)
-                                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30 flex items-center gap-1">
+                                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-500/30 flex items-center gap-1">
                                                     ✨ Học thử
                                                 </span>
                                             @endif
 
                                             {{-- Visual Indicator: File info --}}
                                             @if($act->hasFile())
-                                                <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-orange-500/10 text-orange-300 border border-orange-500/20 flex items-center gap-1">
+                                                <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-50 dark:bg-orange-500/10 text-amber-700 dark:text-orange-300 border border-amber-200 dark:border-orange-500/20 flex items-center gap-1">
                                                     📎 {{ $act->getFileOriginalName() ?: 'Tệp tin' }}
                                                     ({{ $act->getFileSizeFormatted() }})
                                                 </span>
@@ -307,50 +318,50 @@
 
                                             {{-- Visual Indicator: Timing / Availability --}}
                                             @if($availStatus === 'not_yet')
-                                                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20" title="Mở lúc: {{ $act->available_from?->format('d/m/Y H:i') }}">
+                                                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/20" title="Mở lúc: {{ $act->available_from?->format('d/m/Y H:i') }}">
                                                     ⏳ Mở: {{ $act->available_from?->format('d/m') }}
                                                 </span>
                                             @elseif($availStatus === 'expired')
-                                                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-red-500/15 text-red-400 border border-red-500/30" title="Hết hạn: {{ $act->available_until?->format('d/m/Y H:i') }}">
+                                                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-red-50 dark:bg-red-500/15 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/30" title="Hết hạn: {{ $act->available_until?->format('d/m/Y H:i') }}">
                                                     🛑 Đã hết hạn
                                                 </span>
                                             @elseif($act->available_until)
-                                                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" title="Hạn chót: {{ $act->available_until?->format('d/m/Y H:i') }}">
+                                                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20" title="Hạn chót: {{ $act->available_until?->format('d/m/Y H:i') }}">
                                                     ⏰ Hạn: {{ $act->available_until?->format('d/m') }}
                                                 </span>
                                             @endif
 
                                             {{-- Visual Indicator: Completion Rule --}}
                                             @if($act->completion_type === 'auto_view')
-                                                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20" title="Tự động hoàn thành khi xem xong">
+                                                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-500/20" title="Tự động hoàn thành khi xem xong">
                                                     👁️ Xem xong
                                                 </span>
                                             @elseif($act->completion_type === 'auto_grade')
-                                                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" title="Đạt điểm tối thiểu: {{ $act->passing_grade }}%">
+                                                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20" title="Đạt điểm tối thiểu: {{ $act->passing_grade }}%">
                                                     🎯 Điểm ≥ {{ $act->passing_grade ?? 50 }}%
                                                 </span>
                                             @elseif($act->completion_type === 'auto_submit')
-                                                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20" title="Nộp bài để hoàn thành">
+                                                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/20" title="Nộp bài để hoàn thành">
                                                     📤 Nộp bài
                                                 </span>
                                             @endif
                                         </div>
 
                                         @if($act->description)
-                                            <p class="text-[11px] text-gray-400 truncate mt-0.5">{{ $act->description }}</p>
+                                            <p class="activity-desc text-[11px] text-slate-500 dark:text-gray-400 truncate mt-0.5">{{ $act->description }}</p>
                                         @endif
                                     </div>
                                 </div>
 
                                 {{-- Activity Fast Actions --}}
                                 <div class="flex items-center gap-1.5 self-end sm:self-auto flex-shrink-0">
-                                    <span class="text-[10px] text-gray-500 font-mono mr-1">~{{ $act->estimated_minutes }}m</span>
+                                    <span class="text-[10px] text-slate-400 dark:text-gray-500 font-mono mr-1">~{{ $act->estimated_minutes }}m</span>
 
                                     {{-- 1-Click Toggle Activity Visibility --}}
                                     <button type="button"
                                             @click="toggleActivityVisibility({{ $act->id }})"
                                             title="{{ $act->is_visible ? 'Ẩn với học viên' : 'Hiển thị với học viên' }}"
-                                            class="p-1.5 rounded-lg border text-xs transition-colors {{ $act->is_visible ? 'bg-slate-800 text-gray-400 hover:text-white border-slate-700' : 'bg-rose-500/15 text-rose-300 border-rose-500/30' }}">
+                                            class="activity-action-btn p-1.5 rounded-lg border text-xs transition-colors {{ $act->is_visible ? 'bg-white dark:bg-slate-800 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700' : 'bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-500/30' }}">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             @if($act->is_visible)
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -364,7 +375,7 @@
                                     <button type="button"
                                             @click="toggleActivityTrial({{ $act->id }})"
                                             title="{{ $act->is_free_trial ? 'Học thử: Đang BẬT (Bấm để chuyển về chính thức)' : 'Học thử: Đang TẮT (Bấm để cho phép học thử)' }}"
-                                            class="p-1.5 rounded-lg border text-xs transition-colors {{ $act->is_free_trial ? 'bg-teal-500/20 text-teal-300 border-teal-500/40 hover:bg-teal-500/30' : 'bg-slate-800 text-gray-500 hover:text-teal-400 border-slate-700' }}">
+                                            class="activity-action-btn p-1.5 rounded-lg border text-xs transition-colors {{ $act->is_free_trial ? 'bg-teal-50 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-500/40 hover:bg-teal-100 dark:hover:bg-teal-500/30' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-gray-500 hover:text-teal-600 dark:hover:text-teal-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700' }}">
                                         <span class="text-[10px] font-bold">✨</span>
                                     </button>
 
@@ -372,7 +383,7 @@
                                     <button type="button"
                                             @click="openActivitySettings({{ json_encode($act) }})"
                                             title="Cấu hình chi tiết (Thời gian, Hoàn thành, Nội dung)"
-                                            class="p-1.5 rounded-lg bg-slate-800 text-gray-400 hover:text-indigo-400 hover:bg-slate-700 border border-slate-700 transition-colors">
+                                            class="activity-action-btn p-1.5 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                     </button>
 
@@ -380,12 +391,12 @@
                                     <button type="button"
                                             @click="duplicateActivity({{ $act->id }})"
                                             title="Nhân bản hoạt động này"
-                                            class="p-1.5 rounded-lg bg-slate-800 text-gray-400 hover:text-emerald-400 hover:bg-slate-700 border border-slate-700 transition-colors">
+                                            class="activity-action-btn p-1.5 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                                     </button>
 
                                     {{-- Preview Activity --}}
-                                    <a href="{{ route('activities.show', $act->id) }}" target="_blank" title="Xem trước giao diện học viên" class="p-1.5 rounded-lg bg-slate-800 text-gray-400 hover:text-fsel-teal hover:bg-slate-700 border border-slate-700 transition-colors">
+                                    <a href="{{ route('activities.show', $act->id) }}" target="_blank" title="Xem trước giao diện học viên" class="activity-action-btn p-1.5 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-gray-400 hover:text-teal-600 dark:hover:text-fsel-teal hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                     </a>
 
@@ -393,16 +404,16 @@
                                     <form method="POST" action="{{ route('admin.activities.destroy', $act->id) }}" onsubmit="return confirm('Xóa hoạt động này?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" title="Xóa học liệu" class="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/15 border border-transparent hover:border-red-500/30 transition-all">
+                                        <button type="submit" title="Xóa học liệu" class="p-1.5 rounded-lg text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/15 border border-transparent hover:border-red-200 dark:hover:border-red-500/30 transition-all">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
                                     </form>
                                 </div>
                             </div>
                         @empty
-                            <div class="empty-dropzone py-6 text-center border-2 border-dashed border-slate-800 rounded-xl text-gray-500 text-xs">
+                            <div class="empty-dropzone py-6 text-center border-2 border-dashed border-slate-300 dark:border-slate-800 rounded-xl text-slate-500 dark:text-gray-500 text-xs bg-white/60 dark:bg-transparent">
                                 <span>Kéo thả hoạt động vào đây hoặc bấm </span>
-                                <button type="button" @click="openActivityPalette({{ $lesson->id }}, '{{ addslashes($lesson->title) }}')" class="text-indigo-400 font-bold hover:underline">
+                                <button type="button" @click="openActivityPalette({{ $lesson->id }}, '{{ addslashes($lesson->title) }}')" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
                                     + Thêm Hoạt động
                                 </button>
                             </div>
@@ -410,7 +421,7 @@
                     </div>
                 </div>
             @empty
-                <div class="admin-card p-12 text-center text-gray-500">
+                <div class="admin-card p-12 text-center text-slate-500 dark:text-gray-500">
                     Khóa học này chưa có bài học nào.
                 </div>
             @endforelse
@@ -540,7 +551,7 @@
                                        :class="selectedRole === '{{ $rKey }}' ? 'bg-indigo-600/20 border-indigo-500 text-white ring-1 ring-indigo-500/40' : 'bg-slate-900/80 border-slate-800 text-gray-400 hover:border-slate-700'">
                                     <input type="radio" name="course_role" value="{{ $rKey }}" x-model="selectedRole" class="mt-0.5 text-indigo-600 bg-slate-800 border-slate-700">
                                     <div class="space-y-0.5">
-                                        <span class="font-bold text-[11px] block text-white">{{ $rMeta['icon'] }} {{ $rMeta['name'] }}</span>
+                                        <span class="font-bold text-[11px] block text-white">{{ $rMeta['name'] }}</span>
                                         <span class="text-[10px] text-gray-400 block leading-tight">{{ $rMeta['desc'] }}</span>
                                     </div>
                                 </label>
@@ -618,7 +629,7 @@
                                                 class="text-xs font-semibold pl-3 pr-8 py-1.5 rounded-lg border bg-slate-900 text-white cursor-pointer focus:ring-1 focus:ring-indigo-500 border-slate-700 hover:border-slate-600 transition-colors outline-none">
                                             @foreach($courseRoles as $rKey => $rOpt)
                                                 <option value="{{ $rKey }}" class="bg-slate-900 text-white py-1.5 font-sans" {{ $item['enrollment']->course_role === $rKey ? 'selected' : '' }}>
-                                                    {{ $rOpt['icon'] }} {{ $rOpt['name'] }}
+                                                    {{ $rOpt['name'] }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -1049,7 +1060,7 @@
     {{-- MODAL 1: ADD LESSON MODAL                                         --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <div x-show="showAddLessonModal" x-cloak style="display: none;" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-        <div class="admin-card max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto border-indigo-500/40 shadow-2xl" @click.away="showAddLessonModal = false">
+        <div class="admin-card max-w-lg w-full p-6 space-y-4 border-indigo-500/40 shadow-2xl" @click.away="showAddLessonModal = false">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">+</span>
@@ -1060,7 +1071,6 @@
 
             <form method="POST" action="{{ route('admin.courses.lessons.store', $course->id) }}" class="space-y-3.5">
                 @csrf
-                @include('lessons.partials.ai-policy-fields')
                 <div>
                     <label class="block text-[10px] uppercase font-bold text-gray-300 mb-1">Tiêu đề bài học:</label>
                     <input type="text" name="title" required placeholder="VD: Bài 5: Daily Routines & Activities" class="login-input !py-2 text-xs">
@@ -1110,7 +1120,7 @@
     {{-- MODAL 2: EDIT LESSON MODAL                                        --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <div x-show="showEditLessonModal" x-cloak style="display: none;" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-        <div class="admin-card max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto border-slate-700 shadow-2xl" @click.away="showEditLessonModal = false">
+        <div class="admin-card max-w-lg w-full p-6 space-y-4 border-slate-700 shadow-2xl" @click.away="showEditLessonModal = false">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">✏️</span>
@@ -1120,7 +1130,6 @@
             </div>
 
             <form :action="'/admin/courses/{{ $course->id }}/lessons/' + editLessonData.id" method="POST" class="space-y-3.5">
-                @include('lessons.partials.ai-policy-fields', ['policyModel' => 'editLessonData'])
                 @csrf
                 @method('PUT')
 
@@ -1319,7 +1328,26 @@
                     </div>
                 </div>
 
-                {{-- Group 5: Cộng tác & Cấu trúc (Structure & Collaboration) --}}
+                {{-- Group 5: Nội dung tương tác nâng cao (Interactive Content) --}}
+                <div>
+                    <h4 class="text-[11px] uppercase font-bold text-sky-400 tracking-wider mb-2.5 flex items-center gap-1.5">
+                        <span>🧩</span> <span>Nội dung Tương tác Nâng cao</span>
+                    </h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-2 gap-2.5">
+                        <button type="button" @click="selectTypeAndOpenDrawer('h5p')" class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-sky-500/50 hover:bg-sky-950/20 text-left transition-all group flex items-start gap-2.5">
+                            <span class="text-2xl p-1.5 rounded-lg bg-sky-500/10 border border-sky-500/20 flex-shrink-0">🧩</span>
+                            <div>
+                                <div class="font-bold text-xs text-white group-hover:text-sky-300 flex items-center gap-1.5">
+                                    <span>H5P Tương tác (Interactive)</span>
+                                    <span class="text-[9px] bg-sky-500/20 text-sky-300 px-1.5 py-0.2 rounded font-mono">HTML5</span>
+                                </div>
+                                <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">Kéo thả, điền từ, video tương tác, flashcard, timeline & 40+ loại nội dung H5P</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Group 6: Cộng tác & Cấu trúc (Structure & Collaboration) --}}
                 <div>
                     <h4 class="text-[11px] uppercase font-bold text-gray-400 tracking-wider mb-2.5 flex items-center gap-1.5">
                         <span>🏷️</span> <span>Cộng tác & Phân cách Trình bày</span>
@@ -2393,6 +2421,704 @@
                             <input type="text" x-model="drawerActivity.content.topic" placeholder="VD: Chia sẻ phương pháp ghi nhớ từ vựng hiệu quả" class="login-input !py-2 text-xs">
                         </div>
                     </div>
+
+                    {{-- 15. H5P INTERACTIVE & CONTENT AUTHORING (MOODLE CONTENT BANK STYLE) --}}
+                    <div x-show="drawerActivity.type === 'h5p'" class="space-y-4">
+                        {{-- Source Mode Tabs --}}
+                        <div class="flex gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <button type="button" @click="drawerActivity.content.source = 'editor'"
+                                :class="(drawerActivity.content.source || 'editor') === 'editor' ? 'bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/40 font-bold' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-200 border-transparent'"
+                                class="flex-1 text-[11px] py-1.5 px-3 rounded-lg border transition-all flex items-center justify-center gap-1.5">
+                                <span>✨ Soạn H5P (Content Bank)</span>
+                            </button>
+                            <button type="button" @click="drawerActivity.content.source = 'upload'"
+                                :class="drawerActivity.content.source === 'upload' ? 'bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/40 font-bold' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-200 border-transparent'"
+                                class="flex-1 text-[11px] py-1.5 px-3 rounded-lg border transition-all flex items-center justify-center gap-1.5">
+                                <span>📦 Tải tệp gói .h5p</span>
+                            </button>
+                            <button type="button" @click="drawerActivity.content.source = 'url'"
+                                :class="drawerActivity.content.source === 'url' ? 'bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/40 font-bold' : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-200 border-transparent'"
+                                class="flex-1 text-[11px] py-1.5 px-3 rounded-lg border transition-all flex items-center justify-center gap-1.5">
+                                <span>🔗 Nhúng URL</span>
+                            </button>
+                        </div>
+
+                        {{-- MODE 1: SOẠN H5P TRỰC TIẾP (CONTENT BANK AUTHORING) --}}
+                        <div x-show="(drawerActivity.content.source || 'editor') === 'editor'" class="space-y-4">
+                            
+                            {{-- Content Bank Bar (Moodle Style) --}}
+                            <div class="p-3.5 rounded-2xl bg-gradient-to-r from-sky-50 via-indigo-50/40 to-slate-50 dark:from-slate-900 dark:via-sky-950/30 dark:to-slate-900 border border-sky-200/80 dark:border-sky-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold text-sm border border-sky-500/30 flex-shrink-0">
+                                        🧩
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                            <span>Ngân hàng nội dung H5P</span>
+                                            <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-500/40">Moodle H5P Engine</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-500 dark:text-gray-400">Chọn loại nội dung để soạn thảo trực tiếp trên LMS</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    {{-- Type Selector Dropdown --}}
+                                    <div class="relative" x-data="{ openTypeDropdown: false }" @click.outside="openTypeDropdown = false">
+                                        <button type="button" @click="openTypeDropdown = !openTypeDropdown"
+                                                class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer">
+                                            <span>+ Thêm</span>
+                                            <span class="text-[10px]" x-text="openTypeDropdown ? '▲' : '▼'"></span>
+                                        </button>
+
+                                        <div x-show="openTypeDropdown" x-cloak
+                                             class="absolute right-0 mt-2 w-64 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl py-1 z-30 divide-y divide-slate-100 dark:divide-slate-800">
+                                            <div class="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400 font-mono">Loại tương tác H5P</div>
+                                            <div>
+                                                <button type="button" @click="drawerH5pType = 'flashcards'; openTypeDropdown = false; resetAllH5pPreview();" class="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-gray-200" :class="drawerH5pType === 'flashcards' && 'text-sky-600 dark:text-sky-400 font-bold bg-sky-50/50 dark:bg-sky-950/30'">
+                                                    <span>🎴</span>
+                                                    <div>
+                                                        <div>Flashcards</div>
+                                                        <div class="text-[10px] text-slate-400 font-normal">Thẻ từ vựng & hình ảnh lật mặt</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" @click="drawerH5pType = 'multichoice'; openTypeDropdown = false; resetAllH5pPreview();" class="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-gray-200" :class="drawerH5pType === 'multichoice' && 'text-sky-600 dark:text-sky-400 font-bold bg-sky-50/50 dark:bg-sky-950/30'">
+                                                    <span>🔘</span>
+                                                    <div>
+                                                        <div>Multichoice question</div>
+                                                        <div class="text-[10px] text-slate-400 font-normal">Câu hỏi trắc nghiệm nhiều lựa chọn</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" @click="drawerH5pType = 'drag_words'; openTypeDropdown = false; resetAllH5pPreview();" class="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-gray-200" :class="drawerH5pType === 'drag_words' && 'text-sky-600 dark:text-sky-400 font-bold bg-sky-50/50 dark:bg-sky-950/30'">
+                                                    <span>🧩</span>
+                                                    <div>
+                                                        <div>Drag the words</div>
+                                                        <div class="text-[10px] text-slate-400 font-normal">Kéo thả từ vào chỗ trống trong đoạn văn</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" @click="drawerH5pType = 'blanks'; openTypeDropdown = false; resetAllH5pPreview();" class="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-gray-200" :class="drawerH5pType === 'blanks' && 'text-sky-600 dark:text-sky-400 font-bold bg-sky-50/50 dark:bg-sky-950/30'">
+                                                    <span>📝</span>
+                                                    <div>
+                                                        <div>Fill in the blanks</div>
+                                                        <div class="text-[10px] text-slate-400 font-normal">Điền từ còn thiếu vào ô trống</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" @click="drawerH5pType = 'true_false'; openTypeDropdown = false; resetAllH5pPreview();" class="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-gray-200" :class="drawerH5pType === 'true_false' && 'text-sky-600 dark:text-sky-400 font-bold bg-sky-50/50 dark:bg-sky-950/30'">
+                                                    <span>⚖️</span>
+                                                    <div>
+                                                        <div>True / False question</div>
+                                                        <div class="text-[10px] text-slate-400 font-normal">Câu hỏi Đúng hoặc Sai</div>
+                                                    </div>
+                                                </button>
+                                                <button type="button" @click="drawerH5pType = 'question_set'; openTypeDropdown = false; resetAllH5pPreview();" class="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-gray-200" :class="drawerH5pType === 'question_set' && 'text-sky-600 dark:text-sky-400 font-bold bg-sky-50/50 dark:bg-sky-950/30'">
+                                                    <span>📚</span>
+                                                    <div>
+                                                        <div>Question set</div>
+                                                        <div class="text-[10px] text-slate-400 font-normal">Bộ câu hỏi trắc nghiệm liên hoàn</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Live Preview Trigger --}}
+                                    <button type="button" @click="drawerH5pPreviewOpen = !drawerH5pPreviewOpen; if (drawerH5pPreviewOpen) resetAllH5pPreview();"
+                                            class="px-3 py-1.5 rounded-xl border border-sky-300 dark:border-sky-500/40 bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs">
+                                        <span>👁️</span>
+                                        <span x-text="drawerH5pPreviewOpen ? 'Đóng xem thử' : 'Xem thử tương tác'"></span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Live Interactive Preview Box (collapsible & fully interactive) --}}
+                            <div x-show="drawerH5pPreviewOpen" x-cloak class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-sky-50/60 via-indigo-50/30 to-slate-50 dark:from-slate-950 dark:via-sky-950/20 dark:to-slate-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-md space-y-4 transition-all">
+                                <div class="flex items-center justify-between pb-3 border-b border-sky-200/60 dark:border-sky-500/20">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-base">👁️</span>
+                                        <div>
+                                            <div class="text-xs font-bold text-sky-900 dark:text-sky-300 flex items-center gap-2">
+                                                <span>Xem trước tương tác (Live Preview)</span>
+                                                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-200/70 dark:bg-sky-500/20 text-sky-800 dark:text-sky-200 uppercase font-bold" x-text="drawerH5pType"></span>
+                                            </div>
+                                            <p class="text-[10px] text-slate-500 dark:text-gray-400">Trải nghiệm tương tác học viên theo thời gian thực</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" @click="resetAllH5pPreview()" title="Làm mới trạng thái xem thử" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-gray-300 hover:text-sky-600 text-xs font-semibold flex items-center gap-1 shadow-xs cursor-pointer">
+                                            <span>🔄</span>
+                                            <span class="hidden sm:inline">Làm lại</span>
+                                        </button>
+                                        <button type="button" @click="drawerH5pPreviewOpen = false" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-gray-300 hover:text-rose-500 text-xs font-semibold shadow-xs cursor-pointer">
+                                            &times; Đóng
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- PREVIEW 1: FLASHCARDS --}}
+                                <div x-show="drawerH5pType === 'flashcards'" class="max-w-xl mx-auto space-y-4">
+                                    <div class="flex items-center justify-between text-xs font-mono font-bold text-slate-600 dark:text-gray-300">
+                                        <span>Thẻ <strong class="text-sky-600 dark:text-sky-400" x-text="previewFlashcardIndex + 1"></strong> / <span x-text="drawerH5pEditor.flashcards.cards.length"></span></span>
+                                        <span class="text-[11px] font-sans font-normal text-slate-400 truncate max-w-[240px]" x-text="drawerH5pEditor.flashcards.description || 'Lật thẻ và gõ đáp án'"></span>
+                                    </div>
+
+                                    {{-- 3D Flip Card --}}
+                                    <div class="relative min-h-[200px] rounded-2xl border-2 transition-all duration-300 p-6 flex flex-col items-center justify-center text-center cursor-pointer select-none shadow-sm"
+                                         :class="previewCardFlipped ? 'bg-indigo-50/70 dark:bg-indigo-950/40 border-indigo-400 dark:border-indigo-500' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-sky-300'"
+                                         @click="previewCardFlipped = !previewCardFlipped">
+                                        <div x-show="!previewCardFlipped" class="space-y-2.5 w-full">
+                                            <template x-if="currentPreviewCard.image_url">
+                                                <img :src="currentPreviewCard.image_url" alt="Minh họa" class="max-h-24 mx-auto rounded-xl object-contain shadow-xs">
+                                            </template>
+                                            <p class="text-base sm:text-lg font-bold text-slate-900 dark:text-white" x-text="currentPreviewCard.question || '(Chưa nhập câu hỏi mặt trước)'"></p>
+                                            <p class="text-[10px] text-slate-400 font-mono">Bấm vào thẻ để lật xem đáp án ↻</p>
+                                        </div>
+                                        <div x-show="previewCardFlipped" x-cloak class="space-y-2 w-full">
+                                            <span class="text-[10px] font-mono uppercase font-bold text-indigo-600 dark:text-indigo-400">Đáp án chuẩn:</span>
+                                            <div class="text-xl sm:text-2xl font-black text-indigo-600 dark:text-indigo-300 flex items-center justify-center gap-2">
+                                                <span x-text="currentPreviewCard.answer || '(Chưa nhập đáp án)'"></span>
+                                                <button type="button" @click.stop="speakWord(currentPreviewCard.answer)" title="Nghe phát âm" class="p-1 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-base">
+                                                    🔊
+                                                </button>
+                                            </div>
+                                            <template x-if="currentPreviewCard.tip">
+                                                <p class="text-xs text-slate-500 dark:text-gray-400 italic">💡 Gợi ý: <span x-text="currentPreviewCard.tip"></span></p>
+                                            </template>
+                                            <p class="text-[10px] text-slate-400 font-mono pt-1">Bấm vào thẻ để lật lại mặt trước ↺</p>
+                                        </div>
+                                    </div>
+
+                                    {{-- Type and Check --}}
+                                    <div class="space-y-2.5">
+                                        <div class="flex gap-2">
+                                            <input type="text" x-model="previewUserAnswer" @keyup.enter="checkPreviewFlashcard()"
+                                                   placeholder="Nhập câu trả lời bằng tiếng Anh để kiểm tra..."
+                                                   class="login-input text-xs flex-1 font-semibold">
+                                            <button type="button" @click="checkPreviewFlashcard()" :disabled="!previewUserAnswer.trim()"
+                                                    class="btn-primary !w-auto !py-1.5 px-4 text-xs font-bold shadow-glow-blue disabled:opacity-50">
+                                                Kiểm tra
+                                            </button>
+                                        </div>
+
+                                        <template x-if="previewCardChecked">
+                                            <div class="p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between"
+                                                 :class="previewCardCorrect ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/40' : 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-500/40'">
+                                                <div class="flex items-center gap-2">
+                                                    <span x-text="previewCardCorrect ? '🎉' : '❌'"></span>
+                                                    <div>
+                                                        <span x-text="previewCardCorrect ? 'Chính xác! Xuất sắc.' : 'Chưa đúng rồi!'"></span>
+                                                        <template x-if="!previewCardCorrect">
+                                                            <span class="block text-[11px] font-mono mt-0.5">Đáp án đúng: <strong class="text-indigo-600 dark:text-indigo-300" x-text="currentPreviewCard.answer"></strong></span>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                                <button type="button" @click="speakWord(currentPreviewCard.answer)" class="text-base p-1 hover:opacity-80">🔊</button>
+                                            </div>
+                                        </template>
+
+                                        <div class="flex items-center justify-between pt-1">
+                                            <button type="button" @click="prevPreviewCard()" :disabled="previewFlashcardIndex === 0"
+                                                    class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-gray-300 hover:bg-slate-50 disabled:opacity-40">
+                                                ← Thẻ trước
+                                            </button>
+                                            <button type="button" @click="nextPreviewCard()"
+                                                    class="px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs">
+                                                <span x-text="previewFlashcardIndex >= drawerH5pEditor.flashcards.cards.length - 1 ? 'Quay lại đầu ↺' : 'Thẻ tiếp theo →'"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- PREVIEW 2: MULTIPLE CHOICE --}}
+                                <div x-show="drawerH5pType === 'multichoice'" class="max-w-xl mx-auto space-y-3.5">
+                                    <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                        <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-relaxed" x-text="drawerH5pEditor.multichoice.question || '(Chưa nhập câu hỏi)'"></h4>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <template x-for="(opt, oIdx) in drawerH5pEditor.multichoice.options" :key="oIdx">
+                                            <div class="p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 text-xs"
+                                                 :class="getPreviewMcqClass(oIdx)"
+                                                 @click="!previewMcqChecked && selectPreviewMcq(oIdx)">
+                                                <div class="flex items-center gap-2.5">
+                                                    <span class="w-6 h-6 rounded-lg border flex items-center justify-center font-mono font-bold text-xs"
+                                                          :class="previewMcqSelected === oIdx ? 'bg-sky-500 text-white border-sky-500' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-gray-300'"
+                                                          x-text="String.fromCharCode(65 + oIdx)"></span>
+                                                    <span class="font-medium text-slate-800 dark:text-gray-200" x-text="opt.text || '(Phương án trống)'"></span>
+                                                </div>
+                                                <template x-if="previewMcqChecked">
+                                                    <span class="font-bold text-sm" x-text="opt.is_correct ? '✓' : (previewMcqSelected === oIdx ? '✗' : '')"></span>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <div class="flex items-center justify-between pt-1">
+                                        <button type="button" @click="checkPreviewMcq()" :disabled="previewMcqChecked || previewMcqSelected === null"
+                                                class="btn-primary !w-auto !py-1.5 px-5 text-xs font-bold shadow-glow-blue disabled:opacity-50">
+                                            Kiểm tra đáp án
+                                        </button>
+                                        <template x-if="previewMcqChecked">
+                                            <button type="button" @click="resetPreviewMcq()" class="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-gray-300 hover:bg-slate-50">
+                                                Làm lại 🔄
+                                            </button>
+                                        </template>
+                                    </div>
+
+                                    <template x-if="previewMcqChecked && previewMcqFeedback">
+                                        <div class="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/30 text-xs text-indigo-900 dark:text-indigo-200">
+                                            <span class="font-bold">💡 Giải thích:</span> <span x-text="previewMcqFeedback"></span>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                {{-- PREVIEW 3: DRAG THE WORDS --}}
+                                <div x-show="drawerH5pType === 'drag_words'" class="max-w-2xl mx-auto space-y-3.5">
+                                    <p class="text-xs text-slate-500 dark:text-gray-400 italic" x-text="drawerH5pEditor.drag_words.description || 'Kéo từ vào chỗ trống trong đoạn văn'"></p>
+
+                                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs leading-loose text-slate-800 dark:text-gray-200 font-medium">
+                                        <template x-for="(seg, sIdx) in getPreviewDragSegments()" :key="sIdx">
+                                            <span class="inline">
+                                                <span x-text="seg.text"></span>
+                                                <template x-if="seg.isTarget">
+                                                    <span class="inline-flex items-center justify-center min-w-[70px] h-6 px-2 mx-1 my-0.5 rounded-lg border-2 border-dashed transition-all cursor-pointer text-xs font-bold font-mono align-middle"
+                                                          :class="getPreviewDragTargetClass(seg.targetIndex)"
+                                                          @click="removePreviewDragChip(seg.targetIndex)"
+                                                          x-text="previewDragPlaced[seg.targetIndex] ? previewDragPlaced[seg.targetIndex] : '____'">
+                                                    </span>
+                                                </template>
+                                            </span>
+                                        </template>
+                                    </div>
+
+                                    <div class="p-3 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1.5">
+                                        <div class="text-[10px] uppercase font-bold text-slate-400 font-mono">Bấm vào từ để điền vào ô trống:</div>
+                                        <div class="flex flex-wrap gap-1.5">
+                                            <template x-for="(chip, cIdx) in getPreviewDragAvailableChips()" :key="cIdx">
+                                                <button type="button" @click="placePreviewDragChip(chip)"
+                                                        :disabled="previewDragChecked"
+                                                        class="px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-500/20 hover:bg-sky-100 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-500/40 text-xs font-mono font-bold shadow-xs cursor-pointer">
+                                                    <span x-text="chip"></span>
+                                                </button>
+                                            </template>
+                                            <template x-if="getPreviewDragAvailableChips().length === 0">
+                                                <span class="text-xs text-slate-400 italic">Đã điền hết tất cả các từ. Bấm nút kiểm tra bên dưới!</span>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-between pt-1">
+                                        <button type="button" @click="checkPreviewDrag()" :disabled="previewDragChecked"
+                                                class="btn-primary !w-auto !py-1.5 px-5 text-xs font-bold shadow-glow-blue disabled:opacity-50">
+                                            Kiểm tra kết quả
+                                        </button>
+                                        <template x-if="previewDragChecked">
+                                            <button type="button" @click="resetPreviewDrag()" class="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-gray-300 hover:bg-slate-50">
+                                                Làm lại 🔄
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                {{-- PREVIEW 4: FILL IN THE BLANKS --}}
+                                <div x-show="drawerH5pType === 'blanks'" class="max-w-2xl mx-auto space-y-3.5">
+                                    <p class="text-xs text-slate-500 dark:text-gray-400 italic" x-text="drawerH5pEditor.blanks.description || 'Điền từ còn thiếu vào ô trống'"></p>
+
+                                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs leading-loose text-slate-800 dark:text-gray-200 font-medium">
+                                        <template x-for="(seg, sIdx) in getPreviewBlanksSegments()" :key="sIdx">
+                                            <span class="inline">
+                                                <span x-text="seg.text"></span>
+                                                <template x-if="seg.isTarget">
+                                                    <span class="inline-block mx-1 my-0.5 align-middle">
+                                                        <input type="text" x-model="previewBlanksAnswers[seg.targetIndex]"
+                                                               :disabled="previewBlanksChecked"
+                                                               :class="getPreviewBlankInputClass(seg.targetIndex)"
+                                                               placeholder="..."
+                                                               class="w-28 px-2 py-0.5 text-xs font-mono font-bold rounded-lg border transition-all text-center">
+                                                    </span>
+                                                </template>
+                                            </span>
+                                        </template>
+                                    </div>
+
+                                    <div class="flex items-center justify-between pt-1">
+                                        <button type="button" @click="checkPreviewBlanks()" :disabled="previewBlanksChecked"
+                                                class="btn-primary !w-auto !py-1.5 px-5 text-xs font-bold shadow-glow-blue disabled:opacity-50">
+                                            Kiểm tra đáp án
+                                        </button>
+                                        <template x-if="previewBlanksChecked">
+                                            <button type="button" @click="resetPreviewBlanks()" class="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-gray-300 hover:bg-slate-50">
+                                                Làm lại 🔄
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                {{-- PREVIEW 5: TRUE / FALSE --}}
+                                <div x-show="drawerH5pType === 'true_false'" class="max-w-xl mx-auto space-y-3.5">
+                                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
+                                        <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-relaxed" x-text="drawerH5pEditor.true_false.question || '(Chưa nhập câu hỏi)'"></h4>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <button type="button" @click="checkPreviewTf(true)" :disabled="previewTfChecked"
+                                                class="p-3 rounded-xl border font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                                                :class="getPreviewTfButtonClass(true)">
+                                            <span>✓ ĐÚNG (TRUE)</span>
+                                        </button>
+                                        <button type="button" @click="checkPreviewTf(false)" :disabled="previewTfChecked"
+                                                class="p-3 rounded-xl border font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                                                :class="getPreviewTfButtonClass(false)">
+                                            <span>✗ SAI (FALSE)</span>
+                                        </button>
+                                    </div>
+
+                                    <template x-if="previewTfChecked">
+                                        <div class="space-y-2">
+                                            <div class="p-3 rounded-xl border text-xs font-semibold flex items-center gap-2"
+                                                 :class="previewTfSelected === drawerH5pEditor.true_false.correct_answer ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/40' : 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-500/40'">
+                                                <span class="text-lg" x-text="previewTfSelected === drawerH5pEditor.true_false.correct_answer ? '🎉' : '❌'"></span>
+                                                <div>
+                                                    <div x-text="previewTfSelected === drawerH5pEditor.true_false.correct_answer ? 'Chính xác!' : 'Chưa đúng rồi!'"></div>
+                                                    <div class="text-[11px] font-normal mt-0.5" x-text="previewTfSelected ? (drawerH5pEditor.true_false.feedback_true || '') : (drawerH5pEditor.true_false.feedback_false || '')"></div>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <button type="button" @click="resetPreviewTf()" class="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-gray-300 hover:bg-slate-50">
+                                                    Thử lại 🔄
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                {{-- PREVIEW 6: QUESTION SET --}}
+                                <div x-show="drawerH5pType === 'question_set'" class="max-w-xl mx-auto space-y-3.5">
+                                    <template x-if="drawerH5pEditor.question_set.questions.length > 0">
+                                        <div class="space-y-3.5">
+                                            <div class="flex items-center justify-between text-xs font-mono font-bold text-sky-600 dark:text-sky-400">
+                                                <span>Câu <strong x-text="previewQSetIndex + 1"></strong> / <span x-text="drawerH5pEditor.question_set.questions.length"></span></span>
+                                                <span class="text-emerald-600" x-text="'Điểm: ' + previewQSetScore"></span>
+                                            </div>
+
+                                            <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                                <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white" x-text="drawerH5pEditor.question_set.questions[previewQSetIndex].question || '(Chưa nhập câu hỏi)'"></h4>
+                                            </div>
+
+                                            <div class="space-y-2">
+                                                <template x-for="(opt, optIdx) in drawerH5pEditor.question_set.questions[previewQSetIndex].options" :key="optIdx">
+                                                    <div class="p-3 rounded-xl border text-xs font-medium cursor-pointer transition-all flex items-center justify-between"
+                                                         :class="getPreviewQSetOptClass(optIdx)"
+                                                         @click="!previewQSetChecked && (previewQSetSelected = optIdx)">
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="w-5 h-5 rounded-md border flex items-center justify-center font-mono font-bold text-[11px]"
+                                                                  :class="previewQSetSelected === optIdx ? 'bg-sky-500 text-white border-sky-500' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                                                                  x-text="String.fromCharCode(65 + optIdx)"></span>
+                                                            <span x-text="opt || '(Trống)'"></span>
+                                                        </div>
+                                                        <template x-if="previewQSetChecked">
+                                                            <span class="font-bold" x-text="drawerH5pEditor.question_set.questions[previewQSetIndex].answer === optIdx ? '✓' : (previewQSetSelected === optIdx ? '✗' : '')"></span>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                            </div>
+
+                                            <div class="flex items-center justify-between pt-1">
+                                                <button type="button" @click="checkPreviewQSet()" :disabled="previewQSetChecked || previewQSetSelected === null"
+                                                        class="btn-primary !w-auto !py-1.5 px-5 text-xs font-bold shadow-glow-blue disabled:opacity-50">
+                                                    Kiểm tra
+                                                </button>
+                                                <div class="flex items-center gap-2">
+                                                    <button type="button" @click="prevPreviewQSet()" :disabled="previewQSetIndex === 0"
+                                                            class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-gray-300 disabled:opacity-40">
+                                                        ← Câu trước
+                                                    </button>
+                                                    <button type="button" @click="nextPreviewQSet()" :disabled="previewQSetIndex >= drawerH5pEditor.question_set.questions.length - 1"
+                                                            class="px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs disabled:opacity-40">
+                                                        Câu tiếp theo →
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            {{-- FORM A: FLASHCARDS AUTHORING --}}
+                            <div x-show="drawerH5pType === 'flashcards'" class="space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] uppercase font-bold text-slate-700 dark:text-gray-300 mb-1">Mô tả nhiệm vụ (Task Description):</label>
+                                        <input type="text" x-model="drawerH5pEditor.flashcards.description" placeholder="VD: Lật thẻ và gõ từ vựng tiếng Anh tương ứng..." class="login-input text-xs">
+                                    </div>
+                                    <div class="flex items-center pt-5">
+                                        <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-700 dark:text-gray-300">
+                                            <input type="checkbox" x-model="drawerH5pEditor.flashcards.case_sensitive" class="rounded border-slate-300 text-sky-600">
+                                            <span>Phân biệt chữ hoa / thường (Case sensitive)</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {{-- Flashcards List --}}
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-slate-800 dark:text-white">Danh sách các Thẻ Flashcard (<span x-text="drawerH5pEditor.flashcards.cards.length"></span> thẻ)</span>
+                                        <button type="button" @click="addH5pCard()" class="px-3 py-1 rounded-xl bg-sky-50 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 hover:bg-sky-100 text-xs font-bold transition-all border border-sky-200 dark:border-sky-500/30">
+                                            + Thêm thẻ
+                                        </button>
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        <template x-for="(card, cIdx) in drawerH5pEditor.flashcards.cards" :key="cIdx">
+                                            <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-xs space-y-3">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs font-mono font-bold text-sky-600 dark:text-sky-400" x-text="'Thẻ #' + (cIdx + 1)"></span>
+                                                    <button type="button" @click="removeH5pCard(cIdx)" class="text-xs text-rose-500 hover:underline" :disabled="drawerH5pEditor.flashcards.cards.length <= 1">Xóa thẻ</button>
+                                                </div>
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                                    <div>
+                                                        <label class="block text-[10px] uppercase font-bold text-slate-500 dark:text-gray-400 mb-1">Mặt trước: Câu hỏi / Manh mối:</label>
+                                                        <input type="text" x-model="card.question" placeholder="VD: Quả táo màu đỏ..." class="login-input !py-1.5 text-xs">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[10px] uppercase font-bold text-slate-500 dark:text-gray-400 mb-1">Mặt sau: Đáp án chính xác:</label>
+                                                        <input type="text" x-model="card.answer" placeholder="VD: apple" class="login-input !py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 font-mono">
+                                                    </div>
+                                                </div>
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                                    <div>
+                                                        <label class="block text-[10px] uppercase font-bold text-slate-500 dark:text-gray-400 mb-1">Gợi ý khi bí (Tip):</label>
+                                                        <input type="text" x-model="card.tip" placeholder="VD: Bắt đầu bằng chữ a..." class="login-input !py-1.5 text-xs">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[10px] uppercase font-bold text-slate-500 dark:text-gray-400 mb-1">URL hình ảnh minh họa:</label>
+                                                        <input type="url" x-model="card.image_url" placeholder="https://example.com/apple.jpg" class="login-input !py-1.5 text-xs font-mono">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- FORM B: MULTIPLE CHOICE AUTHORING --}}
+                            <div x-show="drawerH5pType === 'multichoice'" class="space-y-4">
+                                <div>
+                                    <label class="block text-[11px] uppercase font-bold text-slate-700 dark:text-gray-300 mb-1">Câu hỏi trắc nghiệm: <span class="text-rose-500">*</span></label>
+                                    <textarea x-model="drawerH5pEditor.multichoice.question" rows="2" placeholder="VD: Which of the following sentences is grammatically correct?" class="login-input !py-2 text-xs font-medium"></textarea>
+                                </div>
+
+                                <div class="space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-slate-800 dark:text-white">Các phương án trả lời</span>
+                                        <button type="button" @click="addH5pOption()" class="px-3 py-1 rounded-xl bg-sky-50 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 hover:bg-sky-100 text-xs font-bold transition-all border border-sky-200 dark:border-sky-500/30">
+                                            + Thêm phương án
+                                        </button>
+                                    </div>
+
+                                    <template x-for="(opt, oIdx) in drawerH5pEditor.multichoice.options" :key="oIdx">
+                                        <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-xs space-y-2">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <div class="flex items-center gap-2 flex-1">
+                                                    <span class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-mono font-bold flex items-center justify-center text-slate-600 dark:text-gray-400" x-text="String.fromCharCode(65 + oIdx)"></span>
+                                                    <input type="text" x-model="opt.text" placeholder="Nội dung phương án..." class="login-input !py-1.5 text-xs flex-1">
+                                                </div>
+                                                <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-gray-300 cursor-pointer">
+                                                    <input type="checkbox" x-model="opt.is_correct" class="rounded text-emerald-600">
+                                                    <span class="font-bold text-emerald-600 dark:text-emerald-400">Đáp án đúng</span>
+                                                </label>
+                                                <button type="button" @click="removeH5pOption(oIdx)" class="text-rose-500 hover:underline text-xs" :disabled="drawerH5pEditor.multichoice.options.length <= 2">Xóa</button>
+                                            </div>
+                                            <input type="text" x-model="opt.feedback" placeholder="Lời giải thích phản hồi khi học viên chọn phương án này (tùy chọn)..." class="login-input !py-1 text-[11px] text-slate-500 italic">
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            {{-- FORM C: DRAG THE WORDS AUTHORING --}}
+                            <div x-show="drawerH5pType === 'drag_words'" class="space-y-4">
+                                <div>
+                                    <label class="block text-[11px] uppercase font-bold text-slate-700 dark:text-gray-300 mb-1">Mô tả bài tập:</label>
+                                    <input type="text" x-model="drawerH5pEditor.drag_words.description" placeholder="VD: Kéo các từ vào đúng vị trí ô trống trong câu..." class="login-input text-xs">
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] uppercase font-bold text-slate-700 dark:text-gray-300 mb-1">
+                                        Nội dung đoạn văn (Bao quanh từ kéo thả bằng 2 dấu sao <code class="text-sky-600 font-mono">*từ*</code>):
+                                    </label>
+                                    <textarea x-model="drawerH5pEditor.drag_words.text" rows="4" placeholder="VD: An *apple* a day keeps the *doctor* away. Practice makes *perfect*." class="login-input !py-2 text-xs font-mono leading-relaxed"></textarea>
+                                </div>
+
+                                {{-- Draggable words tags preview --}}
+                                <div class="p-3.5 rounded-xl bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-500/30 space-y-1.5">
+                                    <div class="text-[11px] font-bold text-sky-800 dark:text-sky-300">Từ kéo thả được phát hiện:</div>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        <template x-for="(w, wIdx) in getDragWordsTokens()" :key="wIdx">
+                                            <span class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-500/40 text-xs font-mono font-bold shadow-xs" x-text="w"></span>
+                                        </template>
+                                        <template x-if="getDragWordsTokens().length === 0">
+                                            <span class="text-xs text-slate-500 italic">Chưa có từ nào được bao quanh bởi dấu *</span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- FORM D: FILL IN THE BLANKS AUTHORING --}}
+                            <div x-show="drawerH5pType === 'blanks'" class="space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] uppercase font-bold text-slate-700 dark:text-gray-300 mb-1">Mô tả bài tập:</label>
+                                        <input type="text" x-model="drawerH5pEditor.blanks.description" placeholder="VD: Điền từ còn thiếu vào chỗ trống..." class="login-input text-xs">
+                                    </div>
+                                    <div class="flex items-center pt-5">
+                                        <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-slate-700 dark:text-gray-300">
+                                            <input type="checkbox" x-model="drawerH5pEditor.blanks.case_sensitive" class="rounded text-sky-600">
+                                            <span>Phân biệt chữ hoa / chữ thường</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] uppercase font-bold text-slate-700 dark:text-gray-300 mb-1">
+                                        Đoạn văn (Bao quanh ô trống bằng <code class="text-sky-600 font-mono">*đáp án*</code> hoặc <code class="text-sky-600 font-mono">*đáp án 1/đáp án 2*</code>):
+                                    </label>
+                                    <textarea x-model="drawerH5pEditor.blanks.text" rows="4" placeholder="VD: The capital of the UK is *London*. Viet Nam is in *Southeast Asia/SE Asia*." class="login-input !py-2 text-xs font-mono leading-relaxed"></textarea>
+                                </div>
+                            </div>
+
+                            {{-- FORM E: TRUE / FALSE AUTHORING --}}
+                            <div x-show="drawerH5pType === 'true_false'" class="space-y-4">
+                                <div>
+                                    <label class="block text-[11px] uppercase font-bold text-slate-700 dark:text-gray-300 mb-1">Mệnh đề / Câu hỏi:</label>
+                                    <textarea x-model="drawerH5pEditor.true_false.question" rows="2" placeholder="VD: Water boils at 100 degrees Celsius under standard atmospheric pressure." class="login-input !py-2 text-xs font-medium"></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] uppercase font-bold text-slate-700 dark:text-gray-300 mb-2">Đáp án chính xác:</label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <label class="p-3 rounded-xl border cursor-pointer flex items-center justify-center gap-2 font-bold text-xs transition-colors"
+                                               :class="drawerH5pEditor.true_false.correct_answer === true ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-700 dark:text-emerald-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-gray-300'">
+                                            <input type="radio" :value="true" x-model="drawerH5pEditor.true_false.correct_answer" class="hidden">
+                                            <span>✓ ĐÚNG (TRUE)</span>
+                                        </label>
+                                        <label class="p-3 rounded-xl border cursor-pointer flex items-center justify-center gap-2 font-bold text-xs transition-colors"
+                                               :class="drawerH5pEditor.true_false.correct_answer === false ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-700 dark:text-rose-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-gray-300'">
+                                            <input type="radio" :value="false" x-model="drawerH5pEditor.true_false.correct_answer" class="hidden">
+                                            <span>✗ SAI (FALSE)</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[10px] uppercase font-bold text-slate-500 dark:text-gray-400 mb-1">Phản hồi khi học viên chọn Đúng:</label>
+                                        <input type="text" x-model="drawerH5pEditor.true_false.feedback_true" placeholder="VD: Chính xác! Nước sôi ở 100°C..." class="login-input !py-1.5 text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] uppercase font-bold text-slate-500 dark:text-gray-400 mb-1">Phản hồi khi học viên chọn Sai:</label>
+                                        <input type="text" x-model="drawerH5pEditor.true_false.feedback_false" placeholder="VD: Chưa đúng rồi! Nước sôi ở 100°C..." class="login-input !py-1.5 text-xs">
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- FORM F: QUESTION SET AUTHORING --}}
+                            <div x-show="drawerH5pType === 'question_set'" class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-slate-800 dark:text-white">Danh sách câu hỏi (<span x-text="drawerH5pEditor.question_set.questions.length"></span> câu)</span>
+                                    <button type="button" @click="addH5pSetQuestion()" class="px-3 py-1 rounded-xl bg-sky-50 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 hover:bg-sky-100 text-xs font-bold transition-all border border-sky-200 dark:border-sky-500/30">
+                                        + Thêm câu hỏi
+                                    </button>
+                                </div>
+
+                                <template x-for="(q, qIdx) in drawerH5pEditor.question_set.questions" :key="qIdx">
+                                    <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-xs space-y-2.5">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs font-mono font-bold text-sky-600 dark:text-sky-400" x-text="'Câu #' + (qIdx + 1)"></span>
+                                            <button type="button" @click="removeH5pSetQuestion(qIdx)" class="text-xs text-rose-500 hover:underline" :disabled="drawerH5pEditor.question_set.questions.length <= 1">Xóa</button>
+                                        </div>
+                                        <input type="text" x-model="q.question" placeholder="Nội dung câu hỏi..." class="login-input !py-1.5 text-xs font-semibold">
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <template x-for="(opt, optIdx) in q.options" :key="optIdx">
+                                                <div class="flex items-center gap-1.5">
+                                                    <input type="radio" :name="'h5p_set_ans_' + qIdx" :checked="q.answer === optIdx" @change="q.answer = optIdx" class="text-emerald-600">
+                                                    <input type="text" x-model="q.options[optIdx]" placeholder="Phương án..." class="login-input !py-1 text-xs">
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- MODE 2: TẢI GÓI .H5P LÊN --}}
+                        <div x-show="drawerActivity.content.source === 'upload'" class="space-y-3">
+                            <div class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-sky-400 rounded-2xl p-5 text-center transition-all bg-slate-50/50 dark:bg-slate-950/60"
+                                 @dragover.prevent="" @drop.prevent="handleH5pDrop($event)">
+                                <input type="file" id="drawerH5pFileInput" accept=".h5p,application/zip" class="hidden" @change="handleH5pFileSelect($event)">
+
+                                <div x-show="!drawerActivity.file_id && !uploading" class="space-y-2">
+                                    <span class="text-3xl block">📦</span>
+                                    <p class="text-xs text-slate-700 dark:text-gray-300 font-semibold">Kéo thả tệp gói <code class="text-sky-600 dark:text-sky-300 font-mono">.h5p</code> vào đây, hoặc</p>
+                                    <button type="button" @click="document.getElementById('drawerH5pFileInput').click()" class="px-4 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-500/20 hover:bg-sky-100 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-500/40 text-xs font-bold transition-all shadow-xs">
+                                        Chọn tệp .h5p từ máy tính
+                                    </button>
+                                    <p class="text-[10px] text-slate-400 dark:text-gray-400 max-w-sm mx-auto leading-relaxed">
+                                        Gói xuất từ Lumi Desktop, Moodle, WordPress, hoặc h5p.org. Dung lượng tối đa 50MB. Hệ thống sẽ tự động giải nén và thiết lập trình phát tương tác.
+                                    </p>
+                                </div>
+
+                                {{-- Uploading State --}}
+                                <div x-show="uploading" class="py-4 space-y-2">
+                                    <div class="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                    <p class="text-xs text-sky-600 dark:text-sky-300 font-semibold font-mono">Đang tải và giải nén gói H5P...</p>
+                                </div>
+
+                                {{-- Uploaded State --}}
+                                <div x-show="drawerActivity.file_id && !uploading && drawerActivity.content.source === 'upload'" class="p-3 bg-white dark:bg-slate-900/90 rounded-xl border border-sky-300 dark:border-sky-500/30 text-left flex items-center justify-between shadow-xs">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <span class="text-2xl flex-shrink-0">📦</span>
+                                        <div class="min-w-0">
+                                            <div class="text-xs font-bold text-slate-900 dark:text-white truncate" x-text="drawerActivity.file_original_name || 'Gói H5P đã tải lên'"></div>
+                                            <div class="text-[10px] font-mono text-sky-600 dark:text-sky-400 flex items-center gap-2 mt-0.5">
+                                                <span x-text="formatFileSize(drawerActivity.file_size)"></span>
+                                                <span>·</span>
+                                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">✓ Đã sẵn sàng phát trực tuyến</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        <button type="button" @click="document.getElementById('drawerH5pFileInput').click()" class="text-xs text-sky-600 hover:underline">
+                                            Đổi tệp
+                                        </button>
+                                        <button type="button" @click="drawerActivity.file_id = null; drawerActivity.file_size = 0; drawerActivity.file_original_name = ''" class="text-xs text-rose-500 hover:underline">
+                                            Xóa
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- MODE 3: URL EMBED --}}
+                        <div x-show="drawerActivity.content.source === 'url'" class="space-y-3">
+                            <div>
+                                <label class="block text-[11px] uppercase font-bold text-slate-700 dark:text-gray-300 mb-1">URL Embed H5P: <span class="text-rose-500">*</span></label>
+                                <input type="url" x-model="drawerActivity.content.embed_url" placeholder="https://h5p.org/h5p/embed/12345" class="login-input !py-2 text-xs font-mono">
+                                <p class="text-[10px] text-slate-500 mt-1">Dán URL embed từ h5p.org, Lumi, WordPress H5P plugin hoặc server H5P tự host.</p>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] uppercase font-bold text-slate-700 dark:text-gray-300 mb-1">Tỉ lệ khung hình (Aspect Ratio):</label>
+                                <div class="flex items-center gap-2" x-data="{ ratio: drawerActivity.content.aspect_ratio || '16:9' }" x-effect="drawerActivity.content.aspect_ratio = ratio">
+                                    <template x-for="opt in ['16:9', '4:3', '1:1']" :key="opt">
+                                        <button type="button" @click="ratio = opt" class="px-3 py-1.5 rounded-lg text-xs font-mono font-bold border transition-colors" :class="ratio === opt ? 'bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/40' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-gray-400 border-slate-200 dark:border-slate-700 hover:text-slate-900'" x-text="opt"></button>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Common Field: Instructions --}}
+                        <div>
+                            <label class="block text-[11px] uppercase font-bold text-slate-700 dark:text-gray-300 mb-1">Hướng dẫn cho học viên:</label>
+                            <textarea x-model="drawerActivity.content.instructions" rows="2" placeholder="VD: Hoàn thành bài tập kéo thả bên dưới trước khi sang phần tiếp theo..." class="login-input !py-1.5 text-xs"></textarea>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- TAB C: TIMING & AVAILABILITY --}}
@@ -2592,9 +3318,6 @@ function curriculumStudioApp() {
 
         // Edit Lesson Model
         editLessonData: {
-            ai_answer_policy: 'hints_only',
-            ai_teacher_solution_allowed: false,
-            ai_exam_mode: false,
             id: null,
             title: '',
             description: '',
@@ -2608,6 +3331,83 @@ function curriculumStudioApp() {
         drawerVocabList: [],
         drawerQuizQuestions: [],
         drawerGrammarRules: '',
+
+        // H5P Content Bank State & Authoring Studio
+        drawerH5pType: 'flashcards',
+        drawerH5pPreviewOpen: false,
+
+        // H5P Live Preview Interactive State
+        previewFlashcardIndex: 0,
+        previewCardFlipped: false,
+        previewUserAnswer: '',
+        previewCardChecked: false,
+        previewCardCorrect: false,
+
+        previewMcqSelected: null,
+        previewMcqChecked: false,
+        previewMcqFeedback: '',
+
+        previewDragPlaced: {},
+        previewDragChecked: false,
+
+        previewBlanksAnswers: {},
+        previewBlanksChecked: false,
+
+        previewTfSelected: null,
+        previewTfChecked: false,
+
+        previewQSetIndex: 0,
+        previewQSetSelected: null,
+        previewQSetChecked: false,
+        previewQSetScore: 0,
+        drawerH5pEditor: {
+            flashcards: {
+                description: 'Lật thẻ và đoán từ vựng tiếng Anh tương ứng.',
+                case_sensitive: false,
+                cards: [
+                    { question: 'Quả táo màu đỏ', answer: 'apple', tip: 'Bắt đầu bằng chữ a', image_url: '' },
+                    { question: 'Con mèo đáng yêu', answer: 'cat', tip: 'Động vật bắt chuột', image_url: '' }
+                ]
+            },
+            multichoice: {
+                question: 'Which country is known as the Land of the Rising Sun?',
+                options: [
+                    { text: 'Japan', is_correct: true, feedback: 'Chính xác! Nhật Bản là Đất nước Mặt trời mọc.' },
+                    { text: 'China', is_correct: false, feedback: 'Chưa chính xác.' },
+                    { text: 'South Korea', is_correct: false, feedback: 'Chưa chính xác.' },
+                    { text: 'Thailand', is_correct: false, feedback: 'Chưa chính xác.' }
+                ]
+            },
+            drag_words: {
+                description: 'Kéo các từ vào đúng vị trí ô trống trong câu:',
+                text: 'The *sun* rises in the *east* and sets in the *west* every day.'
+            },
+            blanks: {
+                description: 'Điền từ còn thiếu vào ô trống:',
+                case_sensitive: false,
+                text: 'Hanoi is the *capital* of Vietnam. Ho Chi Minh City is the largest *city*.'
+            },
+            true_false: {
+                question: 'Water boils at 100 degrees Celsius under standard atmospheric pressure.',
+                correct_answer: true,
+                feedback_true: 'Chính xác! Nước sôi ở 100°C.',
+                feedback_false: 'Chưa đúng! Nước sôi ở 100°C.'
+            },
+            question_set: {
+                questions: [
+                    {
+                        question: 'What is the past tense of "go"?',
+                        options: ['went', 'gone', 'going', 'goes'],
+                        answer: 0
+                    },
+                    {
+                        question: 'Which word is an adjective?',
+                        options: ['quickly', 'happiness', 'beautiful', 'run'],
+                        answer: 2
+                    }
+                ]
+            }
+        },
 
         // Course Question Bank state
         courseQuestions: @json($courseQuestions),
@@ -2794,10 +3594,7 @@ function curriculumStudioApp() {
                 order: lesson.order,
                 estimated_minutes: lesson.estimated_minutes,
                 unlock_condition_score: lesson.unlock_condition_score,
-                is_free_trial: !!lesson.is_free_trial,
-                ai_answer_policy: lesson.ai_answer_policy || 'hints_only',
-                ai_teacher_solution_allowed: !!lesson.ai_teacher_solution_allowed,
-                ai_exam_mode: !!lesson.ai_exam_mode
+                is_free_trial: !!lesson.is_free_trial
             };
             this.showEditLessonModal = true;
         },
@@ -2833,7 +3630,7 @@ function curriculumStudioApp() {
                 file_id: null,
                 file_size: null,
                 file_original_name: null,
-                content: {},
+                content: type === 'h5p' ? { source: 'editor', aspect_ratio: '16:9', instructions: '', embed_url: '' } : {},
                 typeInfo: {
                     file: { icon: '📁', label: 'Tệp tin' },
                     quiz: { icon: '🎯', label: 'Bài kiểm tra / Quiz' },
@@ -2849,6 +3646,7 @@ function curriculumStudioApp() {
                     assignment: { icon: '📋', label: 'Bài tập' },
                     forum: { icon: '💬', label: 'Diễn đàn' },
                     label: { icon: '🏷️', label: 'Nhãn phân cách' },
+                    h5p: { icon: '🧩', label: 'H5P Tương tác' },
                 }[type] || { icon: '📄', label: type }
             };
 
@@ -2865,6 +3663,12 @@ function curriculumStudioApp() {
             this.quizSkillFilter = 'all';
             this.quizDifficultyFilter = 'all';
             this.drawerGrammarRules = '';
+
+            if (type === 'h5p') {
+                this.drawerH5pType = 'flashcards';
+                this.drawerH5pPreviewOpen = false;
+                this.drawerActivity.title = 'H5P: Bài tập tương tác';
+            }
 
             this.showDrawer = true;
         },
@@ -2905,9 +3709,18 @@ function curriculumStudioApp() {
                 typeInfo: {}
             };
 
-            if (['video', 'audio_listening', 'pdf_document'].includes(activity.type)) {
+            if (['video', 'audio_listening', 'pdf_document', 'h5p'].includes(activity.type)) {
                 if (!this.drawerActivity.content.source) {
-                    this.drawerActivity.content.source = activity.file_id ? 'upload' : 'url';
+                    this.drawerActivity.content.source = activity.file_id ? 'upload' : (this.drawerActivity.content.embed_url ? 'url' : 'editor');
+                }
+            }
+
+            if (activity.type === 'h5p') {
+                const c = activity.content || {};
+                this.drawerH5pType = c.h5p_type || 'flashcards';
+                this.drawerH5pPreviewOpen = false;
+                if (c.source === 'editor' && c.data) {
+                    this.drawerH5pEditor[this.drawerH5pType] = JSON.parse(JSON.stringify(c.data));
                 }
             }
 
@@ -2962,6 +3775,326 @@ function curriculumStudioApp() {
             this.drawerQuizQuestions.push({ question: '', optionsText: 'A, B, C, D', answer: 0 });
         },
 
+        addH5pCard() {
+            this.drawerH5pEditor.flashcards.cards.push({ question: '', answer: '', tip: '', image_url: '' });
+        },
+
+        removeH5pCard(index) {
+            if (this.drawerH5pEditor.flashcards.cards.length > 1) {
+                this.drawerH5pEditor.flashcards.cards.splice(index, 1);
+            }
+        },
+
+        addH5pOption() {
+            this.drawerH5pEditor.multichoice.options.push({ text: '', is_correct: false, feedback: '' });
+        },
+
+        removeH5pOption(index) {
+            if (this.drawerH5pEditor.multichoice.options.length > 2) {
+                this.drawerH5pEditor.multichoice.options.splice(index, 1);
+            }
+        },
+
+        addH5pSetQuestion() {
+            this.drawerH5pEditor.question_set.questions.push({
+                question: '',
+                options: ['', '', '', ''],
+                answer: 0
+            });
+        },
+
+        removeH5pSetQuestion(index) {
+            if (this.drawerH5pEditor.question_set.questions.length > 1) {
+                this.drawerH5pEditor.question_set.questions.splice(index, 1);
+            }
+        },
+
+        getDragWordsTokens() {
+            const raw = this.drawerH5pEditor?.drag_words?.text || '';
+            const matches = raw.match(/\*([^*]+)\*/g);
+            if (!matches) return [];
+            return matches.map(m => m.replace(/\*/g, '').trim()).filter(Boolean);
+        },
+
+        getBlanksTokens() {
+            const raw = this.drawerH5pEditor?.blanks?.text || '';
+            const matches = raw.match(/\*([^*]+)\*/g);
+            if (!matches) return [];
+            return matches.map(m => m.replace(/\*/g, '').trim()).filter(Boolean);
+        },
+
+        // ── H5P Live Preview Interactive Methods ──
+        resetAllH5pPreview() {
+            this.previewFlashcardIndex = 0;
+            this.previewCardFlipped = false;
+            this.previewUserAnswer = '';
+            this.previewCardChecked = false;
+            this.previewCardCorrect = false;
+
+            this.previewMcqSelected = null;
+            this.previewMcqChecked = false;
+            this.previewMcqFeedback = '';
+
+            this.previewDragPlaced = {};
+            this.previewDragChecked = false;
+
+            this.previewBlanksAnswers = {};
+            this.previewBlanksChecked = false;
+
+            this.previewTfSelected = null;
+            this.previewTfChecked = false;
+
+            this.previewQSetIndex = 0;
+            this.previewQSetSelected = null;
+            this.previewQSetChecked = false;
+            this.previewQSetScore = 0;
+        },
+
+        speakWord(text) {
+            if (!text || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        },
+
+        get currentPreviewCard() {
+            const cards = this.drawerH5pEditor?.flashcards?.cards || [];
+            if (!cards.length) return { question: '', answer: '', tip: '', image_url: '' };
+            return cards[this.previewFlashcardIndex % cards.length] || cards[0];
+        },
+        nextPreviewCard() {
+            const cards = this.drawerH5pEditor?.flashcards?.cards || [];
+            if (cards.length > 0) {
+                this.previewFlashcardIndex = (this.previewFlashcardIndex + 1) % cards.length;
+            }
+            this.previewCardFlipped = false;
+            this.previewUserAnswer = '';
+            this.previewCardChecked = false;
+            this.previewCardCorrect = false;
+        },
+        prevPreviewCard() {
+            const cards = this.drawerH5pEditor?.flashcards?.cards || [];
+            if (cards.length > 0) {
+                this.previewFlashcardIndex = (this.previewFlashcardIndex - 1 + cards.length) % cards.length;
+            }
+            this.previewCardFlipped = false;
+            this.previewUserAnswer = '';
+            this.previewCardChecked = false;
+            this.previewCardCorrect = false;
+        },
+        checkPreviewFlashcard() {
+            if (!this.previewUserAnswer.trim()) return;
+            this.previewCardChecked = true;
+            const card = this.currentPreviewCard;
+            const isCase = !!this.drawerH5pEditor?.flashcards?.case_sensitive;
+            const userAns = this.previewUserAnswer.trim();
+            const correctAns = (card.answer || '').trim();
+            this.previewCardCorrect = isCase ? (userAns === correctAns) : (userAns.toLowerCase() === correctAns.toLowerCase());
+        },
+
+        // MCQ Preview
+        selectPreviewMcq(idx) {
+            this.previewMcqSelected = idx;
+        },
+        checkPreviewMcq() {
+            if (this.previewMcqSelected === null) return;
+            this.previewMcqChecked = true;
+            const opts = this.drawerH5pEditor?.multichoice?.options || [];
+            const opt = opts[this.previewMcqSelected];
+            this.previewMcqFeedback = opt?.feedback || (opt?.is_correct ? 'Chính xác! Bạn đã chọn đúng.' : 'Chưa đúng rồi! Thử lại nhé.');
+        },
+        resetPreviewMcq() {
+            this.previewMcqSelected = null;
+            this.previewMcqChecked = false;
+            this.previewMcqFeedback = '';
+        },
+        getPreviewMcqClass(idx) {
+            if (!this.previewMcqChecked) {
+                return this.previewMcqSelected === idx
+                    ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-400 dark:border-sky-500 shadow-xs'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300';
+            }
+            const opts = this.drawerH5pEditor?.multichoice?.options || [];
+            const opt = opts[idx];
+            if (opt?.is_correct) {
+                return 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-400 text-emerald-800 dark:text-emerald-300 font-bold';
+            }
+            if (this.previewMcqSelected === idx && !opt?.is_correct) {
+                return 'bg-rose-50 dark:bg-rose-950/40 border-rose-400 text-rose-800 dark:text-rose-300';
+            }
+            return 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-60';
+        },
+
+        // Drag the words Preview
+        getPreviewDragSegments() {
+            const text = this.drawerH5pEditor?.drag_words?.text || '';
+            const parts = text.split(/\*([^*]+)\*/g);
+            const segs = [];
+            let tIdx = 0;
+            for (let i = 0; i < parts.length; i++) {
+                if (i % 2 === 0) {
+                    segs.push({ text: parts[i], isTarget: false });
+                } else {
+                    segs.push({ text: '', isTarget: true, targetIndex: tIdx, answer: parts[i] });
+                    tIdx++;
+                }
+            }
+            return segs;
+        },
+        getPreviewDragAvailableChips() {
+            const segs = this.getPreviewDragSegments().filter(s => s.isTarget);
+            const placedValues = Object.values(this.previewDragPlaced);
+            const chips = segs.map(s => s.answer);
+            const remaining = [...chips];
+            placedValues.forEach(val => {
+                const idx = remaining.indexOf(val);
+                if (idx !== -1) remaining.splice(idx, 1);
+            });
+            return remaining;
+        },
+        placePreviewDragChip(chip) {
+            const segs = this.getPreviewDragSegments().filter(s => s.isTarget);
+            for (const s of segs) {
+                if (!this.previewDragPlaced[s.targetIndex]) {
+                    this.previewDragPlaced = { ...this.previewDragPlaced, [s.targetIndex]: chip };
+                    break;
+                }
+            }
+        },
+        removePreviewDragChip(tIdx) {
+            if (this.previewDragChecked) return;
+            const copy = { ...this.previewDragPlaced };
+            delete copy[tIdx];
+            this.previewDragPlaced = copy;
+        },
+        checkPreviewDrag() {
+            this.previewDragChecked = true;
+        },
+        resetPreviewDrag() {
+            this.previewDragPlaced = {};
+            this.previewDragChecked = false;
+        },
+        getPreviewDragTargetClass(tIdx) {
+            if (!this.previewDragChecked) {
+                return this.previewDragPlaced[tIdx]
+                    ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-400 text-sky-800 dark:text-sky-300'
+                    : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-400';
+            }
+            const segs = this.getPreviewDragSegments().filter(s => s.isTarget);
+            const target = segs.find(s => s.targetIndex === tIdx);
+            const isRight = target && this.previewDragPlaced[tIdx] && this.previewDragPlaced[tIdx].trim().toLowerCase() === target.answer.trim().toLowerCase();
+            return isRight
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-800 dark:text-emerald-300'
+                : 'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-800 dark:text-rose-300';
+        },
+
+        // Blanks Preview
+        getPreviewBlanksSegments() {
+            const text = this.drawerH5pEditor?.blanks?.text || '';
+            const parts = text.split(/\*([^*]+)\*/g);
+            const segs = [];
+            let tIdx = 0;
+            for (let i = 0; i < parts.length; i++) {
+                if (i % 2 === 0) {
+                    segs.push({ text: parts[i], isTarget: false });
+                } else {
+                    segs.push({ text: '', isTarget: true, targetIndex: tIdx, answer: parts[i] });
+                    tIdx++;
+                }
+            }
+            return segs;
+        },
+        checkPreviewBlanks() {
+            this.previewBlanksChecked = true;
+        },
+        resetPreviewBlanks() {
+            this.previewBlanksAnswers = {};
+            this.previewBlanksChecked = false;
+        },
+        getPreviewBlankInputClass(tIdx) {
+            if (!this.previewBlanksChecked) {
+                return 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-white';
+            }
+            const segs = this.getPreviewBlanksSegments().filter(s => s.isTarget);
+            const target = segs.find(s => s.targetIndex === tIdx);
+            const rawAns = target ? target.answer : '';
+            const accepted = rawAns.split('/').map(s => s.trim().toLowerCase());
+            const userAns = (this.previewBlanksAnswers[tIdx] || '').trim().toLowerCase();
+            const isRight = accepted.includes(userAns);
+            return isRight
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-800 dark:text-emerald-300'
+                : 'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-800 dark:text-rose-300';
+        },
+
+        // True / False Preview
+        checkPreviewTf(val) {
+            this.previewTfSelected = val;
+            this.previewTfChecked = true;
+        },
+        resetPreviewTf() {
+            this.previewTfSelected = null;
+            this.previewTfChecked = false;
+        },
+        getPreviewTfButtonClass(val) {
+            if (!this.previewTfChecked) {
+                return this.previewTfSelected === val
+                    ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-500 text-sky-700 dark:text-sky-300'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-gray-300 hover:border-slate-300';
+            }
+            const correctAns = this.drawerH5pEditor.true_false.correct_answer;
+            if (val === correctAns) {
+                return 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-700 dark:text-emerald-300';
+            }
+            if (this.previewTfSelected === val && val !== correctAns) {
+                return 'bg-rose-50 dark:bg-rose-950/40 border-rose-500 text-rose-700 dark:text-rose-300';
+            }
+            return 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-60';
+        },
+
+        // Question Set Preview
+        nextPreviewQSet() {
+            const qList = this.drawerH5pEditor?.question_set?.questions || [];
+            if (this.previewQSetIndex < qList.length - 1) {
+                this.previewQSetIndex++;
+                this.previewQSetSelected = null;
+                this.previewQSetChecked = false;
+            }
+        },
+        prevPreviewQSet() {
+            if (this.previewQSetIndex > 0) {
+                this.previewQSetIndex--;
+                this.previewQSetSelected = null;
+                this.previewQSetChecked = false;
+            }
+        },
+        checkPreviewQSet() {
+            if (this.previewQSetSelected === null) return;
+            this.previewQSetChecked = true;
+            const qList = this.drawerH5pEditor?.question_set?.questions || [];
+            const currQ = qList[this.previewQSetIndex];
+            if (currQ && currQ.answer === this.previewQSetSelected) {
+                this.previewQSetScore += 10;
+            }
+        },
+        getPreviewQSetOptClass(optIdx) {
+            if (!this.previewQSetChecked) {
+                return this.previewQSetSelected === optIdx
+                    ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-400 dark:border-sky-500 shadow-xs'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300';
+            }
+            const qList = this.drawerH5pEditor?.question_set?.questions || [];
+            const currQ = qList[this.previewQSetIndex];
+            if (currQ && currQ.answer === optIdx) {
+                return 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-400 text-emerald-800 dark:text-emerald-300 font-bold';
+            }
+            if (this.previewQSetSelected === optIdx && currQ && currQ.answer !== optIdx) {
+                return 'bg-rose-50 dark:bg-rose-950/40 border-rose-400 text-rose-800 dark:text-rose-300';
+            }
+            return 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-60';
+        },
+
         handleFileDrop(e) {
             const files = e.dataTransfer.files;
             if (files.length > 0) {
@@ -2990,6 +4123,20 @@ function curriculumStudioApp() {
             }
         },
 
+        handleH5pDrop(e) {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.uploadFile(files[0]);
+            }
+        },
+
+        handleH5pFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                this.uploadFile(files[0]);
+            }
+        },
+
         uploadFile(file) {
             this.uploading = true;
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -3011,11 +4158,16 @@ function curriculumStudioApp() {
                     this.drawerActivity.file_id = data.file_id;
                     this.drawerActivity.file_size = data.file_size;
                     this.drawerActivity.file_original_name = data.file_original_name;
-                    if (!this.drawerActivity.title) {
-                        this.drawerActivity.title = data.file_original_name;
+                    if (data.h5p_data && data.h5p_data.title) {
+                        if (!this.drawerActivity.title || this.drawerActivity.title === 'H5P Tương tác') {
+                            this.drawerActivity.title = data.h5p_data.title;
+                        }
+                    } else if (!this.drawerActivity.title) {
+                        this.drawerActivity.title = data.file_original_name.replace(/\.[^/.]+$/, "");
                     }
                 } else {
-                    alert('Lỗi tải tệp: ' + (data.message || 'Không thể upload'));
+                    const errDetails = data.errors ? (Array.isArray(data.errors) ? data.errors.join(', ') : Object.values(data.errors).flat().join(', ')) : (data.message || 'Không thể upload');
+                    alert('Lỗi tải tệp: ' + errDetails);
                 }
             })
             .catch(err => {
@@ -3064,6 +4216,16 @@ function curriculumStudioApp() {
                 };
             } else if (this.drawerActivity.type === 'grammar') {
                 finalContent.rules = this.drawerGrammarRules.split('\n').map(s => s.trim()).filter(Boolean);
+            } else if (this.drawerActivity.type === 'h5p') {
+                const source = this.drawerActivity.content.source || 'editor';
+                if (source === 'editor') {
+                    finalContent = {
+                        source: 'editor',
+                        h5p_type: this.drawerH5pType,
+                        instructions: this.drawerActivity.content.instructions || '',
+                        data: JSON.parse(JSON.stringify(this.drawerH5pEditor[this.drawerH5pType] || {}))
+                    };
+                }
             }
 
             const payload = {
@@ -3412,3 +4574,4 @@ function curriculumStudioApp() {
 }
 </script>
 @endsection
+

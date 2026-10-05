@@ -95,15 +95,22 @@
                         <span>Soạn giáo trình</span>
                     </a>
 
-                    <div class="flex items-center gap-2">
-                        <a href="{{ route('admin.courses.edit', $c->id) }}" title="Sửa thông tin khóa" class="text-xs text-gray-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors">
+                    <div class="flex items-center gap-1.5">
+                        <form method="POST" action="{{ route('admin.courses.duplicate', $c->id) }}" onsubmit="return confirm('Bạn có chắc chắn muốn nhân bản khóa học «{{ addslashes($c->title) }}»? Toàn bộ bài học và hoạt động sẽ được sao chép.')">
+                            @csrf
+                            <button type="submit" title="Sao chép khóa học (Duplicate)" class="text-xs text-indigo-400 hover:text-indigo-300 p-1.5 rounded hover:bg-indigo-500/15 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            </button>
+                        </form>
+
+                        <a href="{{ route('admin.courses.edit', $c->id) }}" title="Sửa thông tin khóa" class="text-xs text-gray-400 hover:text-white p-1.5 rounded hover:bg-slate-800 transition-colors">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         </a>
 
                         <form method="POST" action="{{ route('admin.courses.destroy', $c->id) }}" onsubmit="return confirm('Xác nhận xóa khóa học này cùng toàn bộ bài học bên trong?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" title="Xóa khóa học" class="text-xs text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-500/10 transition-colors">
+                            <button type="submit" title="Xóa khóa học" class="text-xs text-red-400 hover:text-red-300 p-1.5 rounded hover:bg-red-500/10 transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
                         </form>

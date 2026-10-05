@@ -1,0 +1,161 @@
+/* ─── ESL LMS: Header, Navigation Pills, Language & Theme Switchers ─── */
+
+/* 1. Header Shell */
+html.light header {
+    background-color: rgba(255, 255, 255, 0.96) !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+}
+
+html.light .brand-logo-text,
+html.light .brand-letter-e {
+    color: #0f172a !important;
+}
+
+/* 2. Page Title Pill */
+html.light .header-page-title {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 3. Stat Badges (Streak & XP) */
+html.light .header-stat-pill {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+html.light .header-stat-pill:hover {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+}
+html.light .header-streak-text {
+    color: #d97706 !important;
+}
+html.light .header-xp-text {
+    color: #0f172a !important;
+}
+
+/* 4. Language Switcher */
+html.light .header-lang-btn {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+html.light .header-lang-btn:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+}
+html.light .header-lang-btn .header-lang-text,
+html.light .header-lang-btn .header-lang-mobile {
+    color: #0f172a !important;
+}
+html.light .header-lang-btn .header-lang-icon {
+    color: #4f46e5 !important;
+}
+html.light .header-lang-btn .header-lang-chevron {
+    color: #64748b !important;
+}
+html.light .header-lang-dropdown {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12) !important;
+}
+html.light .header-lang-item {
+    color: #334155 !important;
+}
+html.light .header-lang-item:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+html.light .header-lang-item.active {
+    background-color: #eef2ff !important;
+    color: #4338ca !important;
+    font-weight: 700 !important;
+}
+
+/* 5. User Avatar & Profile Dropdown */
+.header-profile-dropdown {
+    border-radius: 1rem !important;
+}
+.header-profile-item,
+.header-profile-logout {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+html.light .header-avatar-btn {
+    --tw-ring-color: #cbd5e1 !important;
+    --tw-ring-offset-color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+html.light .header-avatar-btn:hover {
+    --tw-ring-color: var(--theme-primary, #6366f1) !important;
+}
+
+html.light .header-profile-dropdown {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+}
+html.light .header-profile-user-box {
+    background-color: #f8fafc !important;
+    border: 1px solid #f1f5f9 !important;
+}
+html.light .header-profile-name {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+html.light .header-profile-email {
+    color: #64748b !important;
+}
+html.light .header-profile-item {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #334155 !important;
+}
+html.light .header-profile-item:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+html.light .header-profile-logout {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #e11d48 !important;
+}
+html.light .header-profile-logout:hover {
+    background-color: #fff1f2 !important;
+    color: #be123c !important;
+}
+
+/* 6. Notifications & Messages Buttons (Light Mode) */
+html.light .header-notif-btn {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+html.light .header-notif-btn:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+}
+html.light .header-notif-dropdown {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12) !important;
+}
+html.light .header-notif-header {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+html.light .header-notif-item:hover {
+    background-color: #f1f5f9 !important;
+}
+
