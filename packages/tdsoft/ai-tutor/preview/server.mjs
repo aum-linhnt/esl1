@@ -11,14 +11,15 @@ const root = resolve(directory, '../../../..');
 const port = Number(process.argv[2] ?? 9013);
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Invalid preview port');
 const cache = mkdtempSync(join(tmpdir(), 'ai-tutor-preview-'));
-const manifest = JSON.parse(readFileSync(join(root, 'public/build/manifest.json'), 'utf8'));
+const buildDirectory = process.env.AI_PREVIEW_BUILD_DIR ?? join(root, 'public/build');
+const manifest = JSON.parse(readFileSync(join(buildDirectory, 'manifest.json'), 'utf8'));
 const assets = new Map([
     ['/preview.css', { entry: 'resources/scss/ai-tutor.scss', type: 'text/css' }],
     ['/preview.js', { entry: 'resources/js/ai-tutor.js', type: 'text/javascript' }],
 ]);
 const pages = new Map();
 const runId = randomUUID();
-for (const page of ['widget', 'tutor', 'knowledge']) {
+for (const page of ['widget', 'tutor', 'knowledge', 'writing']) {
     const rendered = spawnSync(process.env.AI_PREVIEW_PHP ?? 'php8.3',
         [join(directory, 'render.php'), page, String(port), cache, runId], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
     if (rendered.status !== 0) throw new Error('Preview template failed: ' + rendered.stderr);
@@ -29,6 +30,7 @@ for (const page of ['widget', 'tutor', 'knowledge']) {
             .replace('</head>', head + '</head>').replace(/(<body[^>]*>)/, '$1' + banner));
 }
 const conversations = new Map(), messages = new Map(), documents = new Map(), versions = new Map();
+const writingDrafts = new Map(), writingSubmissions = new Map();
 const stamp = () => new Date().toISOString();
 const prefix = '/ai-tutor/api/v1/';
 function json(res, data, status = 200) {
@@ -67,6 +69,12 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     try {
         const url = new URL(req.url, 'http://127.0.0.1:' + port);
+        if (req.method === 'GET' && (url.pathname === '/ai-tutor/writing' || /^\/ai-tutor\/writing\/[a-zA-Z0-9-]+$/.test(url.pathname))) {
+            const id = url.pathname.split('/')[3] ?? '';
+            if (id && !writingDrafts.has(id)) return fail(res, 'AI_WRITING_NOT_FOUND', 404);
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+            return res.end(pages.get('/writing').replace('data-draft=""', `data-draft="${id}"`));
+        }
         if (req.method === 'GET' && pages.has(url.pathname)) {
             res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
             return res.end(pages.get(url.pathname));
@@ -74,10 +82,68 @@ const server = http.createServer(async (req, res) => {
         if (req.method === 'GET' && assets.has(url.pathname)) {
             const asset = assets.get(url.pathname);
             res.writeHead(200, { 'Content-Type': asset.type, 'Cache-Control': 'no-store' });
-            return res.end(readFileSync(join(root, 'public/build', manifest[asset.entry].file)));
+            return res.end(readFileSync(join(buildDirectory, manifest[asset.entry].file)));
         }
         if (!url.pathname.startsWith(prefix)) return fail(res, 'PREVIEW_NOT_FOUND', 404);
         const path = url.pathname.slice(prefix.length);
+        if (path.startsWith('writing/')) {
+            const route = path.slice('writing/'.length);
+            const paginate = rows => { const page = Math.max(1, Number(url.searchParams.get('page')) || 1); return { data: rows.slice((page - 1) * 20, page * 20), page, next_page: rows.length > page * 20 ? page + 1 : null }; };
+            if (route === 'drafts' && req.method === 'GET') return json(res, paginate([...writingDrafts.values()].reverse()));
+            if (route === 'drafts' && req.method === 'POST') {
+                const data = await body(req); const draft = { id: randomUUID(), revision: 1, content: data.content ?? '', task: data.task, topic: data.topic,
+                    profile: { framework: data.framework, target: data.target, feedbackLanguage: data.feedback_language }, updated_at: stamp() };
+                writingDrafts.set(draft.id, draft); return json(res, draft, 201);
+            }
+            const d = route.match(/^drafts\/([^/]+)(?:\/(submit|submissions))?$/);
+            if (d) {
+                const draft = writingDrafts.get(d[1]); if (!draft) return fail(res, 'AI_WRITING_NOT_FOUND', 404);
+                if (!d[2] && req.method === 'GET') return json(res, draft);
+                if (!d[2] && req.method === 'PATCH') {
+                    const data = await body(req); if (data.revision !== draft.revision) return fail(res, 'AI_WRITING_REVISION_CONFLICT');
+                    if (data.content !== draft.content) { draft.revision++; draft.content = data.content; draft.updated_at = stamp(); }
+                    return json(res, draft);
+                }
+                if (d[2] === 'submissions' && req.method === 'GET') return json(res, paginate([...writingSubmissions.values()].reverse()
+                    .filter(s => s.draft_id === draft.id && (!url.searchParams.has('request_id') || s.request_id === url.searchParams.get('request_id')))));
+                if (d[2] === 'submit' && req.method === 'POST') {
+                    const data = await body(req); const existing = [...writingSubmissions.values()].find(s => s.request_id === data.request_id);
+                    if (existing) return json(res, existing, 202);
+                    if (data.revision !== draft.revision) return fail(res, 'AI_WRITING_REVISION_CONFLICT');
+                    const failure = draft.content.includes('/error');
+                    const pos = draft.content.indexOf('likes');
+                    const submission = { id: randomUUID(), draft_id: draft.id, original: draft.content, revision: draft.revision,
+                        request_id: data.request_id, idempotency_key: data.idempotency_key, status: failure ? 'failed' : 'completed',
+                        recovery: failure ? 'new_attempt' : 'completed', created_at: stamp(), credit_units: failure ? 0 : 1, credit_balance: failure ? 100 : 99,
+                        result: failure ? null : { overall_score: 70, feedback: 'Nhận xét giả: kiểm tra subject–verb agreement. <script>Không thực thi HTML</script> ' + 'Hãy bổ sung ví dụ cụ thể, liên kết các ý và kiểm tra cách chia động từ để bài viết rõ ràng hơn. '.repeat(6),
+                            criteria: { grammar: { score: 70, evidence: ['likes'], rationale: 'Lỗi chia động từ ảnh hưởng độ chính xác. <script>Chỉ là văn bản</script>', next_step: 'Dùng động từ nguyên mẫu sau I.' }, vocabulary: { score: 75 }, coherence: { score: 65 }, task_response: { score: 70 } },
+                            cefr_target_analysis: draft.profile.framework === 'cefr' ? { target: draft.profile.target, expectation: 'Viết về chủ đề quen thuộc.', descriptor_version: 'cefr-writing-practice-v1',
+                                aspects: [{ aspect: 'communication', status: 'partial', comment: 'Cần thêm chi tiết. <script>Chỉ là text</script>', next_step: 'Thêm lý do bạn thích đọc sách.', evidence: ['reading books'] }] } : null,
+                            structure_analysis: [{ component: 'main_idea', status: 'met', comment: 'Ý chính rõ. <script>Chỉ là text</script>', next_step: 'Giữ ý chính và thêm lý do.', evidence: ['reading books'] }],
+                            task_requirements: [{ requirement: 'Nêu sở thích', status: 'met', comment: 'Bài đã nêu sở thích. <script>Chỉ là text</script>', evidence: ['reading books'] }],
+                            paragraph_analysis: [{ paragraph_number: 1, excerpt: draft.content, comment: 'Cần phát triển ý bằng ví dụ. <script>Không thực thi</script>', next_step: 'Thêm lý do bạn thích đọc sách.' }],
+                            priority_actions: ['Sửa lỗi chia động từ trước khi bổ sung ví dụ.', 'Thêm chi tiết về sở thích để phát triển ý.'],
+                            strengths: ['Bài viết nêu rõ sở thích và có ví dụ cụ thể.'], improvements: ['Kiểm tra cách chia động từ theo chủ ngữ.'],
+                            issues: pos >= 0 ? [{ category: 'grammar', start_utf16: pos, end_utf16: pos + 5, original: 'likes', replacement: 'like', explanation: 'Dùng I like, không dùng I likes.', applicable: true }] : [] } };
+                    writingSubmissions.set(submission.id, submission); return json(res, submission, 202);
+                }
+            }
+            const s = route.match(/^submissions\/([^/]+)(?:\/(retry))?$/);
+            if (s) {
+                const submission = writingSubmissions.get(s[1]); if (!submission) return fail(res, 'AI_WRITING_NOT_FOUND', 404);
+                if (!s[2] && req.method === 'GET') return json(res, submission);
+                if (s[2] && req.method === 'POST') {
+                    const data = await body(req); const existing = [...writingSubmissions.values()].find(s => s.request_id === data.request_id);
+                    if (existing) return json(res, existing, 202);
+                    if (submission.recovery !== 'new_attempt') return fail(res, 'AI_WRITING_RETRY_BLOCKED');
+                    const child = { ...submission, id: randomUUID(), request_id: data.request_id, idempotency_key: data.idempotency_key,
+                        retry_of_submission_id: submission.id, status: 'completed', recovery: 'completed', credit_units: 1,
+                        result: { overall_score: 60, feedback: 'Mock retry completed.', criteria: {}, issues: [] } };
+                    writingSubmissions.set(child.id, child); return json(res, child, 202);
+                }
+            }
+            return fail(res, 'PREVIEW_NOT_FOUND', 404);
+        }
         const data = ['POST', 'DELETE'].includes(req.method) ? await body(req) : {};
         if (path === 'context') return ['lesson-1', 'lesson-2'].includes(url.searchParams.get('lesson_id'))
             ? json(res, { lesson_id: url.searchParams.get('lesson_id') }) : fail(res, 'AI_CONTEXT_FORBIDDEN', 403);

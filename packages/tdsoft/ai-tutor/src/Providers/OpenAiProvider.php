@@ -20,22 +20,31 @@ final class OpenAiProvider implements ChatProviderInterface, EmbeddingProviderIn
     public function execute(AiRequest $request): AiResponse
     {
         $embedding = $request->feature === 'knowledge_embedding';
-        $model = $embedding ? ($request->payload['embedding_model'] ?? config('ai-tutor.embedding_model')) : config('ai-tutor.model');
+        $writing = in_array($request->feature, ['writing_assessment', 'writing_recheck'], true);
+        $model = $embedding ? ($request->payload['embedding_model'] ?? config('ai-tutor.embedding_model'))
+            : ($writing ? config('ai-tutor.writing.model') : config('ai-tutor.model'));
         if (! is_string($model) || trim($model) === '') {
             throw new AiException('AI_PROVIDER_NOT_CONFIGURED');
         }
-        if (! $embedding && $request->feature !== 'tutor_message') {
+        if (! $embedding && ! $writing && $request->feature !== 'tutor_message') {
             throw new AiException('AI_PROVIDER_NOT_CONFIGURED');
         }
-        $streaming = ! $embedding && $this->stream->active();
+        $streaming = ! $embedding && ! $writing && $this->stream->active();
         $body = $embedding
             ? ['model' => $model, 'input' => $request->payload['input'], 'encoding_format' => 'float']
             : [
                 'model' => $model, 'store' => false, 'stream' => $streaming,
-                'max_output_tokens' => (int) config('ai-tutor.tutor.max_output_tokens', 1200),
+                'max_output_tokens' => (int) config($writing ? 'ai-tutor.writing.max_output_tokens' : 'ai-tutor.tutor.max_output_tokens', 4000),
                 'instructions' => $request->payload['instructions'],
                 'input' => $request->payload['input'],
             ];
+        if ($writing) {
+            if (! is_array($request->payload['response_schema'] ?? null)) {
+                throw new AiException('AI_WRITING_SNAPSHOT_INVALID');
+            }
+            $body['text'] = ['format' => ['type' => 'json_schema', 'name' => 'writing_assessment',
+                'strict' => true, 'schema' => $request->payload['response_schema']]];
+        }
         $effort = config('ai-tutor.tutor.reasoning_effort');
         if (! $embedding && str_starts_with($model, 'gpt-5') && is_string($effort) && $effort !== '') {
             $body['reasoning'] = ['effort' => $effort];
@@ -43,7 +52,7 @@ final class OpenAiProvider implements ChatProviderInterface, EmbeddingProviderIn
         $key = $this->credentials->resolve('openai');
         try {
             // Fixed origin, no redirects, no automatic retry: uncertain failures need reconciliation.
-            $response = $this->http->withToken($key)->acceptJson()->connectTimeout(10)->timeout($embedding ? 40 : 90)
+            $response = $this->http->withToken($key)->acceptJson()->connectTimeout(10)->timeout(($embedding || $writing) ? 40 : 90)
                 ->withOptions(['allow_redirects' => false, 'stream' => $streaming])
                 ->post('https://api.openai.com/v1/'.($embedding ? 'embeddings' : 'responses'), $body);
         } catch (Throwable) {

@@ -15,6 +15,10 @@ return [
     ],
     'providers' => ['openai' => OpenAiProvider::class],
     'embedding_model' => env('AI_DEFAULT_EMBEDDING_MODEL', ''),
+    'writing' => [
+        'model' => env('AI_WRITING_MODEL', ''),
+        'max_output_tokens' => (int) env('AI_WRITING_MAX_OUTPUT_TOKENS', 4000),
+    ],
     'knowledge' => [
         'min_similarity' => 0.25,
         'top_k' => 5,
@@ -28,6 +32,7 @@ return [
         'conversation_days' => (int) env('AI_CONVERSATION_RETENTION_DAYS', 365),
     ],
     'ui' => [
+        'writing_layout' => 'ai-tutor::layouts.tutor',
         'asset_entries' => [],
         'launcher_position' => env('AI_TUTOR_LAUNCHER_POSITION', 'bottom-right'),
         'lesson_chat_mode' => env('AI_TUTOR_LESSON_CHAT_MODE', 'drawer'),

@@ -100,6 +100,11 @@
         {{-- AI Modules --}}
         <div class="pt-2 pb-1">
             <p x-show="sidebarOpen" class="px-4 mb-1.5 text-[10px] uppercase tracking-wider text-fsel-teal font-semibold">{{ __('messages.nav.ai_tools') }}</p>
+            @if(config('ai-tutor.enabled') && app(\TDSoft\AiTutor\Contracts\Entitlements::class)->allows('ai_tutor_writing') && app(\TDSoft\AiTutor\Writing\WritingSchema::class)->inspect()['state'] === 'installed')
+                <a href="{{ route('ai-tutor.writing.index') }}" class="sidebar-link {{ request()->routeIs('ai-tutor.writing.*') ? 'active' : '' }}">
+                    <span aria-hidden="true">✍</span><span x-show="sidebarOpen" x-transition>Writing Studio</span>
+                </a>
+            @endif
             <a href="{{ route('ai.writing.index') }}" class="sidebar-link {{ request()->routeIs('ai.writing.*') ? 'active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                 <span x-show="sidebarOpen" x-transition>{{ __('messages.nav.ai_writing') }}</span>

@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('content')
+@if(!($isTrialMode ?? false))@include('partials.study-time', ['studySource' => 'lesson', 'studyContext' => $lesson->id])@endif
 <x-ai-tutor::widget :course-id="(string) $course->id" :lesson-id="(string) $lesson->id" />
 @if($lesson->canManageAiTutorPolicy(auth()->user()))
     <a href="{{ route('courses.lessons.ai-policy.edit', [$course->id, $lesson->id]) }}" class="inline-block text-sm text-indigo-400 mb-3">Cấu hình Gia sư AI</a>

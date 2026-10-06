@@ -8,7 +8,21 @@
             </video>
         </div>
     @elseif(!empty($content['video_url']))
+        @php
+            $videoPath = parse_url($content['video_url'], PHP_URL_PATH) ?: '';
+            $videoExtension = strtolower(pathinfo($videoPath, PATHINFO_EXTENSION));
+            $isVideoFile = in_array($videoExtension, ['mp4', 'webm', 'ogv'], true);
+        @endphp
         <div class="aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-800">
+            @if($isVideoFile)
+                <video controls class="w-full h-full" preload="metadata" @if(!empty($content['poster_url'])) poster="{{ $content['poster_url'] }}" @endif>
+                    <source src="{{ $content['video_url'] }}" type="{{ match($videoExtension) { 'webm' => 'video/webm', 'ogv' => 'video/ogg', default => 'video/mp4' } }}">
+                    @if(!empty($content['captions_url']))
+                        <track kind="captions" src="{{ $content['captions_url'] }}" srclang="en" label="English" default>
+                    @endif
+                    Trình duyệt của bạn không hỗ trợ phát video.
+                </video>
+            @else
             @php
                 $videoUrl = $content['video_url'];
                 if (str_contains($videoUrl, 'youtube.com/watch?v=')) {
@@ -20,6 +34,7 @@
                 }
             @endphp
             <iframe src="{{ $videoUrl }}" class="w-full h-full" allowfullscreen frameborder="0"></iframe>
+            @endif
         </div>
     @else
         <div class="p-8 text-center text-gray-400 bg-slate-900 rounded-2xl border border-slate-800 text-xs">

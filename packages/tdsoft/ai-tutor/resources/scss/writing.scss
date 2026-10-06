@@ -1,0 +1,617 @@
+.tai-writing {
+    --writing-accent: #087f8c;
+    --writing-tint: color-mix(in srgb, var(--tai-primary) 6%, var(--tai-panel));
+    max-width: 1440px; margin: 0 auto; padding: 0 32px 48px;
+    box-sizing: border-box; color: var(--tai-text);
+    *, *::before, *::after { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    a { color: var(--tai-primary); text-decoration: none; }
+    a:hover { text-decoration: underline; text-underline-offset: 4px; }
+    svg { flex-shrink: 0; vertical-align: middle; }
+    h1 { font-size: clamp(1.7rem, 3vw, 2.25rem); line-height: 1.2; margin: 6px 0 8px; letter-spacing: -.035em; font-weight: 750; }
+    h2 { font-size: 1.1rem; line-height: 1.4; margin: 0 0 12px; overflow-wrap: anywhere; font-weight: 700; }
+    h3 { font-size: .95rem; margin: 0 0 8px; font-weight: 650; }
+    p { margin: 8px 0 16px; }
+    .tai-writing-nav { display: flex; align-items: center; gap: 32px; padding: 18px 0; border-bottom: 1px solid var(--tai-border); margin-bottom: 28px; }
+    .tai-writing-brand { display: flex; align-items: center; gap: 10px; color: var(--tai-text); font-size: 1.15rem; font-weight: 750; line-height: 1.3; }
+    .tai-writing-brand svg { color: var(--tai-primary); }
+    .tai-writing-brand strong { display: block; color: var(--tai-muted); font-size: .7rem; font-weight: 500; }
+    .tai-writing-nav-links { display: flex; align-items: center; gap: 24px; flex: 1; font-size: .9rem; }
+    .tai-writing-nav-links a { color: var(--tai-muted); }
+    .tai-writing-nav-links [aria-current] { color: var(--tai-primary); font-weight: 650; }
+    .tai-writing-nav [data-tai-theme] { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+    .tai-writing-header, .tai-writing-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .tai-writing-header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    &.tai-writing--embedded { background: var(--tai-background); border-radius: 16px; padding: 24px; font: 1rem/1.6 system-ui, sans-serif; container-type: inline-size; container-name: writing; }
+    .tai-writing-header { margin-bottom: 20px; }
+    .tai-writing-header p { margin-bottom: 0; color: var(--tai-muted); }
+    .tai-writing-header .tai-writing-eyebrow { font-size: .65rem; font-weight: 700; letter-spacing: .15em; color: var(--tai-primary); margin: 0; }
+    .tai-writing-new { border: 1px solid var(--tai-border); padding: 9px 14px; border-radius: 10px; background: var(--tai-panel); font-size: .85rem; white-space: nowrap; }
+    .tai-writing-muted, [data-writing-revision] { color: var(--tai-muted); font-size: .8rem; }
+    .tai-writing-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(360px, 1fr); gap: 24px; align-items: start; }
+    .tai-writing-compose { min-width: 0; display: grid; gap: 16px; }
+    .tai-writing-card { background: var(--tai-panel); border: 1px solid var(--tai-border); border-radius: 16px; padding: 22px; min-width: 0; box-shadow: 0 5px 20px #00000003; }
+    .tai-writing-setup .tai-writing-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    [data-writing-editor][aria-disabled='true'] { opacity: .65; cursor: not-allowed; min-height: 180px; height: 220px; }
+    .tai-writing-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .tai-writing-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .tai-writing-metric { display: flex; gap: 10px; align-items: center; background: var(--tai-panel); border: 1px solid var(--tai-border); border-radius: 12px; padding: 14px 12px; min-width: 0; }
+    .tai-writing-metric > div { min-width: 0; }
+    .tai-writing-metric > div > span { font-size: .7rem; color: var(--tai-muted); display: block; }
+    .tai-writing-metric strong { font-size: .95rem; display: block; overflow-wrap: anywhere; }
+    .tai-writing-icon { width: 38px; height: 38px; display: inline-grid; place-items: center; border-radius: 12px; color: var(--tai-primary); background: var(--writing-tint); flex-shrink: 0; }
+    .tai-writing-prompt { background: var(--writing-tint); }
+    .tai-writing-prompt h2 { display: flex; align-items: center; gap: 8px; }
+    .tai-writing-prompt h2 svg { color: var(--tai-primary); }
+    [data-writing-topic] { font-size: 1rem; font-weight: 600; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .tai-writing-prompt p:last-child { margin-bottom: 0; }
+    label { display: block; font-size: .9rem; font-weight: 650; margin: 12px 0 6px; }
+    textarea, select { width: 100%; display: block; font: inherit; color: var(--tai-text); background: var(--tai-background); border: 1px solid var(--tai-border); border-radius: 10px; padding: 12px; margin-top: 8px; }
+    textarea { line-height: 1.8; resize: vertical; }
+    .tai-writing-editor-card { padding: 0; overflow: hidden; }
+    .tai-writing-editor-card > .tai-writing-row { padding: 16px 20px; }
+    .tai-writing-editor-card label { margin: 0; font-size: 1rem; }
+    .tai-writing-editor-caption { display: flex; justify-content: space-between; gap: 10px; padding: 9px 20px; border-block: 1px solid var(--tai-border); color: var(--tai-muted); background: var(--writing-tint); font-size: .7rem; }
+    [data-writing-editor] { min-height: 480px; border: 0; border-radius: 0; padding: 20px; background: transparent; margin: 0; font-size: .95rem; line-height: 1.85; }
+    .tai-writing-editor-card > .tai-writing-row:has([data-writing-count]) { border-top: 1px solid var(--tai-border); padding-block: 10px; font-size: .7rem; color: var(--tai-muted); }
+    .tai-writing-editor-card > .tai-writing-actions { padding: 0 20px; margin-top: 10px; }
+    .tai-writing-editor-card > p, .tai-writing-editor-card > details { margin: 12px 20px 18px; font-size: .75rem; }
+    button { font: inherit; font-size: .8rem; font-weight: 600; padding: 10px 14px; border-radius: 9px; border: 1px solid transparent; background: var(--tai-primary); color: white; cursor: pointer; }
+    button:hover:not(:disabled) { filter: brightness(1.08); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    [data-writing-submit] { background: linear-gradient(120deg, #6654e8, #7850f5); box-shadow: 0 4px 14px #6654e829; }
+    .tai-writing-secondary, [data-tai-theme] { background: var(--tai-panel); color: var(--tai-text); border-color: var(--tai-border); }
+    .tai-writing-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 12px; }
+    :focus-visible { outline: 3px solid var(--tai-primary); outline-offset: 3px; }
+    textarea:focus-visible { outline-offset: -3px; }
+    [data-writing-status] { padding: 10px 14px; color: var(--tai-muted); background: var(--tai-panel); border: 1px solid var(--tai-border); border-radius: 10px; font-size: .8rem; margin-bottom: 20px; }
+    [data-writing-status].is-error { border-color: #dc7835; color: var(--tai-text); }
+    .tai-writing-results { padding: 22px; }
+    .tai-writing-result-heading { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .tai-writing-export { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 7px 9px; font-size: .72rem; white-space: nowrap; }
+    .tai-writing-result-heading h2 { font-size: 1.25rem; margin-bottom: 0; }
+    [data-writing-assessment-status] { font-size: .75rem; color: var(--tai-muted); line-height: 1.65; margin: 16px 0; }
+    .tai-writing-scoreboard { display: grid; grid-template-columns: 155px minmax(0, 1fr); gap: 20px; align-items: center; }
+    .tai-writing-ring { position: relative; width: 155px; aspect-ratio: 1; }
+    .tai-writing-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); fill: none; stroke-width: 9; }
+    .tai-writing-ring-track { stroke: var(--tai-border); }
+    .tai-writing-ring-value { stroke: var(--writing-accent); stroke-linecap: round; stroke-dasharray: 0 100; }
+    .tai-writing-ring > div { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+    .tai-writing-ring span { color: var(--tai-muted); font-size: .65rem; }
+    .tai-writing-ring strong { font-size: 2.6rem; line-height: 1.2; font-weight: 750; letter-spacing: -.04em; }
+    .tai-writing-ring small { color: var(--tai-muted); font-size: .6rem; }
+    .tai-writing-ring.is-empty .tai-writing-ring-value { opacity: 0; }
+    .tai-writing-ring.is-empty strong { color: var(--tai-muted); }
+    .tai-writing-criteria { display: grid; gap: 14px; }
+    .tai-writing-criterion .tai-writing-row { gap: 8px; font-size: .75rem; margin-bottom: 6px; }
+    .tai-writing-criterion .tai-writing-row span { color: var(--tai-muted); }
+    .tai-writing-criterion small { color: var(--tai-muted); font-size: .65rem; }
+    .tai-writing-meter { height: 7px; border-radius: 8px; background: var(--tai-border); overflow: hidden; }
+    .tai-writing-meter span { display: block; height: 100%; background: var(--writing-accent); border-radius: inherit; }
+    .tai-writing-criterion:nth-child(even) .tai-writing-meter span { background: var(--tai-primary); }
+    .tai-writing-score-note { font-size: .65rem; color: var(--tai-muted); margin: 16px 0 0; }
+    .tai-writing-credit { padding: 9px 12px; border: 1px solid var(--tai-border); border-radius: 8px; color: var(--tai-muted); font-size: .7rem; margin-bottom: 0; }
+    .tai-writing-tabs { display: flex; gap: 16px; border-bottom: 1px solid var(--tai-border); margin: 22px -22px 18px; padding: 0 22px; }
+    .tai-writing-tabs button { color: var(--tai-muted); border: 0; border-radius: 0; padding: 10px 0 12px; background: transparent; position: relative; }
+    .tai-writing-tabs [aria-selected='true'] { color: var(--tai-primary); }
+    .tai-writing-tabs [aria-selected='true']::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; border-radius: 3px; background: var(--tai-primary); }
+    [data-writing-issue-count] { font-size: .65rem; padding: 2px 6px; border-radius: 5px; background: var(--writing-tint); }
+    .tai-writing-empty { padding: 24px 14px; text-align: center; color: var(--tai-muted); }
+    .tai-writing-empty svg { color: var(--tai-primary); margin-bottom: 16px; }
+    .tai-writing-empty h3 { color: var(--tai-text); }
+    .tai-writing-empty p { font-size: .8rem; max-width: 280px; margin: 8px auto; }
+    .tai-writing-ai-feedback { padding: 14px 16px; background: color-mix(in srgb, var(--writing-accent) 6%, var(--tai-panel)); border: 1px solid color-mix(in srgb, var(--writing-accent) 22%, var(--tai-border)); border-radius: 12px; }
+    .tai-writing-ai-feedback h3 { color: var(--writing-accent); margin-bottom: 8px; font-size: .85rem; }
+    .tai-writing-ai-feedback p { margin: 0; font-size: .85rem; line-height: 1.7; }
+    .tai-writing-feedback-text.is-collapsed { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-height: 3.4em; overflow: hidden; }
+    .tai-writing-feedback-toggle { display: inline-flex; align-items: center; margin-top: 10px; padding: 4px 0; border: 0; border-radius: 4px; background: transparent; color: var(--writing-accent); font-size: .8rem; font-weight: 650; }
+    .tai-writing-feedback-toggle:hover { background: transparent; text-decoration: underline; text-underline-offset: 3px; }
+    .tai-writing-issue-summary { margin-top: 14px; border: 1px solid var(--tai-border); border-radius: 12px; padding: 14px; }
+    .tai-writing-issue-summary p { color: var(--tai-muted); font-size: .75rem; margin-bottom: 0; }
+    .tai-writing-issue { border: 1px solid var(--tai-border); border-radius: 12px; padding: 14px; margin-top: 12px; overflow-wrap: anywhere; }
+    .tai-writing-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tai-writing-comparison > div { padding: 10px 12px; border-radius: 8px; }
+    .tai-writing-comparison small { font-size: .65rem; font-weight: 650; }
+    .tai-writing-comparison p { font-size: .8rem; margin: 6px 0 0; }
+    .tai-writing-before { background: color-mix(in srgb, #ef476f 10%, var(--tai-panel)); }
+    .tai-writing-after { background: color-mix(in srgb, var(--writing-accent) 10%, var(--tai-panel)); }
+    .tai-writing-explanation { color: var(--tai-muted); font-size: .75rem; line-height: 1.7; }
+    [data-writing-feedback], [data-writing-original], .tai-writing-issue p { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .tai-writing-original { padding: 14px; border: 1px solid var(--tai-border); border-radius: 10px; margin-top: 12px; font-size: .8rem; }
+    mark { background: #ffe099; color: #302712; border-radius: 3px; }
+    details { margin-top: 18px; font-size: .8rem; color: var(--tai-muted); }
+    summary { cursor: pointer; }
+    .tai-writing-conflict { padding: 16px; margin: 20px; background: var(--tai-background); }
+    pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; }
+    .tai-writing-history { margin-top: 24px; }
+    .tai-writing-history-item { display: block; width: 100%; text-align: left; padding: 14px; margin-top: 8px; border: 1px solid var(--tai-border); border-radius: 9px; overflow-wrap: anywhere; font-size: .8rem; }
+    @media (max-width: 1000px) { .tai-writing-grid { grid-template-columns: minmax(0, 1fr); } .tai-writing-scoreboard { grid-template-columns: 170px minmax(0, 1fr); } }
+    @media (max-width: 700px) { padding-inline: 16px; .tai-writing-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tai-writing-nav { gap: 12px; } .tai-writing-nav-links { gap: 14px; } .tai-writing-nav-links a:first-child { display: none; } .tai-writing-header { align-items: flex-start; } }
+    @media (max-width: 480px) { padding-inline: 12px; .tai-writing-card { padding: 16px; } .tai-writing-editor-card { padding: 0; } .tai-writing-fields, .tai-writing-setup .tai-writing-fields { grid-template-columns: minmax(0, 1fr); } .tai-writing-row { flex-wrap: wrap; } .tai-writing-header { gap: 8px; } .tai-writing-header > .tai-writing-new { display: none; } .tai-writing-metrics { gap: 6px; } .tai-writing-metric { padding: 10px 8px; } .tai-writing-metric > .tai-writing-icon { display: none; } .tai-writing-metric strong { font-size: .8rem; } .tai-writing-metric > div > span { font-size: .6rem; } .tai-writing-scoreboard { grid-template-columns: 125px minmax(0, 1fr); gap: 12px; } .tai-writing-ring { width: 125px; } .tai-writing-ring strong { font-size: 2.15rem; } .tai-writing-tabs { margin-inline: -16px; padding-inline: 16px; } .tai-writing-nav [data-tai-theme] { padding: 8px; } .tai-writing-nav [data-tai-theme] span { display: none; } .tai-writing-nav-links { font-size: .8rem; } .tai-writing-comparison { grid-template-columns: minmax(0, 1fr); } }
+}
+.tai-writing[data-ai-tutor-theme='dark'],
+[data-ai-tutor-root][data-ai-tutor-theme='dark'] .tai-writing,
+[data-ai-tutor-theme='dark'] .tai-writing { --writing-accent: #21d4cf; }
+@media (prefers-color-scheme: dark) {
+    .tai-writing[data-ai-tutor-theme='system'],
+    [data-ai-tutor-root][data-ai-tutor-theme='system'] .tai-writing,
+    [data-ai-tutor-theme='system'] .tai-writing { --writing-accent: #21d4cf; }
+}
+
+@container writing (max-width: 900px) {
+    .tai-writing .tai-writing-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@container writing (max-width: 480px) {
+    .tai-writing .tai-writing-fields, .tai-writing .tai-writing-setup .tai-writing-fields { grid-template-columns: minmax(0, 1fr); }
+    .tai-writing .tai-writing-header { flex-wrap: wrap; }
+}
+
+// Comfortable reading and compact setup inside the existing LMS shell.
+.tai-writing {
+    .tai-writing-setup { padding: 18px 20px; }
+    .tai-writing-setup h2 { margin-bottom: 8px; }
+    .tai-writing-setup .tai-writing-fields { gap: 8px 14px; }
+    .tai-writing-setup label { margin-top: 6px; }
+    .tai-writing-setup select { margin-top: 5px; padding: 9px 12px; }
+    .tai-writing-setup textarea { margin-top: 5px; line-height: 1.6; }
+    .tai-writing-muted, [data-writing-revision], [data-writing-assessment-status], .tai-writing-explanation { font-size: .875rem; }
+    .tai-writing-editor-caption, .tai-writing-metric > div > span, .tai-writing-credit, .tai-writing-score-note { font-size: .8rem; }
+    .tai-writing-editor-card > p, .tai-writing-editor-card > details { font-size: .825rem; }
+    textarea::placeholder { color: var(--tai-muted); opacity: 1; }
+    [data-writing-editor][aria-disabled='true'] { opacity: 1; }
+    button { font-size: .875rem; }
+    .tai-writing-empty { padding: 20px 0 4px; }
+    .tai-writing-guide { list-style: none; text-align: left; padding: 0; margin: 24px 0 0; counter-reset: writing-step; }
+    .tai-writing-guide li { counter-increment: writing-step; display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 2px 12px; padding: 14px 0; border-top: 1px solid var(--tai-border); }
+    .tai-writing-guide li::before { content: counter(writing-step); grid-row: span 2; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: var(--writing-tint); color: var(--tai-primary); font-weight: 700; }
+    .tai-writing-guide strong { color: var(--tai-text); font-size: .9rem; }
+    .tai-writing-guide span { color: var(--tai-muted); font-size: .825rem; }
+}
+
+.tai-writing {
+    .tai-writing-editor-card.is-not-started {
+        [data-writing-editor][aria-disabled='true'] { min-height: 80px; height: 96px; resize: none; }
+        > .tai-writing-editor-caption, > .tai-writing-row:has([data-writing-count]), > p, > details { display: none; }
+    }
+    .tai-writing-empty > svg { display: block; margin: 0 auto 16px; }
+    .tai-writing-history.is-empty { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 20px; padding: 14px 20px; }
+    .tai-writing-history.is-empty h2, .tai-writing-history.is-empty p { margin: 0; }
+    .tai-writing-history.is-empty p { color: var(--tai-muted); font-size: .875rem; }
+}
+
+.tai-writing .tai-writing-result-error {
+    padding: 12px 14px; border: 1px solid #dc7835; border-radius: 10px;
+    color: var(--tai-text); background: color-mix(in srgb, #dc7835 10%, var(--tai-panel));
+    font-size: .875rem; line-height: 1.7;
+}
+
+.tai-writing .tai-writing-credit-dialog {
+    width: min(420px, calc(100vw - 32px)); padding: 28px; margin: auto;
+    border: 1px solid var(--tai-border); border-radius: 18px;
+    background: var(--tai-panel); color: var(--tai-text); box-shadow: 0 24px 80px #0005;
+    text-align: center;
+    &::backdrop { background: #020617b3; backdrop-filter: blur(4px); }
+    h2 { margin-top: 18px; }
+    p { color: var(--tai-muted); font-size: .9rem; line-height: 1.75; }
+    button { width: 100%; margin-top: 8px; }
+}
+
+.tai-writing .tai-writing-confirm-actions {
+    display: flex; gap: 10px; margin-top: 18px;
+    button { flex: 1; margin-top: 0; }
+}
+
+// Writing visual treatment: shared geometry, distinct surfaces and a clear writing focus.
+.tai-writing {
+    --writing-shadow: 0 8px 28px #17203306;
+    --writing-field: color-mix(in srgb, var(--tai-panel) 72%, var(--tai-background));
+    .tai-writing-heading { display: flex; gap: 16px; align-items: center; min-width: 0; }
+    .tai-writing-heading-icon { display: grid; place-items: center; width: 58px; height: 58px; flex: 0 0 58px; border-radius: 18px; color: #fff; background: linear-gradient(145deg, #7866ff, #5744d8); box-shadow: 0 8px 24px #6654e82b; }
+    .tai-writing-header { padding: 8px 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--tai-border); }
+    .tai-writing-header h1 { font-size: clamp(1.55rem, 2.4vw, 2rem); }
+    .tai-writing-header p:not(.tai-writing-eyebrow) { font-size: .9rem; }
+    .tai-writing-header-actions [data-tai-theme] { display: flex; align-items: center; gap: 8px; min-height: 42px; }
+    .tai-writing-card { border-radius: 18px; box-shadow: var(--writing-shadow); }
+    .tai-writing-section-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .tai-writing-section-heading h2 { margin: 0; }
+    .tai-writing-section-heading p { margin: 3px 0 0; font-size: .8rem; color: var(--tai-muted); }
+    .tai-writing-step { display: grid; place-items: center; width: 38px; height: 38px; flex: 0 0 38px; border: 1px solid color-mix(in srgb, var(--tai-primary) 20%, var(--tai-border)); background: var(--writing-tint); border-radius: 12px; color: var(--tai-primary); font-size: .8rem; font-weight: 750; }
+    .tai-writing-setup { padding: 22px; }
+    .tai-writing-setup select, .tai-writing-setup textarea { background-color: var(--writing-field); border-radius: 10px; font-weight: 450; transition: border-color .15s, box-shadow .15s; }
+    .tai-writing-setup label { font-size: .8rem; color: var(--tai-muted); font-weight: 600; }
+    .tai-writing-setup select:hover, .tai-writing-setup textarea:hover { border-color: color-mix(in srgb, var(--tai-primary) 40%, var(--tai-border)); }
+    .tai-writing-setup button[type=submit] { margin-top: 14px; padding-inline: 22px; background: linear-gradient(115deg, #6654e8, #8066f2); box-shadow: 0 4px 14px #6654e822; }
+    .tai-writing-metric { padding: 16px 14px; border-radius: 14px; box-shadow: var(--writing-shadow); }
+    .tai-writing-metric strong { margin-top: 3px; font-size: 1rem; }
+    .tai-writing-metric .tai-writing-icon { border-radius: 50%; }
+    .tai-writing-metric:last-child .tai-writing-icon { color: var(--writing-accent); background: color-mix(in srgb, var(--writing-accent) 10%, var(--tai-panel)); }
+    .tai-writing-prompt { padding: 16px; background: linear-gradient(110deg, var(--writing-tint), color-mix(in srgb, var(--tai-primary) 3%, var(--tai-panel))); border-color: color-mix(in srgb, var(--tai-primary) 18%, var(--tai-border)); }
+    .tai-writing-prompt-heading { display: flex; align-items: center; gap: 10px; }
+    .tai-writing-prompt-heading h2 { margin: 0; font-size: .95rem; color: var(--tai-text); }
+    .tai-writing-prompt-icon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; color: var(--tai-primary); background: color-mix(in srgb, var(--tai-primary) 12%, var(--tai-panel)); flex-shrink: 0; }
+    .tai-writing-prompt-heading button { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; font-size: .8rem; color: var(--tai-primary); border-color: color-mix(in srgb, var(--tai-primary) 30%, var(--tai-border)); white-space: nowrap; }
+    .tai-writing-prompt-copy { padding-left: 38px; }
+    .tai-writing-prompt [data-writing-topic] { margin: 4px 0 8px; font-size: .95rem; line-height: 1.55; }
+    .tai-writing-prompt [data-writing-profile] { margin: 0; font-size: .75rem; }
+    .tai-writing-prompt-hints { margin-top: 14px; padding: 14px; border-radius: 10px; background: var(--tai-panel); border: 1px solid var(--tai-border); }
+    .tai-writing-prompt-hints h3 { font-size: .85rem; color: var(--tai-primary); }
+    .tai-writing-prompt-hints ol { padding-left: 20px; margin: 0; font-size: .85rem; line-height: 1.7; }
+    .tai-writing-prompt-hints li + li { margin-top: 6px; }
+    @media (max-width: 480px) { .tai-writing-prompt-copy { padding-left: 0; padding-top: 6px; } .tai-writing-prompt-heading button { padding: 7px 9px; } }
+    .tai-writing-editor-label { display: flex; align-items: center; gap: 10px; }
+    .tai-writing-editor-label svg { color: var(--tai-primary); }
+    [data-writing-revision] { font-size: .75rem; padding: 4px 9px; border: 1px solid var(--tai-border); border-radius: 6px; background: var(--writing-field); }
+    [data-writing-editor] { font-size: 1rem; padding: 24px; line-height: 1.9; min-height: 380px; height: clamp(380px, 55vh, 620px); }
+    .tai-writing-editor-card > .tai-writing-row:first-child { padding: 18px 22px; }
+    .tai-writing-editor-caption { background: var(--writing-field); }
+    .tai-writing-results { padding: 24px; }
+    .tai-writing-result-heading .tai-writing-icon { width: 46px; height: 46px; border-radius: 14px; }
+    .tai-writing-result-heading h2 { font-size: 1.2rem; }
+    .tai-writing-guide li { padding: 16px 0; }
+    .tai-writing-guide li::before { border: 1px solid color-mix(in srgb, var(--tai-primary) 15%, var(--tai-border)); }
+    .tai-writing-credit { background: var(--writing-field); }
+    .tai-writing-issue { background: var(--writing-field); padding: 16px; border-radius: 14px; }
+    .tai-writing-comparison > div { padding: 12px; }
+    .tai-writing-issue > button { background: transparent; border-color: var(--tai-primary); color: var(--tai-primary); }
+    .tai-writing-history { background: var(--writing-field); }
+    .tai-writing-history-item { background: var(--tai-panel); }
+    .tai-writing-credit-dialog { padding: 30px; border-radius: 22px; }
+    .tai-writing-credit-dialog > .tai-writing-icon { width: 52px; height: 52px; border-radius: 16px; }
+    @media (prefers-reduced-motion: no-preference) {
+        button, .tai-writing-new { transition: background-color .15s, border-color .15s, box-shadow .15s; }
+        button:hover:not(:disabled), .tai-writing-new:hover { box-shadow: 0 4px 12px #6654e820; }
+    }
+    @media (max-width: 600px) {
+        &.tai-writing--embedded { padding: 16px 12px; }
+        .tai-writing-heading { gap: 10px; align-items: flex-start; }
+        .tai-writing-heading-icon { width: 42px; height: 42px; flex-basis: 42px; border-radius: 13px; }
+        .tai-writing-heading-icon svg { width: 22px; height: 22px; }
+        .tai-writing-header { flex-wrap: wrap; gap: 16px; padding-bottom: 18px; }
+        .tai-writing-header-actions { width: 100%; justify-content: flex-end; }
+        .tai-writing-setup, .tai-writing-results { padding: 18px; }
+        .tai-writing-metric { padding: 12px 8px; }
+        .tai-writing-metric strong { font-size: .85rem; }
+    }
+}
+.tai-writing[data-ai-tutor-theme='dark'] { --writing-shadow: 0 8px 28px #00000012; --writing-field: #0b182a; }
+@media (prefers-color-scheme: dark) {
+    .tai-writing[data-ai-tutor-theme='system'] { --writing-shadow: 0 8px 28px #00000012; --writing-field: #0b182a; }
+}
+
+// Focused writing workspace, inspired by the navy/teal reference.
+.tai-writing {
+    .tai-writing-grid { grid-template-columns: minmax(0, 1.5fr) minmax(340px, 1fr); gap: 22px; }
+    .tai-writing-heading-icon { width: 44px; height: 44px; flex-basis: 44px; border-radius: 14px; }
+    .tai-writing-header { padding-bottom: 18px; margin-bottom: 20px; }
+    .tai-writing-editor-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; padding: 18px 20px; }
+    .tai-writing-editor-heading label { margin: 0; font-size: 1rem; font-weight: 700; }
+    .tai-writing-editor-language { font-size: .75rem; color: var(--tai-muted); }
+    .tai-writing-editor-heading [data-writing-revision] { margin-left: auto; font-size: .75rem; white-space: nowrap; border: 0; padding: 0; background: transparent; }
+    .tai-writing-editor-heading > strong { margin-left: auto; font-size: .875rem; color: var(--tai-muted); }
+    .tai-writing-save-indicator { display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--writing-accent); }
+    .tai-writing-editor-caption [data-writing-revision] { border: 0; padding: 0; background: transparent; }
+    .tai-writing-ring { width: 170px; }
+    .tai-writing-scoreboard { grid-template-columns: 170px minmax(0, 1fr); }
+    .tai-writing-ring strong { font-size: 2.8rem; }
+    .tai-writing-issue-groups { display: grid; gap: 10px; margin-top: 16px; }
+    .tai-writing-issue-group { --group-color: var(--writing-accent); display: flex; gap: 12px; width: 100%; align-items: center; text-align: left; padding: 14px; color: var(--tai-text); background: var(--writing-field); border: 1px solid var(--tai-border); border-radius: 12px; }
+    .tai-writing-issue-group--grammar { --group-color: #e45378; }
+    .tai-writing-issue-group--vocabulary, .tai-writing-issue-group--style { --group-color: #b87b08; }
+    .tai-writing-issue-group--coherence, .tai-writing-issue-group--task_response { --group-color: #379bc9; }
+    .tai-writing-issue-group:hover { border-color: var(--group-color); }
+    .tai-writing-group-badge { display: grid; place-items: center; width: 34px; height: 38px; flex-shrink: 0; border-radius: 12px; background: color-mix(in srgb, var(--group-color) 15%, var(--tai-panel)); color: var(--group-color); font-weight: 750; }
+    .tai-writing-issue-group > span:nth-child(2) { flex: 1; min-width: 0; }
+    .tai-writing-issue-group strong { display: block; color: var(--group-color); font-size: .875rem; }
+    .tai-writing-issue-group small { display: block; margin-top: 4px; color: var(--tai-muted); font-size: .75rem; font-weight: 400; }
+    .tai-writing-issue-group > span:last-child { color: var(--tai-muted); font-size: 1.5rem; }
+    .tai-writing-issue-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .tai-writing-issue-filters button { padding: 6px 10px; font-size: .75rem; border-radius: 8px; }
+    .tai-writing-issue-filters [aria-pressed='true'] { color: var(--tai-primary); border-color: var(--tai-primary); background: var(--writing-tint); }
+    [data-writing-controls] { align-items: center; }
+    [data-writing-submit] { margin-left: auto; order: 5; padding: 12px 18px; }
+    [data-writing-refresh], [data-writing-save-now] { font-size: .75rem; }
+    @media (max-width: 1000px) { .tai-writing-grid { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-width: 480px) {
+        .tai-writing-scoreboard { grid-template-columns: 125px minmax(0, 1fr); }
+        .tai-writing-ring { width: 125px; }
+        .tai-writing-ring strong { font-size: 2.15rem; }
+        .tai-writing-editor-heading { padding: 14px 16px; }
+        .tai-writing-save-indicator { order: 3; width: 100%; }
+        [data-writing-controls] { gap: 8px; }
+    }
+}
+.tai-writing[data-ai-tutor-theme='dark'] { --tai-panel: #0c1c2d; --tai-border: #1c354a; --tai-muted: #a8bfd9; --writing-field: #0a1929; }
+@media (prefers-color-scheme: dark) {
+    .tai-writing[data-ai-tutor-theme='system'] { --tai-panel: #0c1c2d; --tai-border: #1c354a; --tai-muted: #a8bfd9; --writing-field: #0a1929; }
+}
+@container writing (max-width: 900px) {
+    .tai-writing .tai-writing-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.tai-writing {
+    .tai-writing-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 8px 12px; border-block: 1px solid var(--tai-border); background: var(--tai-panel); }
+    .tai-writing-toolbar button { min-width: 32px; height: 32px; padding: 4px 8px; border: 0; background: transparent; color: var(--tai-muted); font-size: 1.1rem; border-radius: 6px; }
+    .tai-writing-toolbar button:hover, .tai-writing-toolbar button[aria-pressed='true'] { color: var(--tai-primary); background: var(--writing-tint); }
+    .tai-writing-toolbar [data-writing-format='bold'] { font-weight: 750; }
+    .tai-writing-toolbar [data-writing-format='italic'] { font-style: italic; }
+    .tai-writing-toolbar [data-writing-format='underline'] { text-decoration: underline; }
+    .tai-writing-toolbar [data-writing-format='strikeThrough'] { text-decoration: line-through; }
+    .tai-writing-toolbar select { width: auto; max-width: 125px; padding: 5px 8px; margin: 0 6px; border: 0; border-inline: 1px solid var(--tai-border); border-radius: 0; background: transparent; font-size: .8rem; }
+    .tai-writing-toolbar-words { margin-left: auto; color: var(--tai-muted); font-size: .8rem; white-space: nowrap; }
+    [data-writing-editor] { overflow-y: auto; white-space: pre-wrap; overflow-wrap: anywhere; outline-offset: -3px; }
+    [data-writing-editor]:empty::before { content: attr(data-placeholder); color: var(--tai-muted); pointer-events: none; }
+    [data-writing-editor] p, [data-writing-editor] h2, [data-writing-editor] h3 { margin: 0 0 16px; }
+    [data-writing-editor] ul { list-style: disc; padding-left: 24px; }
+    [data-writing-editor] ol { list-style: decimal; padding-left: 24px; }
+    .tai-writing-editor-card.is-expanded { position: fixed; inset: 20px; z-index: 1000; overflow-y: auto; background: var(--tai-panel); box-shadow: 0 0 0 100vmax #0009; }
+    .tai-writing-editor-card.is-expanded [data-writing-editor] { height: calc(100vh - 300px); min-height: 200px; }
+    @media (max-width: 480px) { .tai-writing-toolbar { gap: 2px; padding: 6px 8px; } .tai-writing-toolbar button { min-width: 28px; padding-inline: 6px; } .tai-writing-editor-card.is-expanded { inset: 8px; } }
+}
+
+.tai-writing {
+    position: relative;
+    [data-writing-editor]::highlight(tai-writing-grammar) { background-color: #ffd3d9; color: #842438; text-decoration: underline; text-decoration-color: #e15c74; }
+    [data-writing-editor]::highlight(tai-writing-suggestion) { background-color: #ffe7a1; color: #69480b; text-decoration: underline; text-decoration-color: #d89b22; }
+    .tai-writing-error-tooltip { position: absolute; z-index: 1100; width: max-content; max-width: min(300px, calc(100% - 16px)); padding: 10px 12px; border: 1px solid #d6a036; border-radius: 10px; background: var(--tai-panel); color: var(--tai-text); box-shadow: 0 8px 24px #0003; font-size: .8rem; line-height: 1.55; pointer-events: none; overflow-wrap: anywhere; }
+    .tai-writing-error-tooltip.is-grammar { border-color: #dc7185; }
+    .tai-writing-error-tooltip strong { color: #b47a13; font-size: .8rem; }
+    .tai-writing-error-tooltip.is-grammar strong { color: #d14b68; }
+    .tai-writing-error-tooltip p { margin: 4px 0; white-space: pre-wrap; }
+    .tai-writing-error-tooltip small { display: block; padding-top: 5px; border-top: 1px solid var(--tai-border); color: var(--tai-muted); font-size: .75rem; white-space: pre-wrap; }
+}
+
+.tai-writing .tai-writing-history-view { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 10px 16px; background: var(--writing-tint); color: var(--tai-muted); font-size: .8rem; border-top: 1px solid var(--tai-border); }
+.tai-writing .tai-writing-history-view button { padding: 6px 10px; font-size: .8rem; }
+
+.tai-writing {
+    .tai-writing-editor-status { background: color-mix(in srgb, var(--tai-background) 45%, var(--tai-panel)); gap: 10px; }
+    .tai-writing-editor-status [data-writing-count] { margin-left: auto; font-variant-numeric: tabular-nums; font-size: .7rem; }
+    .tai-writing-editor-status .tai-writing-save-indicator { font-size: .75rem; }
+    .tai-writing-editor-card > [data-writing-controls] { padding: 16px 20px; margin: 0; gap: 10px; }
+    [data-writing-controls] button { min-height: 40px; border-radius: 10px; font-size: .8rem; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+    [data-writing-controls] [data-writing-submit] { padding: 11px 18px; box-shadow: 0 4px 12px color-mix(in srgb, var(--tai-primary) 18%, transparent); }
+    .tai-writing-editor-notes { margin: 0 20px 16px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--tai-border); background: color-mix(in srgb, var(--tai-background) 55%, var(--tai-panel)); font-size: .75rem; color: var(--tai-muted); }
+    .tai-writing-editor-notes > p { display: flex; align-items: flex-start; gap: 8px; margin: 0; line-height: 1.6; }
+    .tai-writing-editor-notes > p svg { margin-top: 2px; }
+    .tai-writing-save-help { margin-top: 9px; }
+    .tai-writing-save-help summary { display: inline-flex; align-items: center; gap: 6px; color: var(--tai-primary); font-weight: 550; list-style: none; }
+    .tai-writing-save-help summary::-webkit-details-marker { display: none; }
+    .tai-writing-save-help summary::after { content: '⌄'; font-size: 1rem; line-height: 1; }
+    .tai-writing-save-help[open] summary::after { transform: rotate(180deg); }
+    .tai-writing-save-help p { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--tai-border); line-height: 1.7; }
+    .tai-writing-editor-card.is-not-started .tai-writing-editor-notes { display: none; }
+    @media (max-width: 480px) {
+        .tai-writing-editor-status .tai-writing-save-indicator { order: 0; width: auto; }
+        .tai-writing-editor-card > [data-writing-controls] { padding: 12px 16px; }
+        [data-writing-controls] [data-writing-submit] { flex: 1 1 100%; margin-left: 0; }
+        .tai-writing-editor-notes { margin: 0 16px 14px; padding: 10px 12px; }
+    }
+}
+
+.tai-writing {
+    [data-writing-editor] { height: auto; min-height: 220px; max-height: 450px; padding: 18px 20px; }
+    .tai-writing-editor-card.is-expanded [data-writing-editor] { max-height: none; }
+    .tai-writing-editor-footer { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--tai-border); background: color-mix(in srgb, var(--tai-background) 35%, var(--tai-panel)); }
+    .tai-writing-editor-footer .tai-writing-save-indicator { width: auto; font-size: .75rem; }
+    .tai-writing-editor-footer [data-writing-controls] { margin: 0 0 0 auto; padding: 0; gap: 8px; }
+    .tai-writing-editor-footer [data-writing-controls] button { min-height: 36px; padding: 8px 10px; font-size: .75rem; }
+    .tai-writing-editor-footer [data-writing-submit] { margin-left: 0; padding: 9px 13px; }
+    .tai-writing-save-info { position: relative; margin: 0; }
+    .tai-writing-save-info summary { list-style: none; cursor: pointer; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--tai-muted); font-size: 1.15rem; }
+    .tai-writing-save-info summary::-webkit-details-marker { display: none; }
+    .tai-writing-save-info summary:hover, .tai-writing-save-info[open] summary { background: var(--writing-tint); color: var(--tai-primary); }
+    .tai-writing-save-info > div { position: absolute; right: 0; bottom: calc(100% + 10px); width: 280px; max-width: calc(100vw - 60px); padding: 12px 14px; border: 1px solid var(--tai-border); border-radius: 10px; background: var(--tai-panel); color: var(--tai-muted); box-shadow: 0 6px 20px #0002; z-index: 5; font-size: .75rem; line-height: 1.7; }
+    .tai-writing-save-info strong { color: var(--tai-text); }
+    .tai-writing-save-info p { margin: 6px 0 0; }
+    .tai-writing-editor-card.is-not-started .tai-writing-editor-footer { display: none; }
+    @media (max-width: 480px) {
+        .tai-writing-editor-footer { gap: 8px; padding: 10px 12px; }
+        .tai-writing-save-indicator-footer { flex: 1; }
+        .tai-writing-editor-footer [data-writing-controls] { order: 3; width: 100%; }
+        .tai-writing-editor-footer [data-writing-submit] { flex: 1; }
+    }
+}
+
+.tai-writing .tai-writing-save-guide { padding: 14px 18px; background: color-mix(in srgb, var(--tai-primary) 8%, var(--tai-panel)); border-color: color-mix(in srgb, var(--tai-primary) 22%, var(--tai-border)); box-shadow: none; }
+.tai-writing .tai-writing-save-guide h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: .85rem; }
+.tai-writing .tai-writing-save-guide h3 svg { color: var(--tai-primary); }
+.tai-writing .tai-writing-save-guide p { margin: 0; color: var(--tai-muted); font-size: .8rem; line-height: 1.7; }
+
+.tai-writing {
+    .tai-writing-issue-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 16px 0 10px; }
+    .tai-writing-issue-nav h3 { margin: 0; font-size: .95rem; }
+    .tai-writing-issue-pagination { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .tai-writing-issue-pagination span { color: var(--tai-muted); font-size: .8rem; margin-right: 4px; font-variant-numeric: tabular-nums; }
+    .tai-writing-issue-pagination button { width: 30px; height: 30px; padding: 0; font-size: 1.5rem; line-height: 1; border-radius: 7px; }
+    .tai-writing-issue { margin: 0; padding: 0; border: 0; border-radius: 0; }
+    .tai-writing-issue-category { display: inline-block; font-size: .7rem; color: var(--tai-muted); margin-bottom: 8px; }
+    .tai-writing-comparison { grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr); gap: 8px; align-items: stretch; }
+    .tai-writing-comparison > div { padding: 12px; border-radius: 10px; }
+    .tai-writing-before { background: color-mix(in srgb, #e85276 10%, var(--tai-panel)); }
+    .tai-writing-after { background: color-mix(in srgb, #16b47e 10%, var(--tai-panel)); }
+    .tai-writing-before small, .tai-writing-before strong { color: #cf3e61; }
+    .tai-writing-after small, .tai-writing-after strong { color: #07986a; }
+    .tai-writing-comparison small { font-weight: 650; }
+    .tai-writing-comparison p { margin: 6px 0 0; font-size: .85rem; line-height: 1.6; }
+    .tai-writing-comparison-arrow { align-self: center; text-align: center; color: var(--tai-muted); font-size: 1.25rem; }
+    .tai-writing-issue .tai-writing-explanation { background: var(--writing-tint); color: var(--tai-muted); border-radius: 8px; padding: 10px 12px; margin: 10px 0; font-size: .8rem; line-height: 1.65; }
+    .tai-writing-issue > button { padding: 8px 12px; font-size: .8rem; }
+    @media (max-width: 420px) { .tai-writing-comparison { grid-template-columns: minmax(0, 1fr); } .tai-writing-comparison-arrow { transform: rotate(90deg); } .tai-writing-issue-nav h3 { font-size: .85rem; } }
+}
+
+.tai-writing {
+    .tai-writing-feedback-toggle { gap: 6px; }
+    .tai-writing-issue-pagination button { display: inline-flex; align-items: center; justify-content: center; }
+    .tai-writing-new { display: inline-flex; align-items: center; gap: 5px; }
+    .tai-writing-issue-group > svg:last-child { color: var(--tai-muted); }
+}
+
+.tai-writing .tai-writing-overview-corrections { margin-top: 20px; padding-top: 4px; }
+
+.tai-writing {
+    .tai-writing-history { padding: 20px; background: var(--tai-panel); }
+    .tai-writing-history-entry { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding: 12px 14px; margin-top: 8px; border-radius: 11px; transition: background .15s, border-color .15s; }
+    .tai-writing-history-entry:hover, .tai-writing-history-entry[aria-pressed='true'] { background: var(--writing-tint); border-color: color-mix(in srgb, var(--tai-primary) 40%, var(--tai-border)); }
+    .tai-writing-history-symbol { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--writing-tint); color: var(--tai-primary); }
+    .tai-writing-history-description { min-width: 0; display: grid; gap: 4px; }
+    .tai-writing-history-version { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .tai-writing-history-version strong { color: var(--tai-text); font-size: .85rem; }
+    .tai-writing-history-description time { color: var(--tai-muted); font-size: .7rem; font-weight: 400; }
+    .tai-writing-history-latest { padding: 2px 6px; border-radius: 5px; background: var(--writing-tint); color: var(--tai-primary); font-size: .6rem; font-weight: 550; }
+    .tai-writing-history-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 7px; font-size: .7rem; white-space: nowrap; }
+    .tai-writing-history-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .tai-writing-history-badge.is-success { color: #07936c; background: color-mix(in srgb, #10b981 10%, var(--tai-panel)); }
+    .tai-writing-history-badge.is-failed { color: #d44964; background: color-mix(in srgb, #f06583 10%, var(--tai-panel)); }
+    .tai-writing-history-badge.is-pending { color: #a57514; background: color-mix(in srgb, #eab23c 10%, var(--tai-panel)); }
+    .tai-writing-history-open { display: inline-flex; align-items: center; gap: 6px; color: var(--tai-primary); font-size: .75rem; font-weight: 550; }
+    @media (max-width: 600px) {
+        .tai-writing-history-entry { grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; padding: 10px; }
+        .tai-writing-history-symbol { width: 30px; height: 30px; }
+        .tai-writing-history-badge { grid-column: 2; justify-self: start; }
+        .tai-writing-history-open { grid-column: 3; grid-row: 1 / span 2; }
+        .tai-writing-history-open span { display: none; }
+        .tai-writing-history-symbol { grid-row: 1 / span 2; }
+    }
+}
+
+.tai-writing .tai-writing-history-heading { display: flex; align-items: center; gap: 8px; }
+.tai-writing .tai-writing-history-heading > svg { flex: 0 0 20px; color: var(--tai-primary); }
+
+.tai-writing {
+    .tai-writing-feedback-points { display: flex; gap: 12px; align-items: flex-start; padding: 14px; margin-top: 10px; border-radius: 10px; border: 1px solid var(--tai-border); }
+    .tai-writing-feedback-points > svg { width: 24px; height: 24px; margin-top: 1px; }
+    .tai-writing-feedback-points > div { min-width: 0; }
+    .tai-writing-feedback-points h3 { margin: 0 0 5px; font-size: .9rem; }
+    .tai-writing-feedback-points ul { margin: 0; padding-left: 17px; list-style: disc; font-size: .8rem; line-height: 1.7; color: var(--tai-text); overflow-wrap: anywhere; }
+    .tai-writing-feedback-points p { margin: 0; font-size: .8rem; line-height: 1.7; }
+    .tai-writing-feedback-points.is-strengths { background: color-mix(in srgb, #10b981 7%, var(--tai-panel)); border-color: color-mix(in srgb, #10b981 22%, var(--tai-border)); }
+    .tai-writing-feedback-points.is-strengths h3, .tai-writing-feedback-points.is-strengths > svg { color: #07986c; }
+    .tai-writing-feedback-points.is-improvements { background: color-mix(in srgb, #f5a623 7%, var(--tai-panel)); border-color: color-mix(in srgb, #f5a623 25%, var(--tai-border)); }
+    .tai-writing-feedback-points.is-improvements h3, .tai-writing-feedback-points.is-improvements > svg { color: #bd7810; }
+}
+
+.tai-writing .tai-writing-ai-feedback h3 { display: flex; align-items: center; gap: 7px; }
+.tai-writing .tai-writing-points-content { font-size: .8rem; line-height: 1.7; }
+.tai-writing .tai-writing-points-content.is-collapsed { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-height: 3.4em; overflow: hidden; }
+.tai-writing .is-improvements .tai-writing-feedback-toggle { color: #bd7810; }
+
+.tai-writing .tai-writing-result-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+.tai-writing .tai-writing-result-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 8px; border-radius: 9px; font-size: .75rem; line-height: 1.4; min-height: 44px; }
+.tai-writing .tai-writing-result-actions .tai-writing-secondary { color: var(--tai-primary); border-color: var(--tai-primary); }
+@media (max-width: 480px) { .tai-writing .tai-writing-result-actions { grid-template-columns: minmax(0, 1fr); } }
+
+.tai-writing .tai-writing-result-column { min-width: 0; }
+.tai-writing .tai-writing-result-column > .tai-writing-result-actions { margin-top: 14px; }
+
+.tai-writing .tai-writing-example-picker { padding: 12px 14px; margin-bottom: 16px; border: 1px solid var(--tai-border); border-radius: 10px; background: var(--writing-tint); }
+.tai-writing .tai-writing-example-picker p { margin: 7px 0 0; font-size: .75rem; color: var(--tai-muted); line-height: 1.6; }
+
+.tai-writing {
+    .tai-writing-priorities { margin-top: 14px; padding: 14px; border: 1px solid var(--tai-border); border-radius: 10px; background: var(--writing-tint); }
+    .tai-writing-priorities h3 { display: flex; align-items: center; gap: 8px; font-size: .9rem; }
+    .tai-writing-priorities ol { list-style: decimal; margin: 0; padding-left: 20px; font-size: .8rem; line-height: 1.7; }
+    .tai-writing-priorities li + li { margin-top: 6px; }
+    .tai-writing-priorities small { display: block; color: var(--tai-muted); margin-top: 8px; font-size: .7rem; }
+    .tai-writing-criterion-analysis { margin-top: 14px; border: 1px solid var(--tai-border); border-radius: 10px; overflow: hidden; }
+    .tai-writing-criterion-analysis > summary { display: flex; align-items: center; gap: 8px; padding: 12px 14px; font-size: .85rem; font-weight: 650; list-style: none; }
+    .tai-writing-criterion-analysis > summary::-webkit-details-marker { display: none; }
+    .tai-writing-criterion-analysis > summary > svg { color: var(--tai-primary); }
+    .tai-writing-criterion-analysis > summary > svg:last-child { margin-left: auto; }
+    .tai-writing-criterion-analysis[open] > summary > svg:last-child { transform: rotate(180deg); }
+    .tai-writing-criterion-detail { padding: 14px; font-size: .8rem; }
+    .tai-writing-criterion-detail + .tai-writing-criterion-detail { border-top: 1px solid var(--tai-border); }
+    .tai-writing-criterion-detail h4 { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 8px; font-size: .85rem; }
+    .tai-writing-criterion-detail h4 strong { color: var(--tai-primary); }
+    .tai-writing-criterion-detail p { margin: 6px 0; line-height: 1.7; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .tai-writing-evidence-quotes { margin-top: 10px; }
+    .tai-writing-evidence-quotes small { color: var(--tai-muted); }
+    .tai-writing-evidence-quotes blockquote { margin: 6px 0; padding: 8px 10px; background: var(--writing-tint); border-radius: 7px; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .tai-writing-criterion-next { margin-top: 10px; color: var(--writing-accent); }
+}
+
+.tai-writing {
+    .tai-writing-progress { margin-top: 14px; padding: 14px; border: 1px solid var(--tai-border); border-radius: 10px; }
+    .tai-writing-progress h3 { display: flex; align-items: center; gap: 8px; font-size: .9rem; }
+    .tai-writing-progress h3 svg { color: var(--tai-primary); }
+    .tai-writing-progress-overall { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--writing-tint); padding: 10px; border-radius: 8px; font-size: .85rem; }
+    .tai-writing-progress-criteria { display: grid; gap: 8px; padding: 12px 0; font-size: .8rem; }
+    .tai-writing-progress-criteria > div { display: flex; justify-content: space-between; gap: 12px; }
+    .tai-writing-progress .is-up { color: #07986c; }
+    .tai-writing-progress .is-down { color: #cf3e61; }
+    .tai-writing-progress .is-same { color: var(--tai-muted); }
+    .tai-writing-progress p { margin: 0 0 6px; font-size: .8rem; }
+    .tai-writing-progress small { color: var(--tai-muted); font-size: .7rem; }
+}
+
+.tai-writing {
+    .tai-writing-word-check { display: grid; gap: 5px; padding: 12px 14px; background: var(--writing-tint); font-size: .8rem; }
+    .tai-writing-word-check small { color: var(--tai-muted); font-size: .7rem; }
+    .tai-writing-requirement-status { font-size: .65rem; font-weight: 550; white-space: nowrap; }
+    :is(.tai-writing-task-check, .tai-writing-structure, .tai-writing-cefr-target) .is-met { color: #07986c; }
+    :is(.tai-writing-task-check, .tai-writing-structure, .tai-writing-cefr-target) .is-partial { color: #b67c16; }
+    :is(.tai-writing-task-check, .tai-writing-structure, .tai-writing-cefr-target) .is-not_met { color: #cf3e61; }
+    :is(.tai-writing-task-check, .tai-writing-structure, .tai-writing-cefr-target) .is-not_available { color: var(--tai-muted); }
+    .tai-writing-requirements-empty { margin: 0; padding: 12px 14px; color: var(--tai-muted); font-size: .8rem; }
+    :is(.tai-writing-task-check, .tai-writing-structure, .tai-writing-cefr-target) h4 { flex-wrap: wrap; }
+}
+
+.tai-writing {
+    .tai-writing-loading-symbol { position: relative; display: grid; place-items: center; width: 76px; height: 76px; margin: 6px auto 18px; border-radius: 24px; }
+    .tai-writing-loading-symbol > svg { margin: 0; }
+    .tai-writing-loading-orbit { display: none; position: absolute; inset: 0; border: 2px solid color-mix(in srgb, var(--tai-primary) 14%, transparent); border-top-color: var(--tai-primary); border-radius: 50%; }
+    .tai-writing-assessment-progress { display: flex; justify-content: center; gap: 10px; list-style: none; padding: 16px 0 0; margin: 16px 0 0; border-top: 1px solid var(--tai-border); }
+    .tai-writing-assessment-progress li { display: flex; align-items: center; gap: 6px; font-size: .7rem; color: var(--tai-muted); }
+    .tai-writing-assessment-progress li > span { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--writing-tint); font-size: .65rem; }
+    .tai-writing-assessment-progress .is-current { color: var(--tai-primary); font-weight: 650; }
+    .tai-writing-assessment-progress .is-current > span { background: var(--tai-primary); color: #fff; }
+    .tai-writing-assessment-progress .is-done { color: var(--writing-accent); }
+    &[data-writing-assessment='confirming'], &[data-writing-assessment='queued'], &[data-writing-assessment='processing'] {
+        .tai-writing-loading-symbol { background: var(--writing-tint); border-radius: 50%; }
+        .tai-writing-loading-orbit { display: block; }
+        .tai-writing-empty { padding: 22px 12px 8px; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+        &[data-writing-assessment='queued'] .tai-writing-loading-symbol > svg { animation: tai-writing-breathe 2.4s ease-in-out infinite; }
+        &[data-writing-assessment='confirming'] .tai-writing-loading-orbit,
+        &[data-writing-assessment='processing'] .tai-writing-loading-orbit { animation: tai-writing-orbit 2s linear infinite; }
+        .tai-writing-ring-value { transition: stroke-dasharray .4s ease-out; }
+    }
+    &[data-writing-paused='true'] .tai-writing-loading-symbol > svg,
+    &[data-writing-paused='true'] .tai-writing-loading-orbit { animation-play-state: paused; }
+}
+@keyframes tai-writing-orbit { to { transform: rotate(360deg); } }
+@keyframes tai-writing-breathe { 50% { opacity: .55; transform: translateY(-3px); } }
+
+.tai-writing {
+    .tai-writing-vocabulary-pair { display: grid; grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr); align-items: center; gap: 8px; margin-bottom: 10px; }
+    .tai-writing-vocabulary-pair > div { height: 100%; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, #f59e0b 9%, var(--tai-panel)); }
+    .tai-writing-vocabulary-pair > div:last-child { background: color-mix(in srgb, #10b981 9%, var(--tai-panel)); }
+    .tai-writing-vocabulary-pair small { font-size: .68rem; font-weight: 600; color: var(--tai-muted); }
+    .tai-writing-vocabulary-pair p { margin: 5px 0 0; overflow-wrap: anywhere; }
+    .tai-writing-vocabulary-frequency { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 10px 0; }
+    .tai-writing-vocabulary-frequency li { display: inline-flex; align-items: center; gap: 10px; padding: 6px 10px; background: var(--writing-tint); border-radius: 8px; font-size: .8rem; }
+    .tai-writing-vocabulary-frequency strong { color: var(--tai-primary); font-size: .7rem; }
+    .tai-writing-vocabulary .tai-writing-muted { display: block; font-size: .7rem; line-height: 1.6; }
+    @media (max-width: 420px) {
+        .tai-writing-vocabulary-pair { grid-template-columns: minmax(0, 1fr); }
+        .tai-writing-vocabulary-pair > svg { transform: rotate(90deg); justify-self: center; }
+    }
+}
+
+.tai-writing {
+    .tai-writing-issue-changes { margin-top: 14px; background: var(--tai-panel); }
+    .tai-writing-change-group h4 { font-size: .8rem; }
+    .tai-writing-change-group.is-recurring h4 { color: #c66a18; }
+    .tai-writing-change-group.is-not_reported h4 { color: var(--writing-accent); }
+    .tai-writing-change-group.is-newly_reported h4 { color: var(--tai-primary); }
+    .tai-writing-change-entry { padding: 10px 0; border-top: 1px solid var(--tai-border); }
+    .tai-writing-change-entry > small { display: block; font-size: .7rem; line-height: 1.6; }
+    .tai-writing-change-entry blockquote { margin: 6px 0; padding: 8px 10px; background: var(--writing-tint); border-radius: 8px; overflow-wrap: anywhere; font-size: .8rem; }
+    .tai-writing-change-entry p { margin: 6px 0; font-size: .75rem; }
+}
+
+.tai-writing {
+    .tai-writing-cefr-expectation { padding: 12px 14px; background: var(--writing-tint); }
+    .tai-writing-cefr-expectation small { color: var(--tai-primary); font-size: .7rem; font-weight: 600; }
+    .tai-writing-cefr-expectation p { margin: 5px 0 0; font-size: .8rem; line-height: 1.6; }
+}

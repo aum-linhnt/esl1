@@ -25,14 +25,18 @@
         @endif
     </div>
 
+    @if(!empty($content['description']))
+        <p class="text-xs text-gray-400 leading-relaxed">{{ $content['description'] }}</p>
+    @endif
+
     {{-- Synced Transcript --}}
     @if(!empty($content['transcript']))
-        <div class="bg-fsel-navy/40 p-5 rounded-2xl border border-fsel-border/30 space-y-2">
-            <h4 class="text-xs font-bold text-white uppercase tracking-wider">📝 Lời thoại (Transcript)</h4>
+        <details class="bg-fsel-navy/40 p-5 rounded-2xl border border-fsel-border/30 space-y-2" @if(empty($content['hide_transcript'])) open @endif>
+            <summary class="text-xs font-bold text-white uppercase tracking-wider cursor-pointer">📝 Xem lời thoại (Transcript)</summary>
             <div class="text-xs text-gray-300 leading-relaxed whitespace-pre-line font-serif">
                 {{ $content['transcript'] }}
             </div>
-        </div>
+        </details>
     @endif
 
     @include('activities._completion-button', ['label' => 'Đã hoàn thành bài nghe ✓'])

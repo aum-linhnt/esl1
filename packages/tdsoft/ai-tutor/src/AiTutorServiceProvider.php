@@ -57,6 +57,7 @@ final class AiTutorServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/../routes/credits.php');
         $this->loadRoutesFrom(__DIR__.'/../routes/reconciliation.php');
         $this->loadRoutesFrom(__DIR__.'/../routes/tutor.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/writing.php');
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->command('ai-tutor:purge-conversations --execute')->daily()->withoutOverlapping()
                 ->when(fn () => (bool) config('ai-tutor.retention.enabled', false));

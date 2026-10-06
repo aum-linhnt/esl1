@@ -9,9 +9,39 @@ use TDSoft\AiTutor\Core\StreamOutput;
 use TDSoft\AiTutor\Providers\CredentialResolver;
 use TDSoft\AiTutor\Providers\OpenAiProvider;
 use TDSoft\AiTutor\Tests\FoundationTestCase;
+use TDSoft\AiTutor\Writing\WritingPrompt;
 
 final class OpenAiProviderTest extends FoundationTestCase
 {
+    public function test_writing_uses_strict_structured_output_separate_model_and_no_stream(): void
+    {
+        $http = new Factory;
+        $driver = $this->driver($http);
+        config(['ai-tutor.writing.model' => 'test-writing', 'ai-tutor.writing.max_output_tokens' => 3000]);
+        $http->fake(['*' => Factory::response($this->chat())]);
+        $schema = WritingPrompt::schema(['grammar' => []]);
+        $original = $this->request();
+        $request = new AiRequest('writing_assessment', $original->actor,
+            ['instructions' => 'Assess writing.', 'input' => 'Essay', 'response_schema' => $schema], $original->requestId, 'writing-provider');
+        $reply = $driver->execute($request);
+        $this->assertSame(12, $reply->usage['input_tokens']);
+        $http->assertSent(fn ($r) => $r['store'] === false && $r['stream'] === false && $r['model'] === 'test-writing'
+            && $r['max_output_tokens'] === 3000 && $r['text']['format']['strict'] === true
+            && $r['text']['format']['type'] === 'json_schema' && $r['text']['format']['schema'] === $schema);
+    }
+
+    public function test_writing_without_a_configured_model_fails_before_transport(): void
+    {
+        $http = new Factory;
+        $driver = $this->driver($http);
+        $http->fake();
+        config(['ai-tutor.writing.model' => '']);
+        $original = $this->request();
+        $this->assertError('AI_PROVIDER_NOT_CONFIGURED', fn () => $driver->execute(new AiRequest('writing_recheck', $original->actor,
+            ['instructions' => 'Assess', 'input' => 'Essay', 'response_schema' => []], $original->requestId, 'writing-empty-model')));
+        $http->assertNothingSent();
+    }
+
     private function driver(Factory $http): OpenAiProvider
     {
         config([

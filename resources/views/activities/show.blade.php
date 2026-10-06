@@ -1,6 +1,7 @@
 @extends(request()->boolean('embedded') ? 'layouts.activity-embedded' : 'layouts.app')
 
 @section('content')
+@if(!($isTrialMode ?? false))@include('partials.study-time', ['studySource' => 'activity', 'studyContext' => $activity->id])@endif
 <div class="w-full space-y-4 sm:space-y-6" x-data="activityTelemetry({{ $activity->id }}, {{ ($isActivityCompleted ?? false) ? 'true' : 'false' }}, {{ ($isTrialMode ?? false) ? 'true' : 'false' }})" x-init="startTracking()">
     @unless(request()->boolean('embedded'))
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">

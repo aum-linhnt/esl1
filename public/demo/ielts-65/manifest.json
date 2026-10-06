@@ -1,0 +1,109 @@
+{
+  "version": "IELTS_65_MEDIA_V1",
+  "origin": "Original local demo; espeak-ng synthetic voices; slide videos; not official IELTS material.",
+  "files": {
+    "listening-guide.mp4": {
+      "bytes": 454209,
+      "sha256": "ea125de058150a5da4f5e8b9f529c9c1e74c9a66d586316bdbb92a585f12e8a8",
+      "duration_seconds": 29.84
+    },
+    "listening-guide.vtt": {
+      "bytes": 518,
+      "sha256": "5b4d2c8ee511bb366d278b7fa3d4f721841e275c3f1cac36804ee8e8d010c457"
+    },
+    "listening-poster.jpg": {
+      "bytes": 69658,
+      "sha256": "984d357f8119ca2be452a0d67696485eedb0d73ecbc6be07f8ecaae250f578ce"
+    },
+    "listening-registration.mp3": {
+      "bytes": 443498,
+      "sha256": "cff3ba2f19c341739f3c8fd9b31eec96bb8e4dddc7ef082d240710e21537f2a7",
+      "duration_seconds": 27.69
+    },
+    "listening-transcript.txt": {
+      "bytes": 454,
+      "sha256": "66ef7780d54fa82fc7960c9d87396bd088cfaf7a88e987156d1d2287b4c5bd3b"
+    },
+    "listening-worksheet.pdf": {
+      "bytes": 154729,
+      "sha256": "164c1575962992585a89fbbd343aaf16c6d2e5598c2d13048c6701be107874d3"
+    },
+    "reading-guide.mp4": {
+      "bytes": 541909,
+      "sha256": "dce7d4eb12e6e430f85139d67ce7cc0bb64e164e995043a7d00474f53b0576be",
+      "duration_seconds": 35.48
+    },
+    "reading-guide.vtt": {
+      "bytes": 599,
+      "sha256": "2c391972d60a9af51051786e4068966b30447fab587933b0425fc3d021be987c"
+    },
+    "reading-poster.jpg": {
+      "bytes": 65470,
+      "sha256": "ff6851fc161021a9ab5c22a9a972cab068dfd9d1f9104f53028e0a0d06be71e8"
+    },
+    "reading-worksheet.pdf": {
+      "bytes": 179545,
+      "sha256": "695f7a31e3c6ea244818e0d87ceba80c0be94e66b361e910573eaff7ba6d1e76"
+    },
+    "speaking-guide.mp4": {
+      "bytes": 524775,
+      "sha256": "15c1248496ca23c64e354e8822718f55df93756f87ba30a7e659f0c242729702",
+      "duration_seconds": 34.32
+    },
+    "speaking-guide.vtt": {
+      "bytes": 590,
+      "sha256": "adbb13bcda3c4c4b92792294586f6beafc17aeea6aeb259fc80b98ec64969876"
+    },
+    "speaking-model.mp3": {
+      "bytes": 476935,
+      "sha256": "5888b0082267157e34c2b86d180aa3e4d804cca7cc362bbc4039f0c4d586ed41",
+      "duration_seconds": 29.78
+    },
+    "speaking-model.txt": {
+      "bytes": 420,
+      "sha256": "9b416efdce2342920397aa800041a0136457ad7ff3b4c6abc39933d92aeadb2e"
+    },
+    "speaking-poster.jpg": {
+      "bytes": 68357,
+      "sha256": "4e322619e756747f2327df761a80cedf5d1eb19f432490c4619396ec03d54d46"
+    },
+    "speaking-worksheet.pdf": {
+      "bytes": 142904,
+      "sha256": "99cb62343b172ae3b2fa8644e114969a9a5503c964e8404e3c665ea0bff11a07"
+    },
+    "writing-task-1-guide.mp4": {
+      "bytes": 534528,
+      "sha256": "da3d4a1811739bb6c760f2a10974515c72cbc18463bf32cfcd312442e1d4cf49",
+      "duration_seconds": 35.81
+    },
+    "writing-task-1-guide.vtt": {
+      "bytes": 589,
+      "sha256": "86adfe773278d72b43c95359002f3b3ed067e3ffaad7ad22d0ad0a60a8dcfa05"
+    },
+    "writing-task-1-poster.jpg": {
+      "bytes": 73577,
+      "sha256": "102318652324710a62cdaa1938cfbb9c41bc2d30faac5c9ca07a06d019da6d8e"
+    },
+    "writing-task-1-worksheet.pdf": {
+      "bytes": 144129,
+      "sha256": "05f882fa5c3c43290919447cef9ea19ec2a8669da545539ac2d60aa18567d4c9"
+    },
+    "writing-task-2-guide.mp4": {
+      "bytes": 564864,
+      "sha256": "ab1acc070e63b2368328f5c597b41b50739d1accef6da5fa2654d98851d9591c",
+      "duration_seconds": 36.89
+    },
+    "writing-task-2-guide.vtt": {
+      "bytes": 636,
+      "sha256": "2bc9b02930aa12293de4f765c1a58d3d70d112e378829113aa2d04f6e608eea3"
+    },
+    "writing-task-2-poster.jpg": {
+      "bytes": 72826,
+      "sha256": "45e8ea6e3e8a83eb5acb7235a273cbb8858dbd7211adde5de4b42fa923de3ed5"
+    },
+    "writing-task-2-worksheet.pdf": {
+      "bytes": 141910,
+      "sha256": "5342513ca8cdf2fa81f73e294d8a821e617dad039aeabfdb0ee21ecd093d93db"
+    }
+  }
+}
