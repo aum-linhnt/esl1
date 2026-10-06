@@ -1,9 +1,9 @@
 {{-- Activity Type: AI Writing Task --}}
 <div class="space-y-4" x-data="inlineWritingApp()">
-    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-3">
-        <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">✍️ Đề bài tự luận</span>
-        <p class="text-sm font-semibold text-white leading-relaxed">{{ $content['prompt'] ?? 'Write a short paragraph about your daily routine.' }}</p>
-        <span class="text-[10px] text-gray-400">Yêu cầu tối thiểu: {{ $content['min_words'] ?? 50 }} từ</span>
+    <div class="bg-slate-50 dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+        <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">✍️ Đề bài tự luận</span>
+        <p class="text-sm font-semibold text-slate-900 dark:text-white leading-relaxed">{{ $content['prompt'] ?? 'Write a short paragraph about your daily routine.' }}</p>
+        <span class="text-[10px] text-slate-500 dark:text-gray-400">Yêu cầu tối thiểu: {{ $content['min_words'] ?? 50 }} từ</span>
     </div>
 
     <div>

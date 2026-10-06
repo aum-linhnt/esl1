@@ -720,6 +720,18 @@
     {{-- CASE 2: UPLOADED .H5P FILE PACKAGE (STANDALONE PLAYER)             --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     @elseif($source === 'upload' && $extractedUrl)
+        @php
+            $h5pEmbedType = 'div';
+            if ($activity->file) {
+                $extractedMetaPath = storage_path('app/public/h5p/extracted/' . $activity->file->hash . '/h5p.json');
+                if (file_exists($extractedMetaPath)) {
+                    $pkgMeta = json_decode(file_get_contents($extractedMetaPath), true);
+                    if (!empty($pkgMeta['embedTypes']) && !in_array('div', $pkgMeta['embedTypes'])) {
+                        $h5pEmbedType = 'iframe';
+                    }
+                }
+            }
+        @endphp
         {{-- Load Local Player Assets (with CDN fallback) --}}
         <link rel="stylesheet" href="{{ asset('vendor/h5p-standalone/dist/styles/h5p.css') }}">
         <script src="{{ asset('vendor/h5p-standalone/dist/main.bundle.js') }}"></script>
@@ -738,38 +750,43 @@
                 width: 100% !important;
                 min-height: 560px !important;
                 border: none !important;
+                background: transparent !important;
+            }
+            .h5p-content {
+                margin: 0 auto !important;
+                max-width: 100% !important;
             }
         </style>
 
-        <div class="rounded-2xl overflow-hidden border border-slate-700/80 shadow-2xl bg-slate-950/80 transition-all relative">
+        <div class="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 transition-all relative">
             <div id="h5p-loading-{{ $activity->id }}" 
-                 class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-sm transition-opacity duration-300">
-                <div class="w-9 h-9 border-2 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
-                <p class="mt-3 text-xs text-sky-300 font-medium font-mono tracking-wide">Đang khởi chạy tương tác H5P...</p>
+                 class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/95 dark:bg-slate-950/90 backdrop-blur-sm transition-opacity duration-300">
+                <div class="w-9 h-9 border-2 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+                <p class="mt-3 text-xs text-sky-600 dark:text-sky-300 font-medium font-mono tracking-wide">Đang khởi chạy tương tác H5P...</p>
             </div>
 
-            <div class="p-2 sm:p-4 min-h-[560px] flex flex-col justify-start">
+            <div class="p-2 sm:p-4 min-h-[560px] flex flex-col justify-start bg-transparent">
                 <div id="h5p-container-{{ $activity->id }}" class="w-full"></div>
             </div>
         </div>
 
         {{-- Footer Details & Download Link --}}
         <div class="flex flex-wrap items-center justify-between gap-2 px-1">
-            <div class="flex items-center gap-2 text-[11px] text-gray-400 font-mono">
-                <span class="inline-flex items-center gap-1 text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-md border border-sky-500/20">
+            <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-gray-400 font-mono">
+                <span class="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded-md border border-sky-200 dark:border-sky-500/20">
                     🧩 H5P Offline Package
                 </span>
                 @if($activity->file)
-                    <span class="text-gray-500 hidden sm:inline">|</span>
-                    <span class="text-gray-400 truncate max-w-xs">{{ $activity->file->original_name }}</span>
-                    <span class="text-gray-500 text-[10px]">({{ $activity->file->getSizeFormatted() }})</span>
+                    <span class="text-slate-400 dark:text-gray-500 hidden sm:inline">|</span>
+                    <span class="text-slate-600 dark:text-gray-400 truncate max-w-xs">{{ $activity->file->original_name }}</span>
+                    <span class="text-slate-400 dark:text-gray-500 text-[10px]">({{ $activity->file->getSizeFormatted() }})</span>
                 @endif
             </div>
 
             <div class="flex items-center gap-3">
                 @if($activity->file)
                     <a href="{{ $activity->file->getUrl() }}" download="{{ $activity->file->original_name }}"
-                       class="text-[11px] text-sky-400/80 hover:text-sky-300 font-mono flex items-center gap-1 transition-colors">
+                       class="text-[11px] text-sky-600 dark:text-sky-400/80 hover:text-sky-700 dark:hover:text-sky-300 font-mono flex items-center gap-1 transition-colors">
                         <span>⬇️ Tải gói (.h5p)</span>
                     </a>
                 @endif
@@ -866,6 +883,7 @@
 
                 const observer = new MutationObserver(() => {
                     const iframe = el.querySelector('iframe');
+                    const content = el.querySelector('.h5p-content') || el.querySelector('.boardgame') || el.querySelector('.h5p-iframe');
                     if (iframe) {
                         injectCenterStyles(iframe);
                         autoResizeIframe(iframe);
@@ -893,6 +911,9 @@
                             }
                         } catch(e) {}
                     }
+                    if (content) {
+                        setTimeout(hideLoader, 200);
+                    }
                 });
 
                 observer.observe(el, { childList: true, subtree: true });
@@ -910,7 +931,7 @@
                     script.onerror = () => {
                         clearTimeout(safetyTimer);
                         hideLoader();
-                        el.innerHTML = '<div class="p-8 text-center text-rose-400">Không thể tải trình phát H5P.</div>';
+                        el.innerHTML = '<div class="p-8 text-center text-rose-500 font-semibold text-xs">Không thể tải trình phát H5P.</div>';
                     };
                     document.head.appendChild(script);
                 } else {
@@ -922,7 +943,8 @@
                 new H5PStandalone.H5P(el, {
                     h5pJsonPath: '{{ $extractedUrl }}',
                     frameCss: '{{ asset("vendor/h5p-standalone/dist/styles/h5p.css") }}',
-                    frameJs: '{{ asset("vendor/h5p-standalone/dist/main.bundle.js") }}'
+                    frameJs: '{{ asset("vendor/h5p-standalone/dist/frame.bundle.js") }}',
+                    embedType: '{{ $h5pEmbedType }}'
                 })
                     .then(() => {
                         const iframe = el.querySelector('iframe');
@@ -933,7 +955,7 @@
                                 hideLoader();
                             }, 300);
                         } else {
-                            hideLoader();
+                            setTimeout(hideLoader, 300);
                         }
 
                         if (window.H5P && window.H5P.externalDispatcher) {
@@ -979,14 +1001,14 @@
                         el.innerHTML = `
                             <div class="p-8 text-center space-y-3">
                                 <div class="text-3xl">⚠️</div>
-                                <div class="text-xs font-bold text-rose-300">Không thể tải nội dung gói H5P</div>
-                                <div class="text-[11px] text-gray-300 font-mono bg-slate-900/90 p-3 rounded-xl border border-slate-800 max-w-lg mx-auto text-left leading-relaxed">
-                                    <div class="text-rose-400 font-semibold mb-1">Chi tiết: ${errMsg}</div>
-                                    <div class="text-gray-400 text-[10px]">
+                                <div class="text-xs font-bold text-rose-600 dark:text-rose-300">Không thể tải nội dung gói H5P</div>
+                                <div class="text-[11px] text-slate-700 dark:text-gray-300 font-mono bg-rose-50/60 dark:bg-slate-900/90 p-3.5 rounded-xl border border-rose-200/80 dark:border-slate-800 max-w-lg mx-auto text-left leading-relaxed">
+                                    <div class="text-rose-600 dark:text-rose-400 font-semibold mb-1">Chi tiết: ${errMsg}</div>
+                                    <div class="text-slate-500 dark:text-gray-400 text-[10px]">
                                         Mẹo: Khi xuất file từ Lumi hoặc phần mềm tạo H5P, hãy chọn "Bao gồm tất cả thư viện" trước khi lưu tệp .h5p.
                                     </div>
                                 </div>
-                                <button type="button" onclick="location.reload()" class="px-4 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-semibold transition-all">
+                                <button type="button" onclick="location.reload()" class="px-4 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-500/20 hover:bg-sky-100 dark:hover:bg-sky-500/30 text-sky-600 dark:text-sky-300 border border-sky-200 dark:border-sky-500/40 text-xs font-semibold transition-all">
                                     Tải lại trang ⟳
                                 </button>
                             </div>

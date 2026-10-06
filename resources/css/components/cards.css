@@ -48,3 +48,40 @@ html.light .section-header-border,
 html.light .section-footer-border {
     border-color: #f1f5f9 !important;
 }
+
+/* 5. Vocabulary Cards in Light Mode */
+html.light .vocab-card {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+html.light .vocab-card:hover {
+    border-color: #0d9488 !important;
+    box-shadow: 0 6px 16px -2px rgba(13, 148, 136, 0.12) !important;
+}
+html.light .vocab-word {
+    color: #0d9488 !important;
+}
+html.light .vocab-phonetic {
+    background-color: #f1f5f9 !important;
+    color: #64748b !important;
+    border-color: #e2e8f0 !important;
+}
+html.light .vocab-speaker-btn {
+    background-color: #f0fdfa !important;
+    border-color: #ccfbf1 !important;
+    color: #0d9488 !important;
+}
+html.light .vocab-speaker-btn:hover {
+    background-color: #ccfbf1 !important;
+    color: #0f766e !important;
+}
+html.light .vocab-meaning {
+    color: #0f172a !important;
+}
+html.light .vocab-example {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #334155 !important;
+}
+

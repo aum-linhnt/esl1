@@ -5,27 +5,11 @@
     $passingGrade = (float) ($activity->passing_grade ?? 80);
 @endphp
 
-@if(empty($rawQuestions))
-    <div class="p-8 text-center bg-[#151c30] border border-[#263353] rounded-2xl">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-2xl">
-            🎯
-        </div>
-        <h3 class="text-base font-bold text-white mb-2">Chưa có câu hỏi trong bài kiểm tra</h3>
-        <p class="text-xs text-gray-400 max-w-md mx-auto mb-5">
-            Nội dung bài kiểm tra này đang được cập nhật. Bạn có thể quay lại bài học hoặc liên hệ giáo viên hỗ trợ.
-        </p>
-        <a href="{{ route('lessons.show', $lesson->id) }}" class="btn-primary !w-auto !py-2.5 px-6 text-xs inline-flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            Quay lại bài học
-        </a>
-    </div>
-@else
-
 <style>
     [x-cloak] {
         display: none !important;
     }
-    /* Scoped CBT Exam & Practice Room Styles */
+    /* Scoped CBT Exam & Practice Room Styles - Dark Mode Defaults */
     .cbt-quiz-card {
         background-color: #151c30;
         border: 1px solid #253252;
@@ -33,6 +17,10 @@
     .cbt-subcard {
         background-color: #1a223a;
         border: 1px solid #2b395b;
+    }
+    .cbt-stat-box {
+        background-color: #121727;
+        border: 1px solid #232f4e;
     }
     .cbt-option {
         background-color: #13192c;
@@ -91,22 +79,260 @@
         box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.5);
     }
     .cbt-input {
-        background-color: #111625 !important;
-        color: #ffffff !important;
-        border: 1px solid #253252 !important;
-        caret-color: #38bdf8 !important;
+        background-color: #111625;
+        color: #ffffff;
+        border: 1px solid #253252;
+        caret-color: #38bdf8;
     }
     .cbt-input:focus {
-        background-color: #151c30 !important;
-        border-color: #3b82f6 !important;
-        color: #ffffff !important;
-        outline: none !important;
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4) !important;
+        background-color: #151c30;
+        border-color: #3b82f6;
+        color: #ffffff;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
     }
     .cbt-input::placeholder {
+        color: #64748b;
+    }
+
+    /* ─── Light Mode Overrides for CBT Quiz ─── */
+    html.light .cbt-quiz-card {
+        background-color: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -2px rgba(0, 0, 0, 0.05) !important;
+        color: #0f172a !important;
+    }
+    html.light .cbt-quiz-card h2,
+    html.light .cbt-quiz-card h3,
+    html.light .cbt-quiz-card .text-white:not(.btn-primary):not(.btn-primary *):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-teal"]) {
+        color: #0f172a !important;
+    }
+    html.light .cbt-quiz-card .text-gray-400 {
         color: #64748b !important;
     }
+    html.light .cbt-quiz-card .text-gray-300 {
+        color: #475569 !important;
+    }
+    html.light .cbt-quiz-card .text-gray-200 {
+        color: #334155 !important;
+    }
+    html.light .cbt-quiz-card a.hover\:text-white:hover {
+        color: #0f172a !important;
+    }
+    html.light .cbt-quiz-card button.hover\:text-white:hover {
+        color: #0f172a !important;
+    }
+    html.light .cbt-subcard {
+        background-color: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #1e293b !important;
+    }
+    html.light .cbt-stat-box,
+    html.light .cbt-quiz-card .bg-\[\#121727\] {
+        background-color: #f8fafc !important;
+        border-color: #e2e8f0 !important;
+    }
+    html.light .cbt-quiz-card .border-\[\#232f4e\],
+    html.light .cbt-quiz-card .border-\[\#253252\],
+    html.light .cbt-quiz-card .border-\[\#2b395b\],
+    html.light .cbt-quiz-card .border-\[\#263353\],
+    html.light .cbt-quiz-card .border-\[\#253353\],
+    html.light .cbt-quiz-card .border-\[\#222b44\],
+    html.light .cbt-quiz-card .border-\[\#222c48\] {
+        border-color: #e2e8f0 !important;
+    }
+    html.light .cbt-quiz-card .bg-\[\#111625\],
+    html.light .cbt-quiz-card .bg-\[\#182035\],
+    html.light .cbt-quiz-card .bg-\[\#141a2c\],
+    html.light .cbt-quiz-card .bg-\[\#151a2b\],
+    html.light .cbt-quiz-card .bg-\[\#151c30\],
+    html.light .cbt-quiz-card .bg-\[\#1a223a\] {
+        background-color: #f8fafc !important;
+        border-color: #e2e8f0 !important;
+    }
+    html.light .cbt-option {
+        background-color: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #1e293b !important;
+    }
+    html.light .cbt-option:hover {
+        background-color: #f8fafc !important;
+        border-color: #3b82f6 !important;
+        color: #0f172a !important;
+    }
+    html.light .cbt-option.selected {
+        background-color: #eff6ff !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4) !important;
+        color: #1d4ed8 !important;
+    }
+    html.light .cbt-option span {
+        color: #1e293b !important;
+    }
+    html.light .cbt-option.selected span {
+        color: #1d4ed8 !important;
+    }
+    html.light .cbt-option .bg-\[\#182035\] {
+        background-color: #f1f5f9 !important;
+        border-color: #cbd5e1 !important;
+        color: #475569 !important;
+    }
+    html.light .cbt-option.selected .bg-\[\#182035\] {
+        background-color: #2563eb !important;
+        border-color: #3b82f6 !important;
+        color: #ffffff !important;
+    }
+    html.light .cbt-radio-circle {
+        border-color: #cbd5e1 !important;
+        background-color: #ffffff !important;
+    }
+    html.light .cbt-option:hover .cbt-radio-circle {
+        border-color: #3b82f6 !important;
+    }
+    html.light .cbt-option.selected .cbt-radio-circle {
+        border-color: #2563eb !important;
+        background-color: #2563eb !important;
+    }
+    html.light .cbt-q-pill {
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #475569 !important;
+    }
+    html.light .cbt-q-pill:hover {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        border-color: #3b82f6 !important;
+    }
+    html.light .cbt-q-pill.active {
+        background-color: #2563eb !important;
+        border-color: #1d4ed8 !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+    }
+    html.light .cbt-q-pill.answered {
+        background-color: #ecfdf5 !important;
+        border-color: #a7f3d0 !important;
+        color: #047857 !important;
+    }
+    html.light .cbt-q-pill.flagged {
+        border-color: #f59e0b !important;
+        box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.5) !important;
+    }
+    html.light .cbt-input {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        caret-color: #2563eb !important;
+    }
+    html.light .cbt-input:focus {
+        background-color: #ffffff !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
+        color: #0f172a !important;
+    }
+    html.light .cbt-input::placeholder {
+        color: #94a3b8 !important;
+    }
+    html.light .bg-gradient-to-r.from-blue-950\/40 {
+        background: linear-gradient(to right, #eff6ff, #eef2ff, #faf5ff) !important;
+        border-color: #bfdbfe !important;
+    }
+    html.light .cbt-quiz-card table thead.bg-\[\#121727\] {
+        background-color: #f1f5f9 !important;
+        border-color: #e2e8f0 !important;
+    }
+    html.light .cbt-quiz-card table thead th {
+        color: #475569 !important;
+    }
+    html.light .cbt-quiz-card .divide-\[\#1e2944\] > :not([hidden]) ~ :not([hidden]) {
+        border-color: #e2e8f0 !important;
+    }
+    html.light .cbt-quiz-card tr.hover\:bg-\[\#182239\]:hover {
+        background-color: #f8fafc !important;
+    }
+    html.light .cbt-quiz-card .bg-\[\#13192c\] {
+        background-color: #ffffff !important;
+        border-color: #cbd5e1 !important;
+        color: #334155 !important;
+    }
+    html.light .cbt-quiz-card .bg-\[\#13192c\]:hover {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        border-color: #93c5fd !important;
+    }
+    html.light .cbt-quiz-card .bg-\[\#161e33\] {
+        background-color: #ffffff !important;
+        border-color: #cbd5e1 !important;
+    }
+    html.light .cbt-quiz-card .min-h-\[64px\].bg-\[\#111625\] {
+        background-color: #f8fafc !important;
+        border-color: #cbd5e1 !important;
+    }
+    html.light .cbt-quiz-card .w-full.bg-\[\#111625\] {
+        background-color: #e2e8f0 !important;
+        border-color: #cbd5e1 !important;
+    }
+    html.light div[x-show="showConfirmModal"] > div {
+        background-color: #ffffff !important;
+        border-color: #e2e8f0 !important;
+        color: #0f172a !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    }
+    html.light div[x-show="showConfirmModal"] h3 {
+        color: #0f172a !important;
+    }
+    html.light div[x-show="showConfirmModal"] p {
+        color: #475569 !important;
+    }
+    html.light div[x-show="showConfirmModal"] button.bg-\[\#141a2c\] {
+        background-color: #f1f5f9 !important;
+        border-color: #cbd5e1 !important;
+        color: #475569 !important;
+    }
+    html.light div[x-show="showConfirmModal"] button.bg-\[\#141a2c\]:hover {
+        background-color: #e2e8f0 !important;
+        color: #0f172a !important;
+    }
+    html.light .cbt-review-card {
+        background-color: #ffffff !important;
+    }
+    html.light .cbt-review-card.border-emerald-500\/30 {
+        background-color: #f0fdf4 !important;
+        border-color: #86efac !important;
+    }
+    html.light .cbt-review-card.border-rose-500\/30 {
+        background-color: #fff1f2 !important;
+        border-color: #fecdd3 !important;
+    }
+    html.light .cbt-explanation-box {
+        background-color: #fffbeb !important;
+        border-color: #fde68a !important;
+        color: #78350f !important;
+    }
+    html.light .cbt-explanation-box p {
+        color: #92400e !important;
+    }
+    html.light .btn-primary,
+    html.light .btn-primary * {
+        color: #ffffff !important;
+    }
 </style>
+
+@if(empty($rawQuestions))
+    <div class="cbt-quiz-card p-8 text-center rounded-2xl">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-2xl">
+            🎯
+        </div>
+        <h3 class="text-base font-bold text-white mb-2">Chưa có câu hỏi trong bài kiểm tra</h3>
+        <p class="text-xs text-gray-400 max-w-md mx-auto mb-5">
+            Nội dung bài kiểm tra này đang được cập nhật. Bạn có thể quay lại bài học hoặc liên hệ giáo viên hỗ trợ.
+        </p>
+        <a href="{{ route('lessons.show', $lesson->id) }}" class="btn-primary !w-auto !py-2.5 px-6 text-xs inline-flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Quay lại bài học
+        </a>
+    </div>
+@else
 
 <div x-data="courseQuizApp()" x-init="init()" class="space-y-6">
 
@@ -118,13 +344,23 @@
         {{-- Quiz Header Card --}}
         <div class="cbt-quiz-card rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-[#232f4e]">
+                @php
+                    $rawTitle = $activity->title ?: 'Bài kiểm tra kiến thức';
+                    if (preg_match('/^([\p{Extended_Pictographic}\p{So}]+)\s*(.*)$/u', $rawTitle, $matches)) {
+                        $badgeIcon = $matches[1] ?: '🎯';
+                        $cleanTitle = $matches[2] ?: $rawTitle;
+                    } else {
+                        $badgeIcon = '🎯';
+                        $cleanTitle = $rawTitle;
+                    }
+                @endphp
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-2xl">
-                        🎯
+                    <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-2xl flex-shrink-0">
+                        {{ $badgeIcon }}
                     </div>
                     <div>
                         <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">
-                            {{ $activity->title ?: 'Bài kiểm tra kiến thức' }}
+                            {{ $cleanTitle }}
                         </h2>
                         <p class="text-xs text-gray-400 mt-0.5">
                             {{ $lesson->title }} · Khóa học {{ $course->title }}
@@ -133,7 +369,7 @@
                 </div>
 
                 @if($activity->description)
-                    <div class="text-xs text-gray-300 max-w-md bg-[#121727] p-3 rounded-xl border border-[#232f4e]">
+                    <div class="cbt-inner-box text-xs text-gray-300 max-w-md bg-[#121727] p-3 rounded-xl border border-[#232f4e]">
                         {{ $activity->description }}
                     </div>
                 @endif
@@ -141,21 +377,21 @@
 
             {{-- Rules / Settings Grid (Moodle Standard) --}}
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-5">
-                <div class="bg-[#121727] p-3.5 rounded-xl border border-[#232f4e] text-center">
+                <div class="cbt-stat-box bg-[#121727] p-3.5 rounded-xl border border-[#232f4e] text-center">
                     <span class="text-[10px] text-gray-400 uppercase font-mono font-bold block">Số lần làm bài</span>
                     <span class="text-sm sm:text-base font-bold text-white mt-1 block" x-text="maxAttempts > 0 ? (maxAttempts + ' lần') : 'Không giới hạn'"></span>
                 </div>
-                <div class="bg-[#121727] p-3.5 rounded-xl border border-[#232f4e] text-center">
+                <div class="cbt-stat-box bg-[#121727] p-3.5 rounded-xl border border-[#232f4e] text-center">
                     <span class="text-[10px] text-gray-400 uppercase font-mono font-bold block">Thời gian giới hạn</span>
                     <span class="text-sm sm:text-base font-bold text-white mt-1 block" x-text="timeLimitMinutes > 0 ? (timeLimitMinutes + ' phút') : 'Không giới hạn'"></span>
                 </div>
-                <div class="bg-[#121727] p-3.5 rounded-xl border border-[#232f4e] text-center">
+                <div class="cbt-stat-box bg-[#121727] p-3.5 rounded-xl border border-[#232f4e] text-center">
                     <span class="text-[10px] text-gray-400 uppercase font-mono font-bold block">Điểm đạt yêu cầu</span>
-                    <span class="text-sm sm:text-base font-bold text-emerald-400 mt-1 block" x-text="passingGrade + '%'"></span>
+                    <span class="text-sm sm:text-base font-bold text-emerald-500 dark:text-emerald-400 mt-1 block" x-text="passingGrade + '%'"></span>
                 </div>
-                <div class="bg-[#121727] p-3.5 rounded-xl border border-[#232f4e] text-center">
+                <div class="cbt-stat-box bg-[#121727] p-3.5 rounded-xl border border-[#232f4e] text-center">
                     <span class="text-[10px] text-gray-400 uppercase font-mono font-bold block">Cách tính điểm</span>
-                    <span class="text-sm sm:text-base font-bold text-indigo-300 mt-1 block" x-text="gradingMethodLabel"></span>
+                    <span class="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-300 mt-1 block" x-text="gradingMethodLabel"></span>
                 </div>
             </div>
         </div>
@@ -353,23 +589,17 @@
                         <span class="text-xs text-gray-400" x-text="getQuestionTypeHint(currentQuestion.question_type)"></span>
                     </div>
 
-                    {{-- Audio speaker button if question text is available or custom audio_url --}}
-                    <div class="flex items-center gap-2">
-                        <template x-if="currentQuestion.audio_url">
+                    {{-- Audio player button if custom audio_url is available --}}
+                    <template x-if="currentQuestion.audio_url">
+                        <div class="flex items-center gap-2">
                             <button type="button" 
                                     @click="playCustomAudio(currentQuestion.audio_url)"
                                     class="px-3 py-1.5 rounded-lg bg-teal-500/15 border border-teal-500/30 text-teal-300 text-xs font-semibold hover:bg-teal-500/25 transition-colors flex items-center gap-1.5">
                                 <span>🎧</span>
                                 <span x-text="isPlayingAudio ? 'Dừng audio' : 'Nghe audio'">Nghe audio</span>
                             </button>
-                        </template>
-                        <button type="button" 
-                                @click="speakQuestion(currentQuestion.question)"
-                                class="p-1.5 rounded-lg bg-[#1a223a] border border-[#2b395b] text-gray-300 hover:text-white hover:border-blue-500 transition-colors"
-                                title="Phát âm câu hỏi">
-                            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
-                        </button>
-                    </div>
+                        </div>
+                    </template>
                 </div>
 
                 {{-- Question Prompt --}}
@@ -531,7 +761,6 @@
                                    :value="answers[currentIndex] || ''"
                                    @input="answers[currentIndex] = $event.target.value"
                                    placeholder="Gõ câu trả lời của bạn..."
-                                   style="background-color: #111625 !important; color: #ffffff !important; caret-color: #38bdf8 !important;"
                                    class="cbt-input w-full px-4 py-3.5 rounded-xl border border-[#253252] text-sm sm:text-base outline-none transition-all">
                             <template x-if="answers[currentIndex]">
                                 <button type="button" 
@@ -644,7 +873,7 @@
              style="display: none;"
              x-transition.opacity
              class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-[#182035] border border-[#2b395b] rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl"
+            <div class="cbt-modal-card bg-[#182035] border border-[#2b395b] rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl"
                  @click.outside="showConfirmModal = false">
                 <div class="w-14 h-14 mx-auto rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl">
                     ⚠️
@@ -707,7 +936,7 @@
             {{-- Diagnostic Stats Grid (Matches Practice Player) --}}
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-3xl mx-auto pt-2">
                 {{-- Score --}}
-                <div class="bg-[#121727] border border-[#232f4e] p-4 rounded-xl text-center">
+                <div class="cbt-stat-box bg-[#121727] border border-[#232f4e] p-4 rounded-xl text-center">
                     <span class="text-[11px] text-gray-400 uppercase font-mono font-semibold">Điểm số</span>
                     <p class="text-2xl sm:text-3xl font-black text-white mt-1">
                         <span class="text-blue-400" x-text="reviewScore"></span>
@@ -717,7 +946,7 @@
                 </div>
 
                 {{-- Accuracy % --}}
-                <div class="bg-[#121727] border border-[#232f4e] p-4 rounded-xl text-center">
+                <div class="cbt-stat-box bg-[#121727] border border-[#232f4e] p-4 rounded-xl text-center">
                     <span class="text-[11px] text-gray-400 uppercase font-mono font-semibold">Độ chính xác</span>
                     <p class="text-2xl sm:text-3xl font-black mt-1"
                        :class="reviewPassed ? 'text-teal-400' : 'text-amber-400'" 
@@ -727,7 +956,7 @@
                 </div>
 
                 {{-- Result Status --}}
-                <div class="bg-[#121727] border border-[#232f4e] p-4 rounded-xl text-center">
+                <div class="cbt-stat-box bg-[#121727] border border-[#232f4e] p-4 rounded-xl text-center">
                     <span class="text-[11px] text-gray-400 uppercase font-mono font-semibold">Kết quả</span>
                     <p class="text-lg sm:text-xl font-bold mt-2"
                        :class="reviewPassed ? 'text-emerald-400' : 'text-rose-400'"
@@ -736,7 +965,7 @@
                 </div>
 
                 {{-- Time Spent --}}
-                <div class="bg-[#121727] border border-[#232f4e] p-4 rounded-xl text-center">
+                <div class="cbt-stat-box bg-[#121727] border border-[#232f4e] p-4 rounded-xl text-center">
                     <span class="text-[11px] text-gray-400 uppercase font-mono font-semibold">Thời gian</span>
                     <p class="text-2xl sm:text-3xl font-black text-indigo-400 font-mono mt-1" x-text="reviewFormattedDuration">00:00</p>
                     <span class="text-[10px] text-gray-400">Thời gian làm bài</span>
@@ -783,7 +1012,7 @@
 
             <div class="space-y-4">
                 <template x-for="(q, idx) in reviewQuestions" :key="'review_' + idx">
-                    <div class="bg-[#121727] border rounded-xl p-4 sm:p-5 transition-all"
+                    <div class="cbt-review-card bg-[#121727] border rounded-xl p-4 sm:p-5 transition-all"
                          :class="q.is_correct ? 'border-emerald-500/30' : 'border-rose-500/30'">
                         
                         {{-- Question Header & Status --}}
@@ -801,13 +1030,6 @@
                                     <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30" x-text="'v' + q.version"></span>
                                 </template>
                             </div>
-
-                            <button type="button" 
-                                    @click="speakQuestion(q.question_text || q.question)"
-                                    class="text-gray-400 hover:text-white p-1 text-xs cursor-pointer"
-                                    title="Nghe câu hỏi">
-                                🔊
-                            </button>
                         </div>
 
                         {{-- Question Text --}}
@@ -831,7 +1053,7 @@
 
                         {{-- Explanation Box --}}
                         <template x-if="q.explanation">
-                            <div class="mt-3 p-3 rounded-lg bg-[#182035] border border-[#2b395b] text-xs text-gray-300 flex items-start gap-2">
+                            <div class="cbt-explanation-box mt-3 p-3 rounded-lg bg-[#182035] border border-[#2b395b] text-xs text-gray-300 flex items-start gap-2">
                                 <span class="text-base flex-shrink-0">💡</span>
                                 <div>
                                     <span class="font-bold text-blue-300 block mb-0.5">Giải thích:</span>

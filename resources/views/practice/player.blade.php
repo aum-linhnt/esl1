@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Phòng Thi Thích Ứng AI 4 Kỹ Năng - ESL CBT Room</title>
+    {{-- Immediate Anti-FOUC Theme Script --}}
+    <script>
+        (function() {
+            try {
+                const savedMode = localStorage.getItem('esl_theme_mode') || 'dark';
+                const isDark = savedMode === 'dark' || (savedMode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                const root = document.documentElement;
+                if (isDark) {
+                    root.classList.add('dark');
+                    root.classList.remove('light');
+                } else {
+                    root.classList.remove('dark');
+                    root.classList.add('light');
+                }
+            } catch(e) {}
+        })();
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         [x-cloak] { display: none !important; }
@@ -156,6 +174,221 @@
         .wave-bar:nth-child(3) { animation-delay: 0.3s; }
         .wave-bar:nth-child(4) { animation-delay: 0.45s; }
         .wave-bar:nth-child(5) { animation-delay: 0.6s; }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* LIGHT MODE OVERRIDES FOR ADAPTIVE CBT EXAM ROOM                     */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        html.light body,
+        html.light .cbt-page {
+            background-color: #f8fafc !important;
+            color: #1e293b !important;
+        }
+
+        html.light .cbt-topbar {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+
+        html.light .cbt-card {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            color: #1e293b !important;
+        }
+
+        html.light .cbt-subcard {
+            background-color: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            color: #1e293b !important;
+        }
+
+        html.light .cbt-inner-box {
+            background-color: #f1f5f9 !important;
+            border: 1px solid #e2e8f0 !important;
+            color: #334155 !important;
+        }
+
+        html.light .cbt-bottombar {
+            background-color: #ffffff !important;
+            border-top: 1px solid #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+
+        html.light .cbt-btn-icon {
+            background-color: #f8fafc !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #475569 !important;
+        }
+        html.light .cbt-btn-icon:hover {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+            border-color: #94a3b8 !important;
+        }
+
+        html.light .cbt-option {
+            background-color: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #334155 !important;
+        }
+        html.light .cbt-option:hover:not(.disabled) {
+            background-color: #f8fafc !important;
+            border-color: #3b82f6 !important;
+            color: #0f172a !important;
+        }
+        html.light .cbt-option.selected {
+            background-color: #eff6ff !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4) !important;
+            color: #1d4ed8 !important;
+        }
+
+        html.light .cbt-radio-circle {
+            border: 2px solid #cbd5e1 !important;
+            background-color: #ffffff !important;
+        }
+        html.light .cbt-option:hover .cbt-radio-circle {
+            border-color: #3b82f6 !important;
+        }
+        html.light .cbt-option.selected .cbt-radio-circle {
+            border-color: #2563eb !important;
+            background-color: #2563eb !important;
+        }
+
+        html.light .cbt-q-pill {
+            background-color: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #475569 !important;
+        }
+        html.light .cbt-q-pill:hover {
+            background-color: #f1f5f9 !important;
+            border-color: #3b82f6 !important;
+            color: #0f172a !important;
+        }
+        html.light .cbt-q-pill.active {
+            background-color: #2563eb !important;
+            border-color: #2563eb !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 12px rgba(37, 99, 246, 0.4) !important;
+        }
+        html.light .cbt-q-pill.answered {
+            background-color: #ecfdf5 !important;
+            border-color: #a7f3d0 !important;
+            color: #047857 !important;
+        }
+
+        html.light .text-white:not(.btn-primary):not(.btn-primary *):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-red"]):not([class*="bg-amber"]):not([class*="text-emerald"]):not([class*="text-rose"]) {
+            color: #0f172a !important;
+        }
+        html.light .text-gray-200 { color: #334155 !important; }
+        html.light .text-gray-300 { color: #475569 !important; }
+        html.light .text-gray-400 { color: #64748b !important; }
+        html.light .text-slate-200 { color: #1e293b !important; }
+        html.light .text-slate-300 { color: #334155 !important; }
+        html.light .text-slate-400 { color: #64748b !important; }
+
+        html.light .bg-\[\#151c2f\],
+        html.light .bg-\[\#141b2d\],
+        html.light .bg-\[\#13192a\],
+        html.light .bg-\[\#172037\],
+        html.light .bg-\[\#101524\],
+        html.light .bg-\[\#1b253f\],
+        html.light .bg-\[\#141a2c\] {
+            background-color: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+            color: #1e293b !important;
+        }
+
+        html.light .border-\[\#253252\],
+        html.light .border-\[\#1f2942\],
+        html.light .border-\[\#2b395b\],
+        html.light .border-\[\#232f4e\],
+        html.light .border-\[\#222c48\] {
+            border-color: #e2e8f0 !important;
+        }
+
+        html.light textarea {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+            caret-color: #2563eb !important;
+        }
+        html.light textarea::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        html.light .cbt-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+        }
+        html.light .cbt-scrollbar::-webkit-scrollbar-thumb {
+            background: #94a3b8 !important;
+        }
+        html.light .cbt-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b !important;
+        }
+
+        html.light .bg-black\/85 {
+            background-color: rgba(15, 23, 42, 0.45) !important;
+        }
+
+        /* Modal & Secondary Buttons (Dark Mode Defaults & Light Mode Overrides) */
+        .cbt-btn-secondary {
+            background-color: #1f2944 !important;
+            border: 1px solid #2d3b61 !important;
+            color: #e2e8f0 !important;
+            transition: all 0.2s ease;
+        }
+        .cbt-btn-secondary:hover {
+            background-color: #28365a !important;
+            color: #ffffff !important;
+        }
+
+        html.light .cbt-btn-secondary {
+            background-color: #f1f5f9 !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #334155 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+        }
+        html.light .cbt-btn-secondary:hover {
+            background-color: #e2e8f0 !important;
+            border-color: #94a3b8 !important;
+            color: #0f172a !important;
+        }
+
+        /* Catch-all for dark background buttons and borders in Light Mode */
+        html.light .bg-\[\#1f2944\],
+        html.light [class*="bg-[#1f2944]"] {
+            background-color: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+            color: #334155 !important;
+        }
+        html.light .bg-\[\#1f2944\]:hover,
+        html.light [class*="bg-[#1f2944]"]:hover,
+        html.light [class*="hover:bg-[#28365a]"]:hover,
+        html.light [class*="hover:bg-[#283556]"]:hover {
+            background-color: #e2e8f0 !important;
+            border-color: #94a3b8 !important;
+            color: #0f172a !important;
+        }
+        html.light .border-\[\#2d3b61\] {
+            border-color: #cbd5e1 !important;
+        }
+        html.light .border-slate-800 {
+            border-color: #e2e8f0 !important;
+        }
+        html.light .border-slate-700 {
+            border-color: #e2e8f0 !important;
+        }
+        html.light .bg-slate-800 {
+            background-color: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+            color: #334155 !important;
+        }
+        html.light .hover\:bg-slate-800:hover,
+        html.light .hover\:bg-slate-700:hover {
+            background-color: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
     </style>
 </head>
 <body class="cbt-page min-h-screen select-none font-sans overflow-hidden antialiased"
@@ -184,13 +417,23 @@
                 </span>
             </div>
 
-            <button type="button" 
-                    @click="openExitModal = true" 
-                    class="text-xs sm:text-sm font-bold text-gray-300 hover:text-white flex items-center gap-2 px-3.5 py-1.5 rounded-xl hover:bg-slate-800 transition-all border border-transparent hover:border-slate-700 cursor-pointer"
-                    title="Thoát phòng thi">
-                <span>Thoát</span>
-                <span class="text-base font-bold">✕</span>
-            </button>
+            <div class="flex items-center gap-2.5">
+                <button type="button" 
+                        @click="toggleTheme()" 
+                        class="p-2 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-2xs"
+                        :title="isDarkMode ? 'Chuyển sang giao diện Sáng' : 'Chuyển sang giao diện Tối'">
+                    <span x-show="isDarkMode">☀️</span>
+                    <span x-show="!isDarkMode">🌙</span>
+                </button>
+
+                <button type="button" 
+                        @click="openExitModal = true" 
+                        class="text-xs sm:text-sm font-bold text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 px-3.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer"
+                        title="Thoát phòng thi">
+                    <span>Thoát</span>
+                    <span class="text-base font-bold">✕</span>
+                </button>
+            </div>
         </header>
 
         {{-- Intro Center Card Container --}}
@@ -326,7 +569,15 @@
             </div>
 
             {{-- Right: Submit / Finish Exam Button --}}
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2.5">
+                <button type="button" 
+                        @click="toggleTheme()" 
+                        class="p-2 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-2xs"
+                        :title="isDarkMode ? 'Chuyển sang giao diện Sáng' : 'Chuyển sang giao diện Tối'">
+                    <span x-show="isDarkMode">☀️</span>
+                    <span x-show="!isDarkMode">🌙</span>
+                </button>
+
                 <button type="button" 
                         @click="openSummaryModal = true" 
                         class="px-4 sm:px-6 py-2 rounded-xl cbt-btn-blue text-white font-bold text-xs sm:text-sm shadow-lg hover:shadow-blue-500/30 transition-all flex items-center gap-2 cursor-pointer">
@@ -985,7 +1236,7 @@
             <div class="flex items-center justify-center gap-3 pt-2">
                 <button type="button" 
                         @click="openExitModal = false" 
-                        class="flex-1 px-5 py-2.5 rounded-xl bg-[#1f2944] hover:bg-[#28365a] border border-[#2d3b61] text-xs sm:text-sm font-bold text-gray-200 hover:text-white transition-all cursor-pointer">
+                        class="flex-1 px-5 py-2.5 rounded-xl cbt-btn-secondary text-xs sm:text-sm font-bold transition-all cursor-pointer">
                     Tiếp tục làm bài
                 </button>
 
@@ -1040,7 +1291,7 @@
             <div class="flex items-center justify-end gap-3 pt-2">
                 <button type="button" 
                         @click="openSummaryModal = false" 
-                        class="px-4 py-2.5 rounded-xl bg-[#1f2944] hover:bg-[#283556] text-xs font-bold text-gray-300 transition-colors cursor-pointer">
+                        class="px-4 py-2.5 rounded-xl cbt-btn-secondary text-xs font-bold transition-colors cursor-pointer">
                     Tiếp tục làm bài
                 </button>
 
@@ -1235,15 +1486,15 @@
                     <span>📊 Xem Bảng Điểm Toàn Diện</span>
                 </a>
                 <a href="{{ route('practice.index', ['skill' => 'adaptive']) }}" 
-                   class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-gray-200 hover:text-white font-semibold text-xs sm:text-sm border border-slate-700 transition-colors flex items-center gap-1.5">
+                   class="px-4 py-2.5 rounded-xl cbt-btn-secondary font-semibold text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer">
                     <span>🔄 Thi Bộ Đề Khác</span>
                 </a>
                 <a href="{{ route('courses.index') }}" 
-                   class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-gray-200 hover:text-white font-semibold text-xs sm:text-sm border border-slate-700 transition-colors flex items-center gap-1.5">
+                   class="px-4 py-2.5 rounded-xl cbt-btn-secondary font-semibold text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer">
                     <span>🎓 Khóa Học Lộ Trình</span>
                 </a>
                 <a href="{{ route('practice.index') }}" 
-                   class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-gray-400 hover:text-white font-semibold text-xs sm:text-sm border border-slate-700 transition-colors">
+                   class="px-4 py-2.5 rounded-xl cbt-btn-secondary font-semibold text-xs sm:text-sm cursor-pointer">
                     Về Cổng Luyện Đề
                 </a>
             </div>
@@ -1280,6 +1531,23 @@
                 show: false,
                 type: 'up',
                 message: ''
+            },
+
+            // Theme Mode State
+            isDarkMode: !document.documentElement.classList.contains('light'),
+            toggleTheme() {
+                const root = document.documentElement;
+                if (root.classList.contains('light')) {
+                    root.classList.remove('light');
+                    root.classList.add('dark');
+                    this.isDarkMode = true;
+                    localStorage.setItem('esl_theme_mode', 'dark');
+                } else {
+                    root.classList.remove('dark');
+                    root.classList.add('light');
+                    this.isDarkMode = false;
+                    localStorage.setItem('esl_theme_mode', 'light');
+                }
             },
 
             get cefrDescriptor() {

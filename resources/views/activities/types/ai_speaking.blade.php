@@ -1,11 +1,11 @@
 {{-- Activity Type: AI Speaking Drill --}}
 <div class="space-y-5" x-data="inlineSpeakingApp()">
-    <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4 text-center">
-        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">🎙️ Luyện phát âm AI</span>
-        <p class="text-lg font-bold text-white leading-relaxed">"{{ $content['target_sentence'] ?? 'The quick brown fox jumps over the lazy dog.' }}"</p>
+    <div class="bg-slate-50 dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 text-center">
+        <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">🎙️ Luyện phát âm AI</span>
+        <p class="text-lg font-bold text-slate-900 dark:text-white leading-relaxed">"{{ $content['target_sentence'] ?? 'The quick brown fox jumps over the lazy dog.' }}"</p>
         
         @if(!empty($content['phonetic_guide']))
-            <p class="text-xs text-fsel-teal font-mono">{{ $content['phonetic_guide'] }}</p>
+            <p class="text-xs text-teal-600 dark:text-fsel-teal font-mono">{{ $content['phonetic_guide'] }}</p>
         @endif
 
         <div class="pt-2 flex items-center justify-center gap-3">
@@ -15,7 +15,7 @@
             </button>
         </div>
 
-        <p x-show="recognizedText" class="text-xs text-gray-300 font-mono mt-2" x-text="'Đã nhận diện: ' + recognizedText"></p>
+        <p x-show="recognizedText" class="text-xs text-slate-600 dark:text-gray-300 font-mono mt-2" x-text="'Đã nhận diện: ' + recognizedText"></p>
     </div>
 
     @include('activities._completion-button', ['label' => 'Hoàn thành bài luyện nói ✓'])

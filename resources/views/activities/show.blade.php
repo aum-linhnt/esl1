@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="w-full space-y-4 sm:space-y-6" x-data="activityTelemetry({{ $activity->id }}, {{ ($isActivityCompleted ?? false) ? 'true' : 'false' }}, {{ ($isTrialMode ?? false) ? 'true' : 'false' }})" x-init="startTracking()">
-    <a href="{{ route('lessons.show', $lesson->id) }}" class="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 rounded-full transition-colors">
+    <a href="{{ route('lessons.show', $lesson->id) }}" class="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 px-3.5 py-1.5 rounded-full transition-colors shadow-2xs">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         <span class="truncate max-w-xs">{{ $lesson->title }}</span>
     </a>
@@ -22,10 +22,10 @@
         </div>
     @endif
 
-    <div class="card-dark p-4 sm:p-6 lg:p-8 space-y-6 rounded-2xl sm:rounded-3xl border-slate-800/80">
+    <div class="card-dark p-4 sm:p-6 lg:p-8 space-y-6 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800/80">
         
         {{-- Activity Header Bar --}}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800/80">
+        <div class="flex items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800/80">
             <div class="flex items-center gap-2.5 flex-wrap min-w-0">
                 @php
                     $badgeStyle = match($activity->type) {
@@ -44,13 +44,7 @@
                 <span class="px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold capitalize border font-mono {{ $badgeStyle }}">
                     {{ str_replace('_', ' ', $activity->type) }}
                 </span>
-                <h1 class="text-base sm:text-xl font-bold text-white tracking-tight">{{ $activity->title }}</h1>
-            </div>
-            
-            <div class="flex items-center gap-2 text-xs text-gray-400 font-mono bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 self-start sm:self-auto">
-                <span class="flex items-center gap-1 text-teal-300">⏱ <span x-text="formattedTime">00:00</span></span>
-                <span>·</span>
-                <span>~{{ $activity->estimated_minutes ?? 5 }}m</span>
+                <h1 class="text-base sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">{{ $activity->title }}</h1>
             </div>
         </div>
 

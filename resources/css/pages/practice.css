@@ -359,3 +359,69 @@ html.light .cbt-timer-box {
     border: 1px solid #e2e8f0 !important;
     color: #0f172a !important;
 }
+
+/* ─── 8. CBT Quiz Component Light Mode ─── */
+html.light .cbt-quiz-card {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    color: #0f172a !important;
+}
+html.light .cbt-quiz-card h2,
+html.light .cbt-quiz-card h3,
+html.light .cbt-quiz-card .text-white:not(.btn-primary):not(.btn-primary *):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-teal"]) {
+    color: #0f172a !important;
+}
+html.light .cbt-quiz-card .text-gray-400 {
+    color: #64748b !important;
+}
+html.light .cbt-quiz-card .text-gray-300 {
+    color: #475569 !important;
+}
+html.light .cbt-quiz-card .text-gray-200 {
+    color: #334155 !important;
+}
+html.light .cbt-quiz-card a.hover\:text-white:hover {
+    color: #0f172a !important;
+}
+html.light .cbt-quiz-card button.hover\:text-white:hover {
+    color: #0f172a !important;
+}
+html.light .cbt-subcard {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #1e293b !important;
+}
+html.light .cbt-stat-box,
+html.light .cbt-quiz-card .bg-\[\#121727\] {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+html.light .cbt-option {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #1e293b !important;
+}
+html.light .cbt-option:hover {
+    background-color: #f8fafc !important;
+    border-color: #3b82f6 !important;
+    color: #0f172a !important;
+}
+html.light .cbt-option.selected {
+    background-color: #eff6ff !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4) !important;
+    color: #1d4ed8 !important;
+}
+html.light .cbt-q-pill {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #475569 !important;
+}
+html.light .cbt-input {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+    caret-color: #2563eb !important;
+}
+
