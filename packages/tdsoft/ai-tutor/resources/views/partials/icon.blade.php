@@ -1,6 +1,9 @@
 {{-- Shared outline icons; decorative SVGs inherit their surrounding text color. --}}
 <svg class="learning-icon" width="{{ $size ?? 20 }}" height="{{ $size ?? 20 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
     @switch($name)
+        @case('download')
+            <path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>
+            @break
         @case('eye')
             <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>
             @break

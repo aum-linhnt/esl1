@@ -25,9 +25,11 @@ final class AiTutorIntegrationServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Event::listen(\TDSoft\AiTutor\Events\WritingAssessmentCompleted::class, \App\Listeners\RecordWritingSkill::class);
         config([
             'ai-tutor.license.admin_layout' => 'layouts.admin',
             'ai-tutor.license.admin_theme' => 'dark',
+            'ai-tutor.ui.study_tracking' => true,
             'ai-tutor.ui.writing_layout' => 'layouts.app',
             'ai-tutor.ui.asset_entries' => ['resources/js/ai-tutor.js', 'resources/scss/ai-tutor.scss'],
         ]);

@@ -2,6 +2,7 @@
 
 namespace TDSoft\AiTutor\Writing;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -136,10 +137,12 @@ final class WritingSubmissions
 
         return ['id' => $record->id, 'draft_id' => $record->draft_id, 'revision' => (int) $record->revision,
             'original' => $record->original, 'status' => $record->status, 'error_code' => $record->error_code,
+            'profile' => json_decode($record->profile, true, flags: JSON_THROW_ON_ERROR),
             'recovery' => $this->recovery($record), 'request_id' => $record->request_id, 'idempotency_key' => $record->idempotency_key,
             'feature' => $record->feature, 'retry_of_submission_id' => $record->retry_of_submission_id,
             'rubric' => json_decode($record->rubric_snapshot, true, flags: JSON_THROW_ON_ERROR),
             'result' => $result,
+            'comparison' => $this->comparison($record, $result),
             'provider' => $record->provider, 'model' => $record->model,
             'credit_units' => $billing?->actual_units,
             'credit_balance' => DB::table('tutor_ai_credit_accounts')->where('owner_type', 'learner')
@@ -162,19 +165,44 @@ final class WritingSubmissions
         return ['data' => $rows->take(20)->map(fn ($row) => [
             'id' => $row->id, 'revision' => (int) $row->revision, 'status' => $row->status,
             'request_id' => $row->request_id, 'retry_of_submission_id' => $row->retry_of_submission_id,
-            'created_at' => \Illuminate\Support\Carbon::parse($row->created_at)->toISOString(),
+            'created_at' => Carbon::parse($row->created_at)->toISOString(),
         ])->all(), 'page' => $page, 'next_page' => $rows->count() > 20 ? $page + 1 : null];
     }
 
-    public function process(string $id): void
+    private function comparison(object $record, ?array $result): ?array
     {
-        $record = DB::transaction(function () use ($id) {
+        if ($record->status !== 'completed' || $result === null) {
+            return null;
+        }
+        $previous = DB::table('tutor_ai_writing_submissions')
+            ->where('draft_id', $record->draft_id)->where('actor_id', $record->actor_id)
+            ->where('rubric_version_id', $record->rubric_version_id)->where('status', 'completed')
+            ->where('revision', '<', $record->revision)->whereNotNull('result')
+            ->orderByDesc('revision')->orderByDesc('created_at')->orderByDesc('id')->first();
+        if (! $previous) {
+            return null;
+        }
+        $this->access->owned($previous, true);
+
+        return WritingComparison::between($result, json_decode($previous->result, true, flags: JSON_THROW_ON_ERROR),
+            (int) $previous->revision, $record->original, $previous->original);
+    }
+
+    /** Trusted maintenance may revalidate a failed result using settled cached output only. */
+    public function process(string $id, bool $recoverCachedEvidence = false): void
+    {
+        $record = DB::transaction(function () use ($id, $recoverCachedEvidence) {
             $record = $this->record($id, true);
             $this->access->owned($record, true);
-            if (in_array($record->status, ['completed', 'failed'], true)) {
+            if ($record->status === 'completed') {
                 return null;
             }
             $billing = DB::table('tutor_ai_requests')->where('request_id', $record->request_id)->first();
+            if ($record->status === 'failed' && (! $recoverCachedEvidence
+                || $record->error_code !== 'AI_ASSESSMENT_EVIDENCE_INVALID'
+                || ! $billing || $billing->status !== 'completed' || $billing->encrypted_result === null)) {
+                return null;
+            }
             if ($record->status !== 'queued' && (! $billing || $billing->status !== 'completed')) {
                 return null; // Another worker or unknown crash: never rerun inference.
             }
@@ -197,14 +225,34 @@ final class WritingSubmissions
                 throw new AiException('AI_ASSESSMENT_RESULT_INVALID');
             }
             $rubric = json_decode($record->rubric_snapshot, true, flags: JSON_THROW_ON_ERROR);
-            $result = AssessmentResult::fromArray($data, new RubricDefinition($rubric['criteria']), ['text'])->toArray();
+            $result = AssessmentResult::fromArray($data, new RubricDefinition($rubric['criteria']), ['text'], $rubric['score_scale'] ?? 'practice_0_100')->toArray();
             $result['criteria'] = WritingEvidence::validate($result['criteria'], $record->original);
-            $result = AssessmentResult::fromArray($result, new RubricDefinition($rubric['criteria']), ['text'])->toArray();
+            $result = AssessmentResult::fromArray($result, new RubricDefinition($rubric['criteria']), ['text'], $rubric['score_scale'] ?? 'practice_0_100')->toArray();
+            foreach ($result['criteria'] as $key => &$criterion) {
+                foreach (['rationale', 'next_step'] as $field) {
+                    if (! array_key_exists($field, $data['criteria'][$key])) {
+                        continue;
+                    }
+                    $text = $data['criteria'][$key][$field];
+                    if (! is_string($text) || strlen($text) > 2000) {
+                        throw new AiException('AI_ASSESSMENT_RESULT_INVALID');
+                    }
+                    // A downgraded criterion cannot retain an explanation for an
+                    // unsupported score; show its unavailable state in the UI.
+                    $criterion[$field] = $criterion['status'] === $data['criteria'][$key]['status'] ? trim($text) : '';
+                }
+            }
+            unset($criterion);
             $result['issues'] = WritingIssues::validate($data['issues'] ?? null, $record->original);
-            foreach (['strengths', 'improvements'] as $field) {
+            $result['paragraph_analysis'] = WritingParagraphs::validate($data['paragraph_analysis'] ?? [], $record->original);
+            $result['task_requirements'] = WritingRequirements::validate($data['task_requirements'] ?? [], $record->original);
+            $result['structure_analysis'] = WritingStructure::validate($data['structure_analysis'] ?? [], $record->original, $record->task);
+            $result['cefr_target_analysis'] = WritingCefrTarget::validate($data['cefr_target_analysis'] ?? null,
+                $record->original, json_decode($record->profile, true, flags: JSON_THROW_ON_ERROR));
+            foreach (['strengths', 'improvements', 'priority_actions'] as $field) {
                 // Older execution snapshots did not request these fields.
                 $points = $data[$field] ?? [];
-                if (! is_array($points) || ! array_is_list($points) || count($points) > 5) {
+                if (! is_array($points) || ! array_is_list($points) || count($points) > ($field === 'priority_actions' ? 3 : 5)) {
                     throw new AiException('AI_ASSESSMENT_RESULT_INVALID');
                 }
                 foreach ($points as $point) {

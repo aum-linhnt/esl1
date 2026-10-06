@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $lesson->title }} · {{ config('app.name', 'ESL LMS') }}</title>
     @include('lessons.partials.theme-init')
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/css/learning.css', 'resources/js/learning.js', 'resources/js/ai-tutor.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/study-time.js', 'resources/css/learning.css', 'resources/js/learning.js', 'resources/js/ai-tutor.js'])
 </head>
 <body class="learning-page">
 <header class="learning-header">

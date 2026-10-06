@@ -13,6 +13,9 @@ final class PracticeRubrics
         $result = [];
         foreach (EnglishProfile::TASKS as $skill => $tasks) {
             foreach ($tasks as $task) {
+                if ($skill === 'writing' && str_starts_with($task, 'ielts_')) {
+                    continue;
+                }
                 $descriptions = $skill === 'writing'
                     ? ['task_response' => 'Addresses the task and supports the response.',
                         'coherence' => 'Organizes ideas with clear connections.',
@@ -33,6 +36,6 @@ final class PracticeRubrics
             }
         }
 
-        return $result;
+        return array_merge($result, (new IeltsWritingRubrics)->provision($repository));
     }
 }

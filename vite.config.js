@@ -7,6 +7,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/js/study-time.js',
                 'resources/js/ai-tutor.js',
                 'resources/scss/ai-tutor.scss',
                 'resources/css/learning.css',

@@ -1,4 +1,6 @@
 @use 'writing';
+@use 'dashboard-v2';
+@use 'teacher-dashboard';
 // Scoped tokens: importing the package does not change the LMS theme.
 [data-ai-tutor-root] {
     --tai-background: #f5f7fb;

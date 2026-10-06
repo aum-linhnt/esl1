@@ -68,7 +68,7 @@ final class RubricRepository
             'id' => $version->id, 'key' => $rubric->key, 'skill' => $rubric->skill, 'task' => $rubric->task,
             'version' => (int) $version->version, 'prompt_version' => $version->prompt_version,
             'criteria' => $definition->criteria, 'fingerprint' => $version->fingerprint,
-            'score_scale' => 'practice_0_100',
+            'score_scale' => str_starts_with($version->prompt_version, 'ielts-band-') ? 'ielts_band_0_9' : 'practice_0_100',
         ];
     }
 }

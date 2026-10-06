@@ -6,7 +6,9 @@ use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use TDSoft\AiTutor\Assessment\AssessmentResult;
 use TDSoft\AiTutor\Assessment\PhaseFourSchema;
+use TDSoft\AiTutor\Assessment\RubricDefinition;
 use TDSoft\AiTutor\Assessment\RubricRepository;
 use TDSoft\AiTutor\Billing\CreditAdministration;
 use TDSoft\AiTutor\Billing\CreditAdminSchema;
@@ -21,12 +23,20 @@ use TDSoft\AiTutor\Core\AiResponse;
 use TDSoft\AiTutor\Core\LearnerIdentity;
 use TDSoft\AiTutor\Events\WritingAssessmentCompleted;
 use TDSoft\AiTutor\SubjectEnglish\EnglishProfile;
+use TDSoft\AiTutor\SubjectEnglish\IeltsWritingRubrics;
 use TDSoft\AiTutor\SubjectEnglish\PracticeRubrics;
 use TDSoft\AiTutor\Tests\FoundationTestCase;
 use TDSoft\AiTutor\Writing\ProcessWritingSubmission;
+use TDSoft\AiTutor\Writing\WritingCefrTarget;
+use TDSoft\AiTutor\Writing\WritingComparison;
 use TDSoft\AiTutor\Writing\WritingDrafts;
+use TDSoft\AiTutor\Writing\WritingEvidence;
 use TDSoft\AiTutor\Writing\WritingIssues;
+use TDSoft\AiTutor\Writing\WritingParagraphs;
+use TDSoft\AiTutor\Writing\WritingPrompt;
+use TDSoft\AiTutor\Writing\WritingRequirements;
 use TDSoft\AiTutor\Writing\WritingSchema;
+use TDSoft\AiTutor\Writing\WritingStructure;
 use TDSoft\AiTutor\Writing\WritingSubmissions;
 
 final class WritingBackendTest extends FoundationTestCase
@@ -79,9 +89,13 @@ final class WritingBackendTest extends FoundationTestCase
     private function validResponse(?array $data = null): void
     {
         $data ??= ['criteria' => array_fill_keys(array_keys($this->rubric['criteria']),
-            ['status' => 'assessed', 'score' => 70, 'evidence' => ['I likes']]),
-            'feedback' => 'Practice agreement.', 'strengths' => ['The topic is stated clearly.'],
-            'improvements' => ['Check subject agreement.'], 'issues' => [['category' => 'grammar', 'start_utf16' => 2,
+            ['status' => 'assessed', 'score' => 70, 'evidence' => ['I likes'], 'rationale' => 'Agreement errors limit accuracy.', 'next_step' => 'Use I like with the base verb.']),
+            'feedback' => 'Practice agreement.',
+            'cefr_target_analysis' => [['aspect' => 'communication', 'status' => 'met', 'comment' => 'A familiar hobby is described.', 'next_step' => 'Develop why you enjoy it.', 'evidence' => ['reading books']]],
+            'structure_analysis' => [['component' => 'main_idea', 'status' => 'met', 'comment' => 'The hobby is clear.', 'next_step' => 'Keep this idea.', 'evidence' => ['reading books']]],
+            'task_requirements' => [['requirement' => 'Describe a hobby.', 'status' => 'met', 'comment' => 'The hobby is stated.', 'evidence' => ['reading books']]],
+            'paragraph_analysis' => [['paragraph_number' => 1, 'comment' => 'The hobby is clear.', 'next_step' => 'Add a reason for enjoying it.']], 'strengths' => ['The topic is stated clearly.'],
+            'improvements' => ['Check subject agreement.'], 'priority_actions' => ['Correct subject agreement before adding details.'], 'issues' => [['category' => 'grammar', 'start_utf16' => 2,
                 'end_utf16' => 7, 'original' => 'likes', 'replacement' => 'like', 'explanation' => 'Subject agreement.']]];
         $this->provider->response = new AiResponse(json_encode($data, JSON_THROW_ON_ERROR), 'mock', 'mock-writing', ['input_tokens' => 20, 'output_tokens' => 30]);
     }
@@ -124,6 +138,18 @@ final class WritingBackendTest extends FoundationTestCase
         $this->assertSame(70.0, (float) $result['result']['overall_score']);
         $this->assertSame(['The topic is stated clearly.'], $result['result']['strengths']);
         $this->assertSame(['Check subject agreement.'], $result['result']['improvements']);
+        $this->assertSame(['Correct subject agreement before adding details.'], $result['result']['priority_actions']);
+        $this->assertSame('Agreement errors limit accuracy.', $result['result']['criteria']['grammar']['rationale']);
+        $this->assertSame('Use I like with the base verb.', $result['result']['criteria']['grammar']['next_step']);
+        $this->assertSame($result['original'], $result['result']['paragraph_analysis'][0]['excerpt']);
+        $this->assertSame('Add a reason for enjoying it.', $result['result']['paragraph_analysis'][0]['next_step']);
+        $this->assertSame('met', $result['result']['task_requirements'][0]['status']);
+        $this->assertSame(['reading books'], $result['result']['task_requirements'][0]['evidence']);
+        $this->assertSame('main_idea', $result['result']['structure_analysis'][0]['component']);
+        $this->assertSame('B1', $result['result']['cefr_target_analysis']['target']);
+        $this->assertCount(3, $result['result']['cefr_target_analysis']['aspects']);
+        $this->assertSame('not_available', $result['result']['cefr_target_analysis']['aspects'][1]['status']);
+        $this->assertSame(['reading books'], $result['result']['structure_analysis'][0]['evidence']);
         $this->assertSame(1, $this->provider->calls);
         $this->assertCount(1, $this->events);
         $this->assertSame($submission['id'], $this->events[0]->eventId);
@@ -152,6 +178,66 @@ final class WritingBackendTest extends FoundationTestCase
         $this->assertSame('writing_recheck', $next['feature']);
         $this->writing()->process($next['id']);
         $this->assertSame('writing_recheck', $this->provider->lastRequest->feature);
+        $comparison = $this->writing()->get($next['id'])['comparison'];
+        $this->assertSame(1, $comparison['previous_revision']);
+        $this->assertSame(0.0, $comparison['overall_delta']);
+        $this->assertSame(1, $comparison['previous_issue_count']);
+        $this->assertNull($this->writing()->get($submission['id'])['comparison']);
+    }
+
+    public function test_issue_comparison_requires_exact_evidence_and_does_not_claim_fixes(): void
+    {
+        $base = ['overall_score' => 60, 'criteria' => ['grammar' => ['score' => 60, 'status' => 'assessed']]];
+        $issue = static fn ($quote, $category = 'grammar') => ['category' => $category, 'original' => $quote,
+            'replacement' => 'Suggestion', 'explanation' => 'Explain.'];
+        $previous = $base + ['issues' => [$issue('I likes'), $issue('I likes'), $issue('Yesterday I go'), $issue('always'), $issue('invented')]];
+        $current = $base + ['issues' => [$issue('I likes'), $issue('new wording', 'vocabulary')]];
+        $changes = WritingComparison::between($current, $previous, 1,
+            'I likes books. Yesterday I went. I always use new wording.', 'I likes books. Yesterday I go. I always read.')['issue_changes'];
+        $this->assertSame(1, $changes['recurring']['count']);
+        $this->assertSame(2, $changes['not_reported']['count']);
+        $this->assertFalse($changes['not_reported']['items'][0]['original_still_present']);
+        $this->assertTrue($changes['not_reported']['items'][1]['original_still_present']);
+        $this->assertSame(1, $changes['newly_reported']['count']);
+        $this->assertSame(1, $changes['unverified_count']);
+        $current['issues'] = [$issue('I likes', 'vocabulary')];
+        $changedCategory = WritingComparison::between($current, $previous, 1, 'I likes books.', 'I likes books.')['issue_changes'];
+        $this->assertSame(0, $changedCategory['recurring']['count']);
+        $this->assertSame(1, $changedCategory['newly_reported']['count']);
+    }
+
+    public function test_issue_comparison_limits_preview_and_keeps_missing_snapshot_unavailable(): void
+    {
+        $base = ['overall_score' => 60, 'criteria' => [], 'issues' => []];
+        $current = $base;
+        for ($i = 0; $i < 8; $i++) {
+            $current['issues'][] = ['category' => 'grammar', 'original' => "quote$i", 'replacement' => 'Fix', 'explanation' => 'Reason'];
+        }
+        $changes = WritingComparison::between($current, $base, 1, 'quote0 quote1 quote2 quote3 quote4 quote5 quote6 quote7', '')['issue_changes'];
+        $this->assertSame(8, $changes['newly_reported']['count']);
+        $this->assertCount(5, $changes['newly_reported']['items']);
+        $this->assertNull(WritingComparison::between($current, $base, 1)['issue_changes']);
+    }
+
+    public function test_comparison_deltas_missing_scores_and_scale_mismatch(): void
+    {
+        $old = ['score_scale' => 'ielts_band_0_9', 'overall_score' => 6.0, 'criteria' => [
+            'grammar' => ['status' => 'assessed', 'score' => 6],
+            'coherence' => ['status' => 'assessed', 'score' => 7],
+            'vocabulary' => ['status' => 'not_available', 'score' => null],
+        ], 'issues' => [[], []]];
+        $current = $old;
+        $current['overall_score'] = 6.5;
+        $current['criteria']['grammar']['score'] = 7;
+        $current['criteria']['coherence']['score'] = 6.5;
+        $current['issues'] = [[]];
+        $comparison = WritingComparison::between($current, $old, 2);
+        $this->assertSame(0.5, $comparison['overall_delta']);
+        $this->assertSame(1.0, $comparison['criteria']['grammar']['delta']);
+        $this->assertSame(-0.5, $comparison['criteria']['coherence']['delta']);
+        $this->assertNull($comparison['criteria']['vocabulary']['delta']);
+        $old['score_scale'] = 'practice_0_100';
+        $this->assertNull(WritingComparison::between($current, $old, 2));
     }
 
     public function test_owner_revocation_and_license_revocation_block_read_and_process(): void
@@ -335,6 +421,148 @@ final class WritingBackendTest extends FoundationTestCase
         $this->assertSame(0, DB::table('tutor_ai_assessment_scores')->count());
     }
 
+    public function test_cefr_target_analysis_is_bound_to_profile_and_exact_quotes(): void
+    {
+        foreach (['A1', 'A2', 'B1', 'B2'] as $level) {
+            $item = ['aspect' => 'language', 'status' => 'partial', 'comment' => 'Check agreement.', 'next_step' => 'Use I like.', 'evidence' => ['I likes', 'invented']];
+            $result = WritingCefrTarget::validate([$item], 'I likes books.', ['framework' => 'cefr', 'target' => $level]);
+            $this->assertSame($level, $result['target']);
+            $this->assertSame(['I likes'], $result['aspects'][2]['evidence']);
+            $this->assertSame('partial', $result['aspects'][2]['status']);
+            $item['evidence'] = ['invented'];
+            foreach (['met', 'partial', 'not_met'] as $status) {
+                $item['status'] = $status;
+                $result = WritingCefrTarget::validate([$item], 'I likes books.', ['framework' => 'cefr', 'target' => $level]);
+                $this->assertSame('not_available', $result['aspects'][2]['status']);
+                $this->assertSame('', $result['aspects'][2]['next_step']);
+            }
+        }
+        $this->assertNull(WritingCefrTarget::validate(null, 'Text', ['framework' => 'cefr', 'target' => 'A2']));
+        $this->assertNull(WritingCefrTarget::validate([], 'Text', ['framework' => 'ielts', 'target' => '6.5']));
+        $this->assertNull(WritingCefrTarget::validate([], 'Text', ['framework' => 'toeic', 'target' => '650+']));
+    }
+
+    public function test_cefr_target_schema_and_validation_reject_invented_aspects(): void
+    {
+        $item = ['aspect' => 'language', 'status' => 'met', 'comment' => 'Clear.', 'next_step' => 'Retain clarity.', 'evidence' => ['Text']];
+        $profile = ['framework' => 'cefr', 'target' => 'A2'];
+        $this->assertError('AI_ASSESSMENT_RESULT_INVALID', fn () => WritingCefrTarget::validate([$item, $item], 'Text', $profile));
+        $item['aspect'] = 'certified_level';
+        $this->assertError('AI_ASSESSMENT_RESULT_INVALID', fn () => WritingCefrTarget::validate([$item], 'Text', $profile));
+        $schema = WritingPrompt::schema(['grammar' => []], false, 'cefr_writing', true);
+        $this->assertContains('cefr_target_analysis', $schema['required']);
+        $this->assertArrayNotHasKey('cefr_target_analysis', WritingPrompt::schema(['grammar' => []], true, 'ielts_task_2')['properties']);
+    }
+
+    public function test_structure_analysis_is_task_specific_and_evidence_bound(): void
+    {
+        $item = ['component' => 'overview', 'status' => 'met', 'comment' => 'Clear overview.',
+            'next_step' => 'Retain it.', 'evidence' => ['Overall, numbers rose.', 'invented']];
+        $result = WritingStructure::validate([$item], 'Overall, numbers rose.', 'ielts_task_1');
+        $this->assertSame(['Overall, numbers rose.'], $result[0]['evidence']);
+        $this->assertSame('met', $result[0]['status']);
+        $item['evidence'] = ['invented'];
+        $result = WritingStructure::validate([$item], 'Overall, numbers rose.', 'ielts_task_1');
+        $this->assertSame('not_available', $result[0]['status']);
+        $this->assertSame('', $result[0]['next_step']);
+        $this->assertError('AI_ASSESSMENT_RESULT_INVALID', fn () => WritingStructure::validate([$item], 'Text', 'cefr_writing'));
+        $this->assertError('AI_ASSESSMENT_RESULT_INVALID', fn () => WritingStructure::validate([$item], 'Text', 'ielts_task_2'));
+        $this->assertError('AI_ASSESSMENT_RESULT_INVALID', fn () => WritingStructure::validate([$item, $item], 'Text', 'ielts_task_1'));
+        $this->assertSame([], WritingStructure::validate([], 'Text', 'cefr_writing'));
+        $item['component'] = 'examples';
+        $item['status'] = 'not_met';
+        $item['evidence'] = [];
+        $this->assertSame('not_met', WritingStructure::validate([$item], 'Text', 'ielts_task_2')[0]['status']);
+    }
+
+    public function test_structure_schema_follows_the_task_without_imposing_ielts_on_cefr(): void
+    {
+        foreach (['cefr_writing', 'ielts_task_1', 'ielts_task_2'] as $task) {
+            $schema = WritingPrompt::schema(['grammar' => []], false, $task);
+            $this->assertSame(WritingStructure::components($task), $schema['properties']['structure_analysis']['items']['properties']['component']['enum']);
+        }
+    }
+
+    public function test_task_requirement_claims_need_exact_evidence(): void
+    {
+        $items = [
+            ['requirement' => 'Describe a hobby.', 'status' => 'met', 'comment' => 'Covered.', 'evidence' => ['reading books', 'invented quote']],
+            ['requirement' => 'Explain why.', 'status' => 'partial', 'comment' => 'Covered.', 'evidence' => ['invented quote']],
+            ['requirement' => 'Give a reason.', 'status' => 'not_met', 'comment' => 'No reason provided.', 'evidence' => []],
+        ];
+        $result = WritingRequirements::validate($items, 'I likes reading books.');
+        $this->assertSame(['reading books'], $result[0]['evidence']);
+        $this->assertSame('met', $result[0]['status']);
+        $this->assertSame('not_available', $result[1]['status']);
+        $this->assertSame([], $result[1]['evidence']);
+        $this->assertSame('not_met', $result[2]['status']);
+        $items[0]['status'] = 'invalid';
+        $this->assertError('AI_ASSESSMENT_RESULT_INVALID', fn () => WritingRequirements::validate($items, 'I likes reading books.'));
+    }
+
+    public function test_paragraph_analysis_numbers_are_bound_to_original_paragraphs(): void
+    {
+        $original = "First paragraph.\r\n\r\nSecond paragraph.\r\n\r\nThird paragraph.";
+        $items = [['paragraph_number' => 2, 'comment' => 'Develop this idea.', 'next_step' => 'Add an example.']];
+        $validated = WritingParagraphs::validate($items, $original);
+        $this->assertSame('Second paragraph.', $validated[0]['excerpt']);
+        $this->assertSame([], WritingParagraphs::validate([], $original));
+        $this->assertError('AI_ASSESSMENT_RESULT_INVALID', fn () => WritingParagraphs::validate([...$items, ...$items], $original));
+        $items[0]['paragraph_number'] = 4;
+        $this->assertError('AI_ASSESSMENT_RESULT_INVALID', fn () => WritingParagraphs::validate($items, $original));
+    }
+
+    public function test_failed_evidence_can_be_recovered_from_cache_without_another_provider_call(): void
+    {
+        $submission = $this->submit($this->draft());
+        $this->writing()->process($submission['id']);
+        // Simulate the legacy validator failing after execution settled.
+        DB::table('tutor_ai_assessment_scores')->where('writing_submission_id', $submission['id'])->delete();
+        DB::table('tutor_ai_writing_issues')->where('submission_id', $submission['id'])->delete();
+        DB::table('tutor_ai_writing_submissions')->where('id', $submission['id'])->update([
+            'status' => 'failed', 'result' => null, 'error_code' => 'AI_ASSESSMENT_EVIDENCE_INVALID', 'completed_at' => null,
+        ]);
+        $this->writing()->process($submission['id']);
+        $this->assertSame('failed', $this->writing()->get($submission['id'])['status']);
+        $this->writing()->process($submission['id'], true);
+        $this->assertSame('completed', $this->writing()->get($submission['id'])['status']);
+        $this->assertSame(1, $this->provider->calls);
+        $this->assertSame(1, DB::table('tutor_ai_credit_transactions')->where('type', 'commit')->count());
+        $this->assertSame(4, DB::table('tutor_ai_assessment_scores')->count());
+    }
+
+    public function test_ielts_band_pipeline_and_old_rubric_scale_are_separate(): void
+    {
+        $repository = new RubricRepository;
+        $rubrics = (new IeltsWritingRubrics)->provision($repository);
+        $this->assertArrayHasKey('task_achievement', $rubrics['ielts_task_1']['criteria']);
+        $this->assertArrayNotHasKey('task_response', $rubrics['ielts_task_1']['criteria']);
+        $rubric = $rubrics['ielts_task_2'];
+        $draft = $this->drafts()->create(new EnglishProfile('ielts', '6.5', 'vi'), 'ielts_task_2', 'Discuss reading.', 'I likes reading books.');
+        $criteria = [];
+        foreach (['task_response' => 6.5, 'coherence' => 6, 'vocabulary' => 7, 'grammar' => 6] as $key => $score) {
+            $criteria[$key] = ['status' => 'assessed', 'score' => $score, 'evidence' => ['I likes']];
+        }
+        $this->validResponse(['criteria' => $criteria, 'feedback' => 'IELTS practice.', 'issues' => []]);
+        $submission = $this->writing()->submit($draft['id'], 1, $rubric['id'], (string) Str::uuid(), (string) Str::uuid());
+        $this->writing()->process($submission['id']);
+        $result = $this->writing()->get($submission['id']);
+        $this->assertSame('ielts_band_0_9', $result['result']['score_scale']);
+        $this->assertSame(6.5, (float) $result['result']['overall_score']);
+        $this->assertStringContainsString('never convert a percentage', $this->provider->lastRequest->payload['instructions']);
+        $legacy = $repository->provision('legacy_ielts', 'writing', 'ielts_task_2', 'english-practice-v1', new RubricDefinition($rubric['criteria']));
+        $this->assertSame('practice_0_100', $legacy['score_scale']);
+    }
+
+    public function test_ielts_rejects_percentage_or_non_half_band_scores(): void
+    {
+        $rubric = (new IeltsWritingRubrics)->provision(new RubricRepository)['ielts_task_2'];
+        foreach ([65, 6.25] as $invalid) {
+            $data = ['criteria' => array_fill_keys(array_keys($rubric['criteria']), ['status' => 'assessed', 'score' => $invalid, 'evidence' => ['I likes']]), 'feedback' => 'Feedback'];
+            $this->assertError('AI_ASSESSMENT_RESULT_INVALID', fn () => AssessmentResult::fromArray($data, new RubricDefinition($rubric['criteria']), ['text'], 'ielts_band_0_9'));
+        }
+    }
+
     public function test_wrapped_evidence_is_recovered_and_unsupported_criteria_are_unscored(): void
     {
         $criteria = array_fill_keys(array_keys($this->rubric['criteria']),
@@ -359,7 +587,7 @@ final class WritingBackendTest extends FoundationTestCase
     {
         $criteria = ['grammar' => ['status' => 'assessed', 'score' => 70,
             'evidence' => ['Uses “I likes” and \'reading books\'.', '"I LIKES"', '"invented words"']]];
-        $result = \TDSoft\AiTutor\Writing\WritingEvidence::validate($criteria, 'I likes reading books.');
+        $result = WritingEvidence::validate($criteria, 'I likes reading books.');
         $this->assertSame(['I likes', 'reading books'], $result['grammar']['evidence']);
     }
 

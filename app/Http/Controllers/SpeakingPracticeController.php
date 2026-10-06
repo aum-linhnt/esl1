@@ -79,6 +79,8 @@ class SpeakingPracticeController extends Controller
         // Gamification rewards for authenticated student
         $user = $request->user();
         if ($user) {
+            app(\App\Services\Learning\SkillSnapshots::class)->speaking($user, $result,
+                $request->hasFile('audio_file') || $request->filled('audio_base64') || $request->filled('audio_url'));
             $xpReward = 10;
             $user->addXp($xpReward);
             $user->increment('coins', 2);

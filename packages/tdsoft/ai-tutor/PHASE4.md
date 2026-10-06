@@ -113,7 +113,7 @@ automatic paid transport retries. No real provider request was performed.
 Prompt constraints do not guarantee model compliance; exam/no-answer blocks
 are deterministic server checks.
 
-Limitations: no Writing export/delete workflow or legacy assessment route
+Limitations: no server-side full Writing data export/delete workflow or legacy assessment route
 cutover yet; no auto gradebook or reward listener. Consumers must deduplicate
 the stable event ID. Event delivery after a process crash between database commit
 and listener execution is not guaranteed by a durable outbox in this slice.
@@ -626,6 +626,256 @@ or license configuration was changed for this asset update.
   credit grant or paid retry was performed.
 - Published assets: `public/build/assets-writing-evidence`.
 
+## IELTS Writing — direct band scoring
+
+- Provision versioned IELTS-only rubrics with prompt version `ielts-band-v1`:
+  Task 1 Task Achievement, Task 2 Task Response, plus Coherence & Cohesion,
+  Lexical Resource and Grammatical Range & Accuracy. All weights are 25%.
+  Source: https://ielts.org/cdn/ielts-guides/ielts-writing-band-descriptors.pdf
+- Direct AI band estimates use 0–9 with 0.5 increments; schema and backend
+  reject percentage scores and other increments. Backend calculates equal
+  weighted mean rounded to nearest half band (ties upward), independently of
+  provider overall. This is an AI practice estimate for one task, not a full
+  Writing exam or an official score. Unsupported evidence yields unavailable
+  criteria and null overall.
+- Prompt gives concise band calibration, task-specific requirements and asks
+  for unavailable Task Achievement when Academic Task 1 source information
+  is missing. Existing text-topic input accepts source data in text; image
+  upload and separate Academic/General Training selector are not included.
+- Rubric snapshots carry the scale. Old IELTS snapshots/results and retries
+  retain practice_0_100, while new submissions select latest IELTS version.
+  CEFR/TOEIC current practice scoring is unchanged. No schema migration.
+- UI displays band label, one-decimal scores, IELTS criterion names and meters
+  out of nine, while old/CEFR results retain their previous scale.
+- Validation: package 145 tests / 927 assertions, website Writing API 6 tests
+  / 81 assertions, production build and extended isolated browser smoke passed.
+  Live provision created IELTS rubric version 2 for both tasks, idempotently.
+  No paid AI request or credit grant during this work.
+- Published assets: `public/build/assets-writing-ielts`.
+
+## Writing UI — selectable test examples
+
+- New-draft setup offers six original, intentionally imperfect examples:
+  CEFR A1/A2/B1/B2, Academic IELTS Task 1 with source table and IELTS Task 2.
+  Selection fills framework, target, task, Vietnamese feedback, topic and
+  initial content. Fields remain editable; creating the draft is explicit.
+- Add an optional initial-content textarea using the existing draft API field
+  with byte-size validation. Existing drafts are unaffected; selecting a
+  fixture makes no request and never submits for paid assessment automatically.
+- Validation: production build, 6 API tests / 81 assertions and extended
+  isolated browser smoke passed. All example selectors and IELTS draft-content
+  preservation were verified. No live AI call or credit change.
+- Published assets: `public/build/assets-writing-examples`.
+
+## Writing — cached evidence failure recovery
+
+- Add trusted process maintenance flag for evidence failures only. Recovery
+  requires an owned record, settled completed billing and retained encrypted
+  provider response; regular jobs still leave terminal failures unchanged.
+  Reuse the execution service replay path, not a new paid attempt.
+- A2 failed result 2ecc898f-0b21-486f-b980-b7bd61a08b21 validated successfully
+  under current code. Long-running worker was restarted to load updates;
+  record recovered to completed with balance unchanged at 38.
+- Validation: Writing backend 21 tests / 118 assertions, including cache replay
+  recovery with one provider call and one credit commit across original/recovery.
+  Worker restart/launch confirmed. No additional grant or inference performed.
+
+## Writing analysis — criterion reasons and priority fixes
+
+- New execution snapshots ask for per-criterion rationale and next_step in the
+  selected feedback language, grounded in the rubric and essay. Priority actions
+  contain up to three concrete fixes ordered by impact; no promised band gain.
+- Validate and persist new fields in existing result JSON (no migration).
+  Evidence verification still determines supported scores; discard score
+  explanations if the criterion was downgraded for unsupported evidence.
+- Overview adds a maximum-three priority list and collapsible “Vì sao đạt điểm
+  này?” with criterion scores, rationale, verified evidence quotes and next steps.
+  Safe text nodes preserve literal provider content. Historical results show
+  missing-analysis messages; fallback fixes from existing improvements clearly
+  disclose they have no dedicated priority ranking.
+- Validation: package 146 tests / 937 assertions, API 6 tests / 81 assertions,
+  production build and isolated browser smoke passed. Browser checks cover
+  priority list, analysis disclosure, evidence and text-only output.
+- Worker restarted to load current schema/validation. No actual AI call or
+  credit use. Published assets: `public/build/assets-writing-analysis`.
+
+## Writing analysis — revision comparison
+
+- Read-only result responses compare against the latest completed lower
+  revision belonging to the same actor/draft and exact rubric version.
+  Require matching score scales and criterion keys. Null/unavailable scores
+  do not produce a numeric change; same-revision retries are not a baseline.
+- Overview shows prior/current overall, signed criterion changes and before/
+  after issue counts. Clearly explain counts do not establish that particular
+  errors were fixed. Historical views compare their own prior revisions.
+- Validation: package 147 tests / 946 assertions, API 6 tests / 81 assertions,
+  production build and isolated browser smoke passed. Tests cover actual
+  revision lookup, positive/negative deltas, unavailable scores and scale mismatch.
+- No migration, provider call or credit charge. Published assets:
+  `public/build/assets-writing-comparison`.
+
+## Writing analysis — paragraph feedback
+
+- Include numbered original paragraphs in new prompt snapshots, splitting on
+  blank lines. Request up to eight paragraph comments and concrete next steps
+  tailored to the task and feedback language. No model answer or essay rewrite.
+- Validate paragraph indexes, uniqueness and text limits; excerpts are derived
+  from immutable submitted text rather than provider claims. Store analysis in
+  existing result JSON. Old snapshots missing the field remain supported.
+- Overview adds a collapsed “Phân tích theo đoạn” disclosure with original
+  excerpts, comments and next steps. Provider content is rendered as text.
+- Validation: package 148 tests / 952 assertions, API 6 tests / 81 assertions,
+  build and browser smoke passed, including paragraph mapping, invalid indexes,
+  duplicate entries, Unicode excerpts and safe disclosure content.
+- Worker reloaded. No paid inference, migration or credit use. Published assets:
+  `public/build/assets-writing-paragraphs`.
+
+## Writing analysis — task requirement checks
+
+- New prompts request up to six topic-grounded requirements with met/partial/
+  not_met/not_available status, comments and exact essay evidence. Backend
+  validates fields and removes invented quotes; positive/partial claims without
+  verified evidence become unavailable rather than fabricated achievements.
+- Overview adds a collapsed requirement checklist. Count words from the
+  immutable submitted original; IELTS Task 1/Task 2 use 150/250 reference
+  minimums. Word count is approximate and does not automatically change band.
+  Historical results without checks show a clear missing-data note; no new
+  inference is needed to display word count.
+- Validation: package 149 tests / 960 assertions, API 6 tests / 81 assertions,
+  production build and browser smoke passed. Worker reloaded for new snapshots.
+  No migration, live inference or credit grant.
+- Published assets: `public/build/assets-writing-requirements`.
+
+## Writing assessment report download
+
+- A compact SVG “Tải báo cáo” button in the result heading downloads a UTF-8
+  plain-text report, available from either result tab after completion.
+- Exports the immutable assessed essay for the selected submission, its
+  revision/ID, fixed draft topic/profile, scores, criterion evidence, feedback,
+  strengths, improvements, priorities, task requirements, paragraph analysis
+  and sentence corrections. Editing the current draft never changes the report.
+- IELTS retains its 0–9 band scale and Task 1/Task 2 criterion names; legacy
+  CEFR results retain their 0–100 scale. Missing scores remain unscored.
+- Uses already authorized data in the page; no new provider call, credit
+  charge, database write or server-side artifact. File names use restricted
+  submission IDs, not user topics; AI text stays literal in a `.txt` file.
+- This is a per-assessment download, not a complete account data export.
+  Full privacy export/deletion remains release work.
+- Validation: 17 JavaScript tests plus browser smoke, including download
+  while the draft contains revised text and download from history.
+
+## Writing assessment state transitions
+
+- Separate sending confirmation, queue, processing, completed, failed and
+  reconciliation states. Queue/processing show three actual workflow steps,
+  not a fabricated percentage or completion time.
+- Queue uses a slow breathing robot; processing uses a rotating outline.
+  A 220 ms fade/slide runs only when submission identity/state changes, so
+  typing and repeated polling do not restart it. Score-ring changes ease in.
+- Normal processing no longer shows an administrator warning merely because
+  billing reports reconciliation. Actual reconciliation/failure retains its
+  recovery instructions. Live status text is updated only when it changes.
+- Reduced-motion disables animated movement; loops pause when the tab is
+  hidden. Existing polling, provider calls and billing semantics are unchanged.
+- Validation: 19 JavaScript tests and mock browser smoke cover queued,
+  processing, completion, mobile width, reduced-motion and existing recovery.
+
+## Writing structure analysis
+
+- Collapsed “Cấu trúc bài viết” in Overview shows component status, comment,
+  exact essay evidence and a concrete next step; the text report includes it.
+- Task 1 uses introduction/overview/key features/comparisons/organisation.
+  Task 2 uses introduction/position/arguments/examples/conclusion/organisation.
+  CEFR and other practice use main idea/details/linking/organisation, with
+  level-aware guidance and no mandatory IELTS essay structure for A1/A2.
+- Strict response schema restricts component codes per task. Server validation
+  rejects duplicate/incompatible components, invalid status or oversized fields.
+  Met/partial claims without exact supporting quotes become unavailable;
+  their unsupported next steps are discarded. Missing components can have
+  not_met status with no invented evidence. No score adjustment is introduced.
+- Stored results without this field remain readable and show a no-data note.
+  New requests capture the updated schema; existing in-flight snapshots keep
+  their original prompt. No migration, paid replay or automatic recheck.
+- Validation: package suite 151 tests / 974 assertions, 19 JavaScript tests,
+  browser smoke for CEFR/IELTS labels, literal AI text and legacy fallback.
+
+## Writing vocabulary review
+
+- A collapsed “Từ vựng và cách diễn đạt” section in Overview groups existing
+  vocabulary issues with literal original/replacement text and AI explanations.
+  Unverified spans retain the manual-review note; no invented alternatives or
+  extra paid request are introduced. Existing detail-tab correction controls
+  remain the place to apply verified changes.
+- Frequency hints count exact English word forms in the immutable assessed
+  essay, case-insensitively. Show at most five words of four or more letters
+  appearing at least three times, excluding a small common-function-word list.
+  No stemming, phrase splitting, synonym generation or lexical-quality score.
+- Explicitly explain that topic-keyword repetition is not automatically an
+  error. Empty vocabulary feedback does not claim error-free language.
+- The text report includes the same frequency hints; draft edits do not change
+  them and historical results use their own original essay. No backend/schema
+  change, migration or worker restart is needed for this display.
+- Validation: 22 JavaScript tests and mock browser smoke for vocabulary pairs,
+  repeated-word counts, literal AI text, unverified spans and mobile width.
+
+## Writing issue observations across revisions
+
+- Existing comparison reads the previous completed lower revision with the
+  same owner/draft/rubric version. It now includes three groups: exact
+  category/quote reported again, previous feedback not reported in this call,
+  and feedback newly reported in this call. No provider request or credit use.
+- Each source quote must be a literal substring in its own submitted essay;
+  empty/unmatched quotes are excluded with a count. Duplicate category/quote
+  pairs are grouped, without fuzzy matching or positional assumptions.
+- Not-reported feedback records whether its original quote remains in the
+  current essay. Neither AI omission nor disappearance of a phrase proves a
+  correction; the UI/report explicitly avoid claiming the error was fixed.
+- Collapsed section inside the version comparison shows up to five entries
+  per group and full group counts. History selection and reports use the
+  selected immutable submissions. Older results can be compared on read;
+  no resubmission, result rewrite or migration is required.
+- Validation: package suite 153 tests / 985 assertions, 23 JavaScript tests,
+  browser smoke for grouped observations, literal AI text and existing flows.
+
+## Writing analysis panel continuity
+
+- Preserve explicitly open/closed analysis sections during typing, autosave,
+  polling and result refresh, including criterion reasons, requirements,
+  structure, vocabulary, paragraphs, issue changes and assessed-original text.
+- Preferences are keyed by submission ID; a new assessment starts collapsed,
+  while returning to a previously viewed assessment restores its own choices.
+  Keep at most 30 assessments in page memory; do not persist content or UI
+  preferences to browser storage. Reload resets these ephemeral preferences.
+- When a focused summary is rebuilt during refresh, restore keyboard focus
+  without scrolling. Editor focus remains untouched during composition.
+- Validation: 25 JavaScript tests and mock browser smoke check typing, refresh,
+  explicitly closed panels and keyboard focus alongside existing flows.
+
+## CEFR Writing target alignment
+
+- A collapsed “So với mục tiêu CEFR A1/A2/B1/B2” section in Overview compares
+  this submitted essay with the selected target. Three application feedback
+  aspects: communication, development/linking and level-appropriate language.
+  These are not official CEFR scoring scales or a proficiency certification.
+- Practice expectation summaries are adapted from the Writing section of the
+  [official Europass CEFR self-assessment grid](https://europass.europa.eu/en/common-european-framework-reference-language-skills).
+  They are supplied to the model and persisted with descriptor version
+  `cefr-writing-practice-v1`; target comes from the trusted submission profile.
+- Only CEFR calls request this field. IELTS/TOEIC retain their existing output
+  schema and scoring. No 0–100-to-CEFR conversion or score adjustment.
+- Server validation restricts three unique aspects, field sizes and statuses.
+  Positive, partial and negative observations need exact essay evidence;
+  unsupported observations and absent aspects become unavailable, with no
+  unsupported next step. A1 is not penalised merely for lacking connectors or
+  extended detail; guidance must fit the actual task/genre and selected level.
+- Existing snapshots missing this field remain readable with a no-data note.
+  The report includes the new qualitative analysis. Panel expansion persists
+  through typing/refresh as for other analysis sections. No migration, separate
+  inference, automatic paid recheck or rewrite of historical results.
+- Validation: 155 package tests / 1031 assertions, 26 JavaScript tests and
+  mock browser smoke for CEFR, IELTS exclusion, literal quotes/text and legacy
+  no-data display. Real provider calls were not performed for this change.
+
 ## Data contracts
 
 - Rubric snapshot records version ID, criteria, prompt version and fingerprint;
@@ -725,5 +975,5 @@ suite 24 tests / 143 assertions. Provider tests prevent stray HTTP requests;
 all databases are SQLite memory. Pint and diff checks pass.
 
 Next: Speaking audio validation/storage, STT and evidence-aware assessment;
-Writing export/delete and legacy cutover remain release follow-ups. Follow
+Full Writing data export/delete and legacy cutover remain release follow-ups. Follow
 [PHASE4-PLAN.md](PHASE4-PLAN.md) for subsequent Speaking and release work.

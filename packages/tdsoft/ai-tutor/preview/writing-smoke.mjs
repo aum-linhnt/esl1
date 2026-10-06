@@ -1,5 +1,6 @@
 // Browser test uses the isolated mock server only. No host auth, DB or provider.
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 const { chromium } = await import(process.env.AI_PREVIEW_PLAYWRIGHT_MODULE ?? 'playwright');
 const origin = 'http://127.0.0.1:' + (process.argv[2] ?? '9013');
 const browser = await chromium.launch({ executablePath: process.env.AI_PREVIEW_CHROME, headless: true });
@@ -29,12 +30,26 @@ try {
     assert.equal(await page.locator('[data-writing-submit]').isDisabled(), true);
     assert.equal(await page.locator('[data-writing-credit]').isVisible(), false);
     assert.equal(await page.locator('[data-writing-scoreboard]').isVisible(), false);
+    assert.equal(await page.locator('[data-writing-export]').isVisible(), false);
     assert.equal(await page.locator('[data-writing-tabs]').isVisible(), false);
     assert.equal(await page.locator('[data-writing-guide]').isVisible(), true);
     assert.equal(await page.locator('[data-writing-controls]').isVisible(), false);
     assert.equal(await page.locator('[data-writing-history-pagination]').isVisible(), false);
     assert.equal(await page.locator('[data-writing-status]').isVisible(), false);
     assert.equal(await page.locator('[data-writing-task-hint]').isVisible(), false);
+    await page.locator('[data-writing-example]').selectOption('ielts-task-1');
+    assert.equal(await page.locator('[name=framework]').inputValue(), 'ielts');
+    assert.equal(await page.locator('[name=task]').inputValue(), 'ielts_task_1');
+    assert.ok((await page.locator('[name=topic]').inputValue()).includes('55%'));
+    assert.ok((await page.locator('[name=content]').inputValue()).includes('The table compares'));
+    await page.locator('[data-writing-example]').selectOption('ielts-task-2');
+    assert.equal(await page.locator('[name=target]').inputValue(), '6.5');
+    assert.ok((await page.locator('[name=content]').inputValue()).includes('online learning offer'));
+    for (const level of ['a1', 'a2', 'b1', 'b2']) {
+        await page.locator('[data-writing-example]').selectOption('cefr-' + level);
+        assert.equal(await page.locator('[name=target]').inputValue(), level.toUpperCase());
+    }
+    await page.locator('[name=content]').fill('');
     assert.ok((await editor.boundingBox()).height <= 100);
     await page.locator('[name=framework]').selectOption('ielts');
     assert.equal(await page.locator('[data-writing-task-hint]').isVisible(), true);
@@ -118,6 +133,34 @@ try {
     await page.unroute('**/drafts/*/submit');
     await page.locator('[data-writing-refresh]').click();
     await waitText('[data-writing-overall]', '70');
+    const stateRoute = '**/writing/submissions/*';
+    let mockState = 'queued';
+    await page.route(stateRoute, async route => {
+        const response = await route.fetch();
+        const data = await response.json();
+        await route.fulfill({ response, json: { ...data, status: mockState, recovery: 'reconciliation', result: null } });
+    });
+    await page.locator('[data-writing-refresh]').click();
+    await waitText('[data-writing-empty-title]', 'Đang chờ đánh giá');
+    assert.equal(await page.locator('[data-writing-assessment-progress]').isVisible(), true);
+    assert.equal(await page.locator('[data-writing-assessment-progress] [aria-current=step]').textContent(), '2Chờ chấm');
+    assert.ok(!(await page.locator('[data-writing-assessment-status]').innerText()).includes('quản trị viên'));
+    mockState = 'processing';
+    await page.locator('[data-writing-refresh]').click();
+    await waitText('[data-writing-empty-title]', 'AI đang phân tích');
+    assert.equal(await page.locator('[data-writing-assessment-progress] [aria-current=step]').textContent(), '3Phân tích');
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await page.screenshot({ path: '/tmp/esl1-writing-processing-mobile.png', fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.screenshot({ path: '/tmp/esl1-writing-processing.png', fullPage: true });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert.equal(await page.locator('.tai-writing-loading-orbit').evaluate(el => getComputedStyle(el).animationName), 'none');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.unroute(stateRoute);
+    await page.locator('[data-writing-refresh]').click();
+    await waitText('[data-writing-overall]', '70');
+    assert.equal(await page.locator('[data-writing-assessment-progress]').isVisible(), false);
     assert.equal(await page.locator('[data-writing-scoreboard]').isVisible(), true);
     assert.equal(await page.locator('[data-writing-tabs]').isVisible(), true);
     assert.equal(await page.locator('[data-writing-result-actions]').isVisible(), true);
@@ -128,8 +171,52 @@ try {
     assert.ok((await page.locator('[data-writing-feedback-points=strengths]').textContent()).includes('nêu rõ sở thích'));
     assert.ok((await page.locator('[data-writing-feedback-points=improvements]').textContent()).includes('chia động từ'));
     assert.equal(await page.locator('.tai-writing-ai-feedback h3 svg').count(), 1);
+    assert.equal(await page.locator('[data-writing-priorities] li').count(), 2);
+    await page.locator('[data-writing-criterion-analysis] summary').click();
+    assert.ok((await page.locator('[data-writing-criterion-analysis]').textContent()).includes('Dùng động từ nguyên mẫu'));
+    assert.equal(await page.locator('[data-writing-criterion-analysis] script').count(), 0);
+    assert.equal(await page.locator('[data-writing-criterion-analysis] blockquote').textContent(), 'likes');
+    await page.locator('[data-writing-criterion-analysis] summary').click();
     assert.equal(await page.locator('#tai-writing-feedback-text').evaluate(el => getComputedStyle(el).webkitLineClamp), '2');
+    await page.locator('[data-writing-paragraph-analysis] summary').click();
+    await page.locator('[data-writing-cefr-target] summary').click();
+    assert.ok((await page.locator('[data-writing-cefr-target]').textContent()).includes('CEFR A1'));
+    assert.ok((await page.locator('[data-writing-cefr-target]').textContent()).includes('Thể hiện một phần'));
+    assert.equal(await page.locator('[data-writing-cefr-target] script').count(), 0);
+    assert.equal(await page.locator('[data-writing-cefr-target] blockquote').textContent(), 'reading books');
+    await page.locator('[data-writing-cefr-target] summary').click();
+    await page.locator('[data-writing-structure] summary').click();
+    assert.ok((await page.locator('[data-writing-structure]').textContent()).includes('Ý chính'));
+    assert.equal(await page.locator('[data-writing-structure] script').count(), 0);
+    assert.equal(await page.locator('[data-writing-structure] blockquote').textContent(), 'reading books');
+    await page.locator('[data-writing-structure] summary').click();
+    await page.locator('[data-writing-task-check] summary').click();
+    assert.ok((await page.locator('[data-writing-task-check]').textContent()).includes('Đã đáp ứng'));
+    assert.equal(await page.locator('[data-writing-task-check] script').count(), 0);
+    assert.equal(await page.locator('[data-writing-task-check] blockquote').textContent(), 'reading books');
+    await page.locator('[data-writing-task-check] summary').click();
+    assert.ok((await page.locator('[data-writing-paragraph-analysis]').textContent()).includes('Thêm lý do bạn thích'));
+    assert.equal(await page.locator('[data-writing-paragraph-analysis] script').count(), 0);
+    assert.equal(await page.locator('[data-writing-paragraph-analysis] blockquote').textContent(), '😀 I likes reading books.');
+    await page.locator('[data-writing-paragraph-analysis] summary').click();
     await editor.scrollIntoViewIfNeeded();
+    // Autosave/render and polling must preserve explicitly open and closed sections.
+    await page.locator('[data-writing-structure] summary').click();
+    const preservedText = await editor.innerText();
+    await editor.fill(preservedText + ' Temporary edit.');
+    assert.equal(await page.locator('[data-writing-structure]').getAttribute('open'), '');
+    await editor.fill(preservedText);
+    await page.locator('[data-writing-structure] summary').focus();
+    await page.locator('[data-writing-refresh]').dispatchEvent('click');
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('[data-writing-structure]').getAttribute('open'), '');
+    assert.equal(await page.locator('[data-writing-structure] summary').evaluate(el => document.activeElement === el), true);
+    await page.locator('[data-writing-structure] summary').click();
+    await page.locator('[data-writing-refresh]').click();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('[data-writing-structure]').getAttribute('open'), null);
+    await editor.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(250);
     const errorRange = await page.evaluate(() => {
         const ranges = [...CSS.highlights.get('tai-writing-grammar')];
         const rect = ranges[0].getBoundingClientRect();
@@ -183,6 +270,7 @@ try {
     await page.locator('[data-writing-tab=overview]').click();
     assert.equal(await page.evaluate(() => [...CSS.highlights.get('tai-writing-grammar')][0].toString()), 'likes');
     await editor.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(250);
     const yellowRect = await page.evaluate(() => {
         const range = [...CSS.highlights.get('tai-writing-suggestion')][0], rect = range.getBoundingClientRect();
         return { text: range.toString(), x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
@@ -232,6 +320,17 @@ try {
     assert.equal(await page.evaluate(() => CSS.highlights.get('tai-writing-grammar')?.size ?? 0), 0);
     assert.equal(await page.locator('[data-writing-tab=details]').getAttribute('aria-selected'), 'true');
     const currentDraftText = await editor.innerText();
+    const downloadReport = async () => {
+        const pending = page.waitForEvent('download');
+        await page.locator('[data-writing-export]').click();
+        const download = await pending;
+        assert.match(download.suggestedFilename(), /^writing-[\w-]+-v\d+\.txt$/);
+        const text = await readFile(await download.path(), 'utf8');
+        assert.ok(text.includes('😀 I likes reading books.'));
+        assert.ok(!text.includes('😀 I like reading books.'));
+        assert.ok(text.includes('70 (thang 100)'));
+    };
+    await downloadReport();
     await page.locator('[data-writing-history] button').first().click();
     await page.locator('[data-writing-history-view]').waitFor({ state: 'visible' });
     assert.equal(await page.locator('[data-writing-history] button').first().getAttribute('aria-pressed'), 'true');
@@ -244,6 +343,8 @@ try {
     const historyDraftId = new URL(page.url()).pathname.split('/').at(-1);
     const unchangedDraft = await (await context.request.get(origin + '/ai-tutor/api/v1/writing/drafts/' + historyDraftId)).json();
     assert.equal(unchangedDraft.content, currentDraftText);
+    await downloadReport();
+    assert.equal(posts.length, 1);
     await page.locator('[data-writing-return-draft]').click();
     assert.equal(await page.locator('[data-writing-history] button[aria-pressed=true]').count(), 0);
     assert.equal(await editor.innerText(), currentDraftText);
@@ -272,6 +373,51 @@ try {
     assert.ok((await page.locator('[data-writing-issues]').textContent()).includes('Nhận xét để bạn tự chỉnh sửa.'));
     await page.unroute(resultRoute);
     // Independent API client simulates a second tab's save.
+    await page.route(resultRoute, async route => {
+        const response = await route.fetch(); const data = await response.json();
+        data.result.score_scale = 'ielts_band_0_9'; data.result.overall_score = 6.5;
+        data.rubric = { task: 'ielts_task_1' };
+        data.profile = { framework: 'ielts', target: '6.5' }; data.result.cefr_target_analysis = null;
+        data.result.criteria = { task_achievement: { score: 6 }, coherence: { score: 6.5 }, vocabulary: { score: 7 }, grammar: { score: 6 } };
+        data.result.structure_analysis = [{ component: 'overview', status: 'partial', comment: 'Tổng quan cần rõ hơn.', evidence: ['reading books'], next_step: 'Nêu xu hướng chính.' }];
+        data.original += '\n\nOnline online online.';
+        data.result.issues.push({ category: 'vocabulary', original: 'reading books', replacement: 'enjoying books',
+            explanation: 'Góp ý từ vựng <script>chỉ là text</script>', applicable: false });
+        data.comparison = { previous_revision: 1, score_scale: 'ielts_band_0_9', previous_score: 6, current_score: 6.5, overall_delta: 0.5,
+            previous_issue_count: 3, current_issue_count: 1, criteria: { grammar: { previous: 5.5, current: 6, delta: 0.5 }, coherence: { previous: 7, current: 6.5, delta: -0.5 } } };
+        const observed = { category: 'grammar', original: 'I likes', replacement: 'I like', explanation: 'Chia động từ. <script>chỉ là text</script>' };
+        data.comparison.issue_changes = { recurring: { count: 1, items: [observed] },
+            not_reported: { count: 1, items: [{ ...observed, original: 'Yesterday I go', original_still_present: false }] },
+            newly_reported: { count: 0, items: [] }, unverified_count: 1 };
+        await route.fulfill({ response, json: data });
+    });
+    await page.locator('[data-writing-refresh]').click();
+    await waitText('[data-writing-overall]', '6.5');
+    assert.equal(await page.locator('[data-writing-score-label]').textContent(), 'Band dự kiến');
+    assert.equal(await page.locator('[data-writing-cefr-target]').count(), 0);
+    assert.ok((await page.locator('[data-writing-task-check]').textContent()).includes('tối thiểu 150'));
+    assert.ok((await page.locator('[data-writing-structure]').textContent()).includes('Tổng quan (Overview)'));
+    await page.locator('[data-writing-tab=overview]').click();
+    await page.locator('[data-writing-vocabulary] summary').click();
+    assert.ok((await page.locator('[data-writing-vocabulary]').textContent()).includes('enjoying books'));
+    assert.ok((await page.locator('[data-writing-vocabulary]').textContent()).includes('Vị trí chưa xác minh'));
+    assert.ok((await page.locator('.tai-writing-vocabulary-frequency').textContent()).includes('online3 lần'));
+    assert.equal(await page.locator('[data-writing-vocabulary] script').count(), 0);
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    assert.ok((await page.locator('[data-writing-progress]').textContent()).includes('+0.5'));
+    assert.ok((await page.locator('[data-writing-progress]').textContent()).includes('-0.5'));
+    await page.locator('[data-writing-issue-changes] summary').click();
+    assert.ok((await page.locator('[data-writing-issue-changes]').textContent()).includes('AI còn báo lại · 1'));
+    assert.ok((await page.locator('[data-writing-issue-changes]').textContent()).includes('chưa xác nhận lỗi đã sửa'));
+    assert.equal(await page.locator('[data-writing-issue-changes] script').count(), 0);
+    assert.equal(await page.locator('[role=meter][aria-valuemax="9"]').count(), 4);
+    assert.ok((await page.locator('[data-writing-criteria]').textContent()).includes('Task Achievement'));
+    await page.unroute(resultRoute);
+    await page.locator('[data-writing-refresh]').click();
+    await waitText('[data-writing-score-label]', 'Điểm luyện tập');
+    assert.equal(await page.locator('[data-writing-score-label]').textContent(), 'Điểm luyện tập');
     const id = new URL(page.url()).pathname.split('/').at(-1);
     const url = origin + '/ai-tutor/api/v1/writing/drafts/' + id;
     const draft = await (await context.request.get(url)).json();
@@ -289,6 +435,9 @@ try {
     await page.locator('[data-writing-retry]').click();
     await page.locator('[data-writing-confirm-accept]').click();
     await waitText('[data-writing-feedback]', 'Mock retry completed');
+    assert.ok((await page.locator('[data-writing-cefr-target]').textContent()).includes('chưa có đối chiếu mục tiêu CEFR'));
+    assert.ok((await page.locator('[data-writing-vocabulary]').textContent()).includes('chưa có góp ý riêng về từ vựng'));
+    assert.ok((await page.locator('[data-writing-structure]').textContent()).includes('Lượt chấm này chưa có phân tích cấu trúc'));
     assert.equal(await feedbackToggle.isVisible(), false);
     assert.equal(posts.length, 3); assert.equal(posts[2].confirm_retry, true);
     assert.notEqual(posts[1].request_id, posts[2].request_id);
@@ -323,5 +472,14 @@ try {
     const resultsBox = await page.locator('.tai-writing-results').boundingBox();
     assert.ok(Math.abs(composeBox.x - resultsBox.x) < 1, 'Narrow LMS content should stack columns');
     assert.equal(await editor.innerText(), preserved);
-    console.log('Writing browser smoke passed: autosave, theme, lost-submit recovery, Unicode fixes, reload, two-tab conflict, confirmed retry, mobile and text-only feedback.');
+    const examplePage = await context.newPage();
+    await examplePage.goto(origin + '/writing');
+    await examplePage.locator('[data-writing-example]').selectOption('ielts-task-2');
+    const initialExample = await examplePage.locator('[name=content]').inputValue();
+    await examplePage.locator('[data-writing-create] button[type=submit]').click();
+    await examplePage.locator('[data-writing-start]').waitFor({ state: 'hidden' });
+    assert.equal(await examplePage.locator('[data-writing-editor]').innerText(), initialExample);
+    assert.equal(await examplePage.locator('[data-writing-title]').textContent(), 'IELTS Task 2');
+    await examplePage.close();
+    console.log('Writing browser smoke passed: examples, autosave, theme, lost-submit recovery, Unicode fixes, reload, two-tab conflict, confirmed retry, mobile and text-only feedback.');
 } finally { await browser.close(); }

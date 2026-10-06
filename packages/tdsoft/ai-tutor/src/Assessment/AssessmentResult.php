@@ -6,10 +6,10 @@ use TDSoft\AiTutor\Core\AiException;
 
 final readonly class AssessmentResult
 {
-    public function __construct(public array $criteria, public ?float $overallScore, public string $feedback) {}
+    public function __construct(public array $criteria, public ?float $overallScore, public string $feedback, public string $scoreScale = 'practice_0_100') {}
 
     /** $evidenceTypes comes from trusted provider capabilities, never model output/browser. */
-    public static function fromArray(array $data, RubricDefinition $rubric, array $evidenceTypes = ['text']): self
+    public static function fromArray(array $data, RubricDefinition $rubric, array $evidenceTypes = ['text'], string $scoreScale = 'practice_0_100'): self
     {
         if (! is_array($data['criteria'] ?? null)
             || array_diff(array_keys($data['criteria']), array_keys($rubric->criteria))
@@ -17,6 +17,10 @@ final readonly class AssessmentResult
             || ! is_string($data['feedback'] ?? null) || strlen($data['feedback']) > 20000) {
             throw new AiException('AI_ASSESSMENT_RESULT_INVALID');
         }
+        if (! in_array($scoreScale, ['practice_0_100', 'ielts_band_0_9'], true)) {
+            throw new AiException('AI_ASSESSMENT_RESULT_INVALID');
+        }
+        $band = $scoreScale === 'ielts_band_0_9';
         $result = [];
         $complete = true;
         $total = 0;
@@ -35,7 +39,7 @@ final readonly class AssessmentResult
             $score = $criterion['score'] ?? null;
             $evidence = $criterion['evidence'] ?? null;
             if ((! is_int($score) && ! is_float($score)) || ! is_finite((float) $score)
-                || $score < 0 || $score > 100 || ! is_array($evidence) || ! array_is_list($evidence)
+                || $score < 0 || $score > ($band ? 9 : 100) || ($band && floor((float) $score * 2) !== (float) $score * 2) || ! is_array($evidence) || ! array_is_list($evidence)
                 || $evidence === [] || count($evidence) > 20) {
                 throw new AiException('AI_ASSESSMENT_RESULT_INVALID');
             }
@@ -49,12 +53,12 @@ final readonly class AssessmentResult
         }
 
         // Ignore provider-supplied overall scores; calculate only from a complete rubric.
-        return new self($result, $complete ? round($total, 2) : null, $data['feedback']);
+        return new self($result, $complete ? ($band ? round($total * 2, 0, PHP_ROUND_HALF_UP) / 2 : round($total, 2)) : null, $data['feedback'], $scoreScale);
     }
 
     public function toArray(): array
     {
         return ['criteria' => $this->criteria, 'overall_score' => $this->overallScore,
-            'feedback' => $this->feedback, 'score_scale' => 'practice_0_100'];
+            'feedback' => $this->feedback, 'score_scale' => $this->scoreScale];
     }
 }

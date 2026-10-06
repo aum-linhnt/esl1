@@ -91,7 +91,7 @@ const server = http.createServer(async (req, res) => {
             const paginate = rows => { const page = Math.max(1, Number(url.searchParams.get('page')) || 1); return { data: rows.slice((page - 1) * 20, page * 20), page, next_page: rows.length > page * 20 ? page + 1 : null }; };
             if (route === 'drafts' && req.method === 'GET') return json(res, paginate([...writingDrafts.values()].reverse()));
             if (route === 'drafts' && req.method === 'POST') {
-                const data = await body(req); const draft = { id: randomUUID(), revision: 1, content: '', task: data.task, topic: data.topic,
+                const data = await body(req); const draft = { id: randomUUID(), revision: 1, content: data.content ?? '', task: data.task, topic: data.topic,
                     profile: { framework: data.framework, target: data.target, feedbackLanguage: data.feedback_language }, updated_at: stamp() };
                 writingDrafts.set(draft.id, draft); return json(res, draft, 201);
             }
@@ -116,7 +116,13 @@ const server = http.createServer(async (req, res) => {
                         request_id: data.request_id, idempotency_key: data.idempotency_key, status: failure ? 'failed' : 'completed',
                         recovery: failure ? 'new_attempt' : 'completed', created_at: stamp(), credit_units: failure ? 0 : 1, credit_balance: failure ? 100 : 99,
                         result: failure ? null : { overall_score: 70, feedback: 'Nhận xét giả: kiểm tra subject–verb agreement. <script>Không thực thi HTML</script> ' + 'Hãy bổ sung ví dụ cụ thể, liên kết các ý và kiểm tra cách chia động từ để bài viết rõ ràng hơn. '.repeat(6),
-                            criteria: { grammar: { score: 70 }, vocabulary: { score: 75 }, coherence: { score: 65 }, task_response: { score: 70 } },
+                            criteria: { grammar: { score: 70, evidence: ['likes'], rationale: 'Lỗi chia động từ ảnh hưởng độ chính xác. <script>Chỉ là văn bản</script>', next_step: 'Dùng động từ nguyên mẫu sau I.' }, vocabulary: { score: 75 }, coherence: { score: 65 }, task_response: { score: 70 } },
+                            cefr_target_analysis: draft.profile.framework === 'cefr' ? { target: draft.profile.target, expectation: 'Viết về chủ đề quen thuộc.', descriptor_version: 'cefr-writing-practice-v1',
+                                aspects: [{ aspect: 'communication', status: 'partial', comment: 'Cần thêm chi tiết. <script>Chỉ là text</script>', next_step: 'Thêm lý do bạn thích đọc sách.', evidence: ['reading books'] }] } : null,
+                            structure_analysis: [{ component: 'main_idea', status: 'met', comment: 'Ý chính rõ. <script>Chỉ là text</script>', next_step: 'Giữ ý chính và thêm lý do.', evidence: ['reading books'] }],
+                            task_requirements: [{ requirement: 'Nêu sở thích', status: 'met', comment: 'Bài đã nêu sở thích. <script>Chỉ là text</script>', evidence: ['reading books'] }],
+                            paragraph_analysis: [{ paragraph_number: 1, excerpt: draft.content, comment: 'Cần phát triển ý bằng ví dụ. <script>Không thực thi</script>', next_step: 'Thêm lý do bạn thích đọc sách.' }],
+                            priority_actions: ['Sửa lỗi chia động từ trước khi bổ sung ví dụ.', 'Thêm chi tiết về sở thích để phát triển ý.'],
                             strengths: ['Bài viết nêu rõ sở thích và có ví dụ cụ thể.'], improvements: ['Kiểm tra cách chia động từ theo chủ ngữ.'],
                             issues: pos >= 0 ? [{ category: 'grammar', start_utf16: pos, end_utf16: pos + 5, original: 'likes', replacement: 'like', explanation: 'Dùng I like, không dùng I likes.', applicable: true }] : [] } };
                     writingSubmissions.set(submission.id, submission); return json(res, submission, 202);

@@ -1,3 +1,8 @@
+import { writingExamples } from './writing-examples.js';
+import { writingReport, writingStructureNames, writingCefrAspectNames, writingCefrStatusNames } from './writing-report.js';
+import { writingAssessmentState } from './writing-state.js';
+import { repeatedWritingWords } from './writing-vocabulary.js';
+import { WritingPanelState } from './writing-panels.js';
 export const writingTargets = { cefr: ['A1', 'A2', 'B1', 'B2'], toeic: ['450+', '650+', '800+'], ielts: ['Foundation', '5.5', '6.5', '7.0+'] };
 const tasks = { cefr: ['cefr_writing'], toeic: ['cefr_writing'], ielts: ['ielts_task_1', 'ielts_task_2'] };
 const taskNames = { cefr_writing: 'CEFR Writing', ielts_task_1: 'IELTS Task 1', ielts_task_2: 'IELTS Task 2' };
@@ -248,6 +253,23 @@ export async function startWriting(root) {
     let feedbackExpanded = false, feedbackObserver, improvementsObserver, improvementsExpanded = false;
     let issuePage = 0;
     let historySelection = null;
+    const panelStates = new WritingPanelState();
+    let panelStateId = null;
+    q('original-panel').dataset.writingPanelKey = 'original';
+    let assessmentTransitionKey = null;
+    const motionAllowed = window.matchMedia('(prefers-reduced-motion: no-preference)');
+    const syncVisibility = () => { root.dataset.writingPaused = String(document.hidden); };
+    document.addEventListener('visibilitychange', syncVisibility); syncVisibility();
+    q('export').addEventListener('click', () => {
+        const selected = historySelection ?? session?.result;
+        if (session?.fatal || selected?.status !== 'completed' || !selected.result) return;
+        const report = writingReport(selected, session.metadata);
+        const url = URL.createObjectURL(new Blob(['\uFEFF', report.text], { type: 'text/plain;charset=utf-8' }));
+        const link = document.createElement('a');
+        link.href = url; link.download = report.filename; link.hidden = true;
+        root.append(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
     q('return-draft').addEventListener('click', () => { historySelection = null; render(session); q('editor').focus(); });
     const editorHighlights = [];
     const highlightNames = ['tai-writing-grammar', 'tai-writing-suggestion'];
@@ -432,7 +454,36 @@ export async function startWriting(root) {
         renderResult(s);
     }
     function renderResult(s) {
+        const panels = () => [...root.querySelectorAll('details[data-writing-panel-key]')];
+        panelStates.remember(panelStateId, Object.fromEntries(panels().map(panel => [panel.dataset.writingPanelKey, panel.open])));
+        const focusedPanel = document.activeElement?.tagName === 'SUMMARY' ? document.activeElement.parentElement.dataset.writingPanelKey : null;
         const result = historySelection ?? s.result;
+        const restorePanels = () => {
+            for (const panel of panels()) {
+                panel.open = panelStates.isOpen(result?.id, panel.dataset.writingPanelKey);
+                if (panelStateId === result?.id && focusedPanel === panel.dataset.writingPanelKey) panel.querySelector('summary')?.focus({ preventScroll: true });
+            }
+            panelStateId = result?.id ?? null;
+        };
+        const view = writingAssessmentState(result, s.pending);
+        const transitionKey = `${result?.id ?? ''}:${view.state}`;
+        root.dataset.writingAssessment = view.state;
+        q('assessment-progress').hidden = !view.active;
+        q('empty').setAttribute('aria-busy', String(view.active));
+        for (const [index, step] of [...q('assessment-progress').children].entries()) {
+            step.classList.toggle('is-current', index === view.step);
+            step.classList.toggle('is-done', index < view.step);
+            if (index === view.step) step.setAttribute('aria-current', 'step'); else step.removeAttribute('aria-current');
+        }
+        if (assessmentTransitionKey !== transitionKey) {
+            assessmentTransitionKey = transitionKey;
+            if (motionAllowed.matches && !document.hidden) {
+                const panel = q('empty').closest('aside');
+                for (const animation of panel.getAnimations()) animation.cancel();
+                panel.animate([{ opacity: .65, transform: 'translateY(5px)' }, { opacity: 1, transform: 'translateY(0)' }],
+                    { duration: 220, easing: 'ease-out' });
+            }
+        }
         const failed = result?.status === 'failed';
         const failureMessage = failed ? errorText(result.error_code) : '';
         if (failed && result.error_code === 'AI_CREDIT_INSUFFICIENT') showCreditDialog(result.request_id ?? result.id);
@@ -441,6 +492,8 @@ export async function startWriting(root) {
         improvementsObserver?.disconnect();
         q('feedback').replaceChildren(); q('issues').replaceChildren(); q('criteria').replaceChildren();
         const assessment = result?.result;
+        q('export').hidden = result?.status !== 'completed' || !assessment;
+        q('export').disabled = !!s.fatal;
         if (displayedResultId !== result?.id) { issueFilter = 'all'; issuePage = 0; feedbackExpanded = false; improvementsExpanded = false; displayedResultId = result?.id; }
         q('issue-filters').replaceChildren();
         q('issue-nav').replaceChildren(); q('issue-nav').hidden = true;
@@ -448,15 +501,20 @@ export async function startWriting(root) {
         q('scoreboard').hidden = !assessment; q('tabs').hidden = !assessment; q('score-note').hidden = !assessment;
         q('guide').hidden = !!assessment || !!result || !!s.pending;
         if (!assessment) selectTab(tabs[0]);
+        const band = assessment?.score_scale === 'ielts_band_0_9';
+        const scoreMax = band ? 9 : 100;
+        const names = band ? { task_response: 'Task Response', task_achievement: 'Task Achievement', coherence: 'Coherence & Cohesion', vocabulary: 'Lexical Resource', grammar: 'Grammatical Range & Accuracy', style: 'Phong cách' } : criterionNames;
+        const formatScore = value => band ? value.toFixed(1) : String(value);
+        q('score-label').textContent = band ? 'Band dự kiến' : 'Điểm luyện tập';
+        q('score-scale').textContent = band ? 'IELTS · thang 9' : 'trên 100 điểm';
+        q('score-note').textContent = band ? 'Band cho riêng bài Task này do AI ước tính, không phải điểm IELTS chính thức.' : 'Điểm luyện tập AI trên thang 100.';
         const score = Number.isFinite(assessment?.overall_score) ? assessment.overall_score : null;
-        q('overall').textContent = score === null ? '—' : String(score);
-        q('ring-value').style.strokeDasharray = `${score === null ? 0 : Math.min(100, Math.max(0, score))} 100`;
+        q('overall').textContent = score === null ? '—' : formatScore(score);
+        q('ring-value').style.strokeDasharray = `${score === null ? 0 : Math.min(100, Math.max(0, score / scoreMax * 100))} 100`;
         q('ring').classList.toggle('is-empty', score === null);
         q('empty').hidden = !!assessment;
-        q('empty-title').textContent = failed && result.error_code === 'AI_CREDIT_INSUFFICIENT' ? 'Không đủ credit để chấm bài' : result ? stateLabel(result.status) : s.pending ? 'Đang xác nhận yêu cầu' : 'Bắt đầu bài viết của bạn';
-        q('empty-description').textContent = failed ? failureMessage : result || s.pending
-            ? 'Kết quả sẽ hiển thị khi lượt đánh giá hoàn tất. Bạn có thể cập nhật trạng thái bằng nút Cập nhật kết quả.'
-            : 'Viết bài rồi gửi đánh giá để xem điểm từng tiêu chí, nhận xét và gợi ý sửa câu.';
+        q('empty-title').textContent = failed && result.error_code === 'AI_CREDIT_INSUFFICIENT' ? 'Không đủ credit để chấm bài' : view.title;
+        q('empty-description').textContent = failed ? failureMessage : view.description;
         q('issue-count').textContent = String(assessment?.issues?.length ?? 0);
         q('original-panel').hidden = !assessment;
         q('result-actions').hidden = !assessment;
@@ -471,11 +529,13 @@ export async function startWriting(root) {
         q('original').replaceChildren();
         q('credit').hidden = !result;
         q('credit').textContent = result ? `Credit đã dùng: ${result.credit_units ?? 'chưa xác định'} · Còn lại: ${result.credit_balance ?? 'chưa xác định'}` : '';
-        q('assessment-status').textContent = result ? `${stateLabel(result.status)} · phiên bản ${result.revision}. ${recoveryLabel(result.recovery)}`
-            : s.pending ? 'Chưa xác định kết quả gửi bài. Cập nhật trạng thái hoặc tiếp tục đúng yêu cầu đang gửi.' : 'Gửi bài để nhận góp ý theo từng tiêu chí.';
+        const assessmentStatus = result ? `${stateLabel(result.status)} · phiên bản ${result.revision}. ${view.active ? view.note : recoveryLabel(result.recovery)}`
+            : s.pending ? view.title : 'Gửi bài để nhận góp ý theo từng tiêu chí.';
+        if (q('assessment-status').textContent !== assessmentStatus) q('assessment-status').textContent = assessmentStatus;
         if (!assessment) {
             q('criteria').append(node('p', 'Điểm từng tiêu chí sẽ xuất hiện sau khi đánh giá.', 'tai-writing-muted'));
             q('issues').append(node('p', 'Chưa có gợi ý sửa. Gửi bài để nhận đánh giá.', 'tai-writing-muted'));
+            restorePanels();
             return;
         }
         const feedback = node('section', undefined, 'tai-writing-ai-feedback');
@@ -535,21 +595,207 @@ export async function startWriting(root) {
             }
         });
         feedbackObserver.observe(feedbackText);
+        const priority = Array.isArray(assessment.priority_actions) && assessment.priority_actions.length
+            ? assessment.priority_actions : improvements.slice(0, 3);
+        if (priority.length) {
+            const priorities = node('section', undefined, 'tai-writing-priorities');
+            priorities.dataset.writingPriorities = '';
+            const title = node('h3'); title.append(icon('warning'), document.createTextNode('Việc cần sửa trước'));
+            const list = node('ol');
+            for (const action of priority.slice(0, 3)) list.append(node('li', action));
+            priorities.append(title, list);
+            if (!assessment.priority_actions?.length) priorities.append(node('small', 'Gợi ý từ nhận xét hiện có; lượt chấm này chưa có thứ tự ưu tiên riêng.'));
+            q('feedback').append(priorities);
+        }
+        const cefrProfile = result.profile ?? s.metadata?.profile;
+        if (cefrProfile?.framework === 'cefr') {
+            const target = assessment.cefr_target_analysis;
+            const panel = node('details', undefined, 'tai-writing-criterion-analysis tai-writing-cefr-target');
+            panel.dataset.writingCefrTarget = ''; panel.dataset.writingPanelKey = 'cefr-target';
+            const heading = node('summary'); heading.append(icon('check'), document.createTextNode(`So với mục tiêu CEFR ${target?.target ?? cefrProfile.target}`), icon('chevron-down')); panel.append(heading);
+            panel.append(node('p', 'Nhận xét cho bài này, không xác nhận trình độ tổng thể và không quy đổi từ điểm 100.', 'tai-writing-requirements-empty'));
+            if (target) {
+                const expectation = node('div', undefined, 'tai-writing-cefr-expectation'); expectation.append(node('small', 'Mục tiêu luyện tập'), node('p', target.expectation)); panel.append(expectation);
+                for (const item of target.aspects) {
+                    const section = node('section', undefined, 'tai-writing-criterion-detail');
+                    const label = node('h4'); label.append(node('span', writingCefrAspectNames[item.aspect] ?? item.aspect), node('small', writingCefrStatusNames[item.status] ?? 'Chưa đủ dữ liệu', `tai-writing-requirement-status is-${item.status}`));
+                    section.append(label, node('p', item.comment));
+                    if (item.evidence?.length) {
+                        const quotes = node('div', undefined, 'tai-writing-evidence-quotes'); for (const quote of item.evidence) quotes.append(node('blockquote', quote)); section.append(quotes);
+                    }
+                    if (item.next_step) {
+                        const next = node('div', undefined, 'tai-writing-criterion-next'); next.append(node('strong', 'Việc nên làm tiếp'), node('p', item.next_step)); section.append(next);
+                    }
+                    panel.append(section);
+                }
+            } else panel.append(node('p', 'Lượt chấm này chưa có đối chiếu mục tiêu CEFR. Phần này sẽ có ở lượt chấm mới.', 'tai-writing-requirements-empty'));
+            q('feedback').append(panel);
+        }
+        const analysis = node('details', undefined, 'tai-writing-criterion-analysis');
+        analysis.dataset.writingCriterionAnalysis = '';
+        analysis.dataset.writingPanelKey = 'criteria';
+        const summaryTitle = node('summary'); summaryTitle.append(icon('document'), document.createTextNode('Vì sao đạt điểm này?'), icon('chevron-down'));
+        analysis.append(summaryTitle);
         if (score === null) q('feedback').append(node('p', 'Chưa đủ dữ liệu để tính điểm tổng.', 'tai-writing-muted'));
         for (const [key, criterion] of Object.entries(assessment.criteria)) {
             const row = node('div', undefined, 'tai-writing-criterion');
             const heading = node('div', undefined, 'tai-writing-row');
             const value = Number.isFinite(criterion.score) ? criterion.score : null;
-            heading.append(node('span', criterionNames[key] ?? key), node('strong', value === null ? '—' : String(value)));
+            heading.append(node('span', names[key] ?? key), node('strong', value === null ? '—' : formatScore(value)));
             const meter = node('div', undefined, 'tai-writing-meter');
             if (value !== null) {
-                meter.setAttribute('role', 'meter'); meter.setAttribute('aria-label', criterionNames[key] ?? key);
-                meter.setAttribute('aria-valuemin', '0'); meter.setAttribute('aria-valuemax', '100'); meter.setAttribute('aria-valuenow', String(value));
+                meter.setAttribute('role', 'meter'); meter.setAttribute('aria-label', names[key] ?? key);
+                meter.setAttribute('aria-valuemin', '0'); meter.setAttribute('aria-valuemax', String(scoreMax)); meter.setAttribute('aria-valuenow', String(value));
             }
-            const fill = node('span'); fill.style.width = `${value === null ? 0 : Math.min(100, Math.max(0, value))}%`; meter.append(fill);
+            const fill = node('span'); fill.style.width = `${value === null ? 0 : Math.min(100, Math.max(0, value / scoreMax * 100))}%`; meter.append(fill);
             row.append(heading, meter);
             if (value === null) row.append(node('small', 'Chưa đủ dữ liệu'));
             q('criteria').append(row);
+            const explanation = node('section', undefined, 'tai-writing-criterion-detail');
+            const label = node('h4'); label.append(node('span', names[key] ?? key), node('strong', value === null ? '—' : formatScore(value)));
+            explanation.append(label);
+            if (value === null) explanation.append(node('p', 'Chưa đủ dữ liệu hoặc dẫn chứng để xác minh điểm tiêu chí này.', 'tai-writing-muted'));
+            if (criterion.rationale) explanation.append(node('p', criterion.rationale));
+            else if (value !== null) explanation.append(node('p', 'Lượt chấm này chưa có giải thích điểm riêng.', 'tai-writing-muted'));
+            if (Array.isArray(criterion.evidence) && criterion.evidence.length) {
+                const quotes = node('div', undefined, 'tai-writing-evidence-quotes'); quotes.append(node('small', 'Dẫn chứng trong bài'));
+                for (const quote of criterion.evidence) quotes.append(node('blockquote', quote));
+                explanation.append(quotes);
+            }
+            if (criterion.next_step) {
+                const next = node('div', undefined, 'tai-writing-criterion-next'); next.append(node('strong', 'Bước tiếp theo'), node('p', criterion.next_step)); explanation.append(next);
+            }
+            analysis.append(explanation);
+        }
+        if (Object.keys(assessment.criteria).length) q('feedback').append(analysis);
+        const requirements = node('details', undefined, 'tai-writing-criterion-analysis tai-writing-task-check');
+        requirements.dataset.writingTaskCheck = '';
+        requirements.dataset.writingPanelKey = 'requirements';
+        const requirementsHeading = node('summary'); requirementsHeading.append(icon('check'), document.createTextNode('Kiểm tra yêu cầu đề'), icon('chevron-down')); requirements.append(requirementsHeading);
+        const task = result.rubric?.task ?? s.metadata?.task;
+        const minimum = task === 'ielts_task_1' ? 150 : task === 'ielts_task_2' ? 250 : null;
+        const submittedWords = wordCount(result.original ?? '');
+        const lengthCheck = node('div', undefined, 'tai-writing-word-check');
+        lengthCheck.append(node('strong', `Bài đã gửi: ${submittedWords} từ`));
+        if (minimum) {
+            lengthCheck.append(node('span', submittedWords >= minimum ? `Đạt tối thiểu ${minimum} từ` : `Thiếu khoảng ${minimum - submittedWords} từ so với tối thiểu ${minimum}`, submittedWords >= minimum ? 'is-met' : 'is-not_met'));
+            lengthCheck.append(node('small', 'Số từ ước tính để luyện tập; độ dài không tự quyết định band.'));
+        }
+        requirements.append(lengthCheck);
+        const requirementNames = { met: 'Đã đáp ứng', partial: 'Đáp ứng một phần', not_met: 'Chưa đáp ứng', not_available: 'Chưa đủ dữ liệu' };
+        if (Array.isArray(assessment.task_requirements) && assessment.task_requirements.length) {
+            for (const item of assessment.task_requirements) {
+                const section = node('section', undefined, 'tai-writing-criterion-detail');
+                const heading = node('h4'); heading.append(node('span', item.requirement), node('small', requirementNames[item.status] ?? 'Chưa đủ dữ liệu', `tai-writing-requirement-status is-${item.status}`));
+                section.append(heading, node('p', item.comment));
+                if (item.evidence?.length) { const quotes = node('div', undefined, 'tai-writing-evidence-quotes'); for (const quote of item.evidence) quotes.append(node('blockquote', quote)); section.append(quotes); }
+                requirements.append(section);
+            }
+        } else requirements.append(node('p', 'Lượt chấm này chưa có kiểm tra từng yêu cầu. Phân tích đầy đủ sẽ có ở lượt chấm mới.', 'tai-writing-requirements-empty'));
+        q('feedback').append(requirements);
+        const structure = node('details', undefined, 'tai-writing-criterion-analysis tai-writing-structure');
+        structure.dataset.writingStructure = '';
+        structure.dataset.writingPanelKey = 'structure';
+        const structureHeading = node('summary'); structureHeading.append(icon('document'), document.createTextNode('Cấu trúc bài viết'), icon('chevron-down')); structure.append(structureHeading);
+        structure.append(node('p', 'Góp ý theo dạng bài và trình độ; không phải tiêu chí chấm điểm bổ sung.', 'tai-writing-requirements-empty'));
+        if (Array.isArray(assessment.structure_analysis) && assessment.structure_analysis.length) {
+            for (const item of assessment.structure_analysis) {
+                const section = node('section', undefined, 'tai-writing-criterion-detail');
+                const heading = node('h4'); heading.append(node('span', writingStructureNames[item.component] ?? item.component),
+                    node('small', requirementNames[item.status] ?? 'Chưa đủ dữ liệu', `tai-writing-requirement-status is-${item.status}`));
+                section.append(heading, node('p', item.comment));
+                if (item.evidence?.length) {
+                    const quotes = node('div', undefined, 'tai-writing-evidence-quotes');
+                    for (const quote of item.evidence) quotes.append(node('blockquote', quote));
+                    section.append(quotes);
+                }
+                if (item.next_step) {
+                    const next = node('div', undefined, 'tai-writing-criterion-next'); next.append(node('strong', 'Gợi ý cải thiện'), node('p', item.next_step)); section.append(next);
+                }
+                structure.append(section);
+            }
+        } else structure.append(node('p', 'Lượt chấm này chưa có phân tích cấu trúc. Nội dung này sẽ có ở lượt chấm mới.', 'tai-writing-requirements-empty'));
+        q('feedback').append(structure);
+        const vocabulary = node('details', undefined, 'tai-writing-criterion-analysis tai-writing-vocabulary');
+        vocabulary.dataset.writingVocabulary = '';
+        vocabulary.dataset.writingPanelKey = 'vocabulary';
+        const vocabularyHeading = node('summary'); vocabularyHeading.append(icon('document'), document.createTextNode('Từ vựng và cách diễn đạt'), icon('chevron-down')); vocabulary.append(vocabularyHeading);
+        const vocabularyIssues = assessment.issues.filter(issue => issue.category === 'vocabulary');
+        for (const issue of vocabularyIssues) {
+            const section = node('section', undefined, 'tai-writing-criterion-detail');
+            const pair = node('div', undefined, 'tai-writing-vocabulary-pair');
+            const before = node('div'); before.append(node('small', 'Trong bài của bạn'), node('p', issue.original));
+            const after = node('div'); after.append(node('small', 'AI gợi ý'), node('p', issue.replacement || 'Chưa có cách thay thế cụ thể.'));
+            pair.append(before, icon('arrow-right'), after); section.append(pair, node('p', issue.explanation));
+            if (!issue.applicable) section.append(node('small', 'Vị trí chưa xác minh được; đọc góp ý và sửa thủ công.', 'tai-writing-muted'));
+            vocabulary.append(section);
+        }
+        if (!vocabularyIssues.length) vocabulary.append(node('p', 'Lượt chấm này chưa có góp ý riêng về từ vựng. Điều này không có nghĩa mọi cách diễn đạt đều chính xác.', 'tai-writing-requirements-empty'));
+        const repeated = repeatedWritingWords(result.original);
+        if (repeated.length) {
+            const frequency = node('section', undefined, 'tai-writing-criterion-detail'); frequency.append(node('h4', 'Từ xuất hiện nhiều'));
+            const words = node('ul', undefined, 'tai-writing-vocabulary-frequency');
+            for (const item of repeated) { const word = node('li'); word.append(node('span', item.word), node('strong', `${item.count} lần`)); words.append(word); }
+            frequency.append(words, node('small', 'Thống kê trên bài đã chấm, không phân biệt hoa/thường và không gộp biến thể từ. Từ khóa chủ đề có thể cần lặp lại; đây không phải kết luận có lỗi.', 'tai-writing-muted'));
+            vocabulary.append(frequency);
+        }
+        q('feedback').append(vocabulary);
+        if (Array.isArray(assessment.paragraph_analysis) && assessment.paragraph_analysis.length) {
+            const paragraphs = node('details', undefined, 'tai-writing-criterion-analysis tai-writing-paragraph-analysis');
+            paragraphs.dataset.writingParagraphAnalysis = '';
+            paragraphs.dataset.writingPanelKey = 'paragraphs';
+            const title = node('summary'); title.append(icon('document'), document.createTextNode('Phân tích theo đoạn'), icon('chevron-down')); paragraphs.append(title);
+            for (const paragraph of assessment.paragraph_analysis) {
+                const section = node('section', undefined, 'tai-writing-criterion-detail');
+                section.append(node('h4', `Đoạn ${paragraph.paragraph_number}`));
+                const quote = node('div', undefined, 'tai-writing-evidence-quotes'); quote.append(node('blockquote', paragraph.excerpt)); section.append(quote);
+                section.append(node('p', paragraph.comment));
+                const next = node('div', undefined, 'tai-writing-criterion-next'); next.append(node('strong', 'Gợi ý cho đoạn này'), node('p', paragraph.next_step)); section.append(next);
+                paragraphs.append(section);
+            }
+            q('feedback').append(paragraphs);
+        }
+        if (result.comparison) {
+            const comparison = result.comparison;
+            const panel = node('section', undefined, 'tai-writing-progress'); panel.dataset.writingProgress = '';
+            const title = node('h3'); title.append(icon('history'), document.createTextNode(`So với phiên bản ${comparison.previous_revision}`)); panel.append(title);
+            const deltaText = value => value === null ? 'Chưa đủ dữ liệu' : value > 0 ? `+${band ? value.toFixed(1) : value}` : band ? value.toFixed(1) : String(value);
+            const changeClass = value => value > 0 ? 'is-up' : value < 0 ? 'is-down' : 'is-same';
+            const overall = node('div', undefined, 'tai-writing-progress-overall');
+            const oldScore = Number.isFinite(comparison.previous_score) ? formatScore(comparison.previous_score) : '—';
+            const newScore = Number.isFinite(comparison.current_score) ? formatScore(comparison.current_score) : '—';
+            overall.append(node('span', `${band ? 'Band dự kiến' : 'Điểm tổng'}: ${oldScore} → ${newScore}`), node('strong', deltaText(comparison.overall_delta), changeClass(comparison.overall_delta))); panel.append(overall);
+            const rows = node('div', undefined, 'tai-writing-progress-criteria');
+            for (const [key, values] of Object.entries(comparison.criteria)) {
+                const row = node('div'); row.append(node('span', names[key] ?? key), node('strong', deltaText(values.delta), changeClass(values.delta))); rows.append(row);
+            }
+            panel.append(rows, node('p', `Số gợi ý sửa: ${comparison.previous_issue_count} → ${comparison.current_issue_count}`), node('small', 'So sánh các lượt chấm cùng rubric. Số gợi ý giảm không có nghĩa tất cả lỗi đã được sửa.'));
+            if (comparison.issue_changes) {
+                const changes = node('details', undefined, 'tai-writing-criterion-analysis tai-writing-issue-changes'); changes.dataset.writingIssueChanges = '';
+                changes.dataset.writingPanelKey = 'changes';
+                const heading = node('summary'); heading.append(icon('history'), document.createTextNode('Góp ý thay đổi giữa hai phiên bản'), icon('chevron-down')); changes.append(heading);
+                changes.append(node('p', 'Đối chiếu cùng loại góp ý và cụm gốc chính xác, gộp cụm trùng nhau. AI không báo lại một lỗi chưa đủ để kết luận lỗi đã sửa.', 'tai-writing-requirements-empty'));
+                for (const [key, title] of [['recurring', 'AI còn báo lại'], ['not_reported', 'AI không báo lại ở lượt này'], ['newly_reported', 'Góp ý mới ở lượt này']]) {
+                    const group = comparison.issue_changes[key];
+                    const section = node('section', undefined, `tai-writing-criterion-detail tai-writing-change-group is-${key}`);
+                    section.append(node('h4', `${title} · ${group.count}`));
+                    for (const item of group.items) {
+                        const entry = node('div', undefined, 'tai-writing-change-entry');
+                        entry.append(node('small', names[item.category] ?? item.category), node('blockquote', item.original));
+                        if (item.replacement) entry.append(node('p', `Gợi ý: ${item.replacement}`));
+                        if (item.explanation) entry.append(node('p', item.explanation));
+                        if (key === 'not_reported') entry.append(node('small', item.original_still_present
+                            ? 'Cụm gốc vẫn còn trong bài mới; nên kiểm tra lại.' : 'Cụm gốc không còn trong bài mới; chưa xác nhận lỗi đã sửa.', 'tai-writing-muted'));
+                        section.append(entry);
+                    }
+                    if (!group.count) section.append(node('p', 'Không có góp ý trong nhóm này.', 'tai-writing-muted'));
+                    else if (group.count > group.items.length) section.append(node('small', `Hiển thị ${group.items.length}/${group.count} góp ý.`, 'tai-writing-muted'));
+                    changes.append(section);
+                }
+                if (comparison.issue_changes.unverified_count) changes.append(node('p', `${comparison.issue_changes.unverified_count} góp ý không có cụm gốc khớp bài nên chưa được đối chiếu.`, 'tai-writing-requirements-empty'));
+                panel.append(changes);
+            }
+            q('feedback').append(panel);
         }
         if (!Object.keys(assessment.criteria).length) q('criteria').append(node('p', 'Chưa có điểm từng tiêu chí.', 'tai-writing-muted'));
         const groups = new Map();
@@ -559,7 +805,7 @@ export async function startWriting(root) {
             const group = node('button', undefined, `tai-writing-issue-group tai-writing-issue-group--${category}`);
             group.type = 'button'; group.dataset.writingGroup = category;
             const badge = node('span', String(count), 'tai-writing-group-badge'); badge.setAttribute('aria-hidden', 'true');
-            const text = node('span'); text.append(node('strong', `${count} gợi ý · ${criterionNames[category] ?? category}`), node('small', 'Xem câu gốc, cách sửa và giải thích'));
+            const text = node('span'); text.append(node('strong', `${count} gợi ý · ${names[category] ?? category}`), node('small', 'Xem câu gốc, cách sửa và giải thích'));
             const arrow = icon('chevron-right');
             group.append(badge, text, arrow);
             group.addEventListener('click', () => { issueFilter = category; issuePage = 0; renderResult(s); selectTab(tabs[1], true); });
@@ -567,7 +813,7 @@ export async function startWriting(root) {
         }
         if (groups.size) q('feedback').append(summary);
         for (const [category, count] of [['all', assessment.issues.length], ...groups]) {
-            const filter = node('button', category === 'all' ? `Tất cả (${count})` : `${criterionNames[category] ?? category} (${count})`, 'tai-writing-secondary');
+            const filter = node('button', category === 'all' ? `Tất cả (${count})` : `${names[category] ?? category} (${count})`, 'tai-writing-secondary');
             filter.type = 'button'; filter.dataset.writingIssueFilter = category;
             filter.setAttribute('aria-pressed', String(issueFilter === category));
             filter.addEventListener('click', () => {
@@ -608,7 +854,7 @@ export async function startWriting(root) {
             if (index !== filtered[issuePage]?.index) return;
             for (const destination of [q('issues'), q('overview-issues')]) {
             const card = node('section', undefined, 'tai-writing-issue');
-            card.append(node('span', criterionNames[issue.category] ?? issue.category, 'tai-writing-issue-category'));
+            card.append(node('span', names[issue.category] ?? issue.category, 'tai-writing-issue-category'));
             const comparison = node('div', undefined, 'tai-writing-comparison');
             const before = node('div', undefined, 'tai-writing-before');
             const after = node('div', undefined, 'tai-writing-after');
@@ -637,6 +883,7 @@ export async function startWriting(root) {
             destination.append(card);
             }
         });
+        restorePanels();
     }
     function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(() => run(() => session.save()), 800); }
     async function refresh() {
@@ -778,7 +1025,24 @@ export async function startWriting(root) {
         function taskHint() { q('task-hint').hidden = form.elements.task.value !== 'ielts_task_1'; }
         form.elements.task.addEventListener('change', taskHint);
         function targetPreview() { q('target').textContent = `${form.elements.framework.value.toUpperCase()} ${form.elements.target.value}`; }
-        options(); targetPreview(); taskHint();
+        const goalParams = new URLSearchParams(window.location.search);
+        const goalFramework = goalParams.get('framework');
+        const goalTarget = goalParams.get('target');
+        const validGoal = Array.isArray(writingTargets[goalFramework]) && writingTargets[goalFramework].includes(goalTarget);
+        if (validGoal) form.elements.framework.value = goalFramework;
+        options();
+        if (validGoal) form.elements.target.value = goalTarget;
+        targetPreview(); taskHint();
+        for (const example of writingExamples) { const option = node('option', example.label); option.value = example.id; q('example').append(option); }
+        q('example').addEventListener('change', () => {
+            const example = writingExamples.find(item => item.id === q('example').value);
+            if (!example) return;
+            form.elements.framework.value = example.framework; options();
+            form.elements.target.value = example.target; form.elements.task.value = example.task;
+            form.elements.feedback_language.value = 'vi';
+            form.elements.topic.value = example.topic; form.elements.content.value = example.content;
+            targetPreview(); taskHint();
+        });
         form.elements.framework.addEventListener('change', () => { options(); targetPreview(); taskHint(); });
         form.elements.target.addEventListener('change', targetPreview);
         renderResult({ result: null, pending: null });
@@ -788,6 +1052,7 @@ export async function startWriting(root) {
             try {
                 const data = Object.fromEntries(new FormData(form));
                 if (new TextEncoder().encode(data.topic).length > 5000) throw new Error('WRITING_TOPIC_TOO_LONG');
+                if (new TextEncoder().encode(data.content).length > 20000) throw new Error('WRITING_TOO_LONG');
                 const draft = await request(`${api}/drafts`, 'POST', data);
                 window.history.replaceState(null, '', `${page}/${encodeURIComponent(draft.id)}`);
                 historyPage = 1; await open(draft.id); q('editor').focus();

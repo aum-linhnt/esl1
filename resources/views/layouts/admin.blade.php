@@ -161,6 +161,12 @@
                     <span aria-hidden="true">🔑</span><span x-show="sidebarOpen">License Gia sư AI</span>
                 </a>
             @endif
+            @if(Route::has('teacher.ai-tutor.index') && app(\TDSoft\AiTutor\Contracts\CreditAdministrator::class)->actorId() !== null)
+                <a href="{{ route('teacher.ai-tutor.index') }}" class="admin-sidebar-link">Quản lý Gia sư AI</a>
+            @endif
+            @if(Route::has('admin.ai.usage') && app(\TDSoft\AiTutor\Contracts\CreditAdministrator::class)->actorId() !== null)
+                <a href="{{ route('admin.ai.usage') }}" class="admin-sidebar-link {{ request()->routeIs('admin.ai.usage') ? 'active' : '' }}"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 3v18h18M7 14l4-4 4 3 6-7"/></svg> Sử dụng & chi phí AI</a>
+            @endif
             @if(Route::has('ai-tutor.credits.index') && app(\TDSoft\AiTutor\Contracts\CreditAdministrator::class)->actorId() !== null)
                 <a href="{{ route('ai-tutor.credits.index') }}" class="admin-sidebar-link {{ request()->routeIs('ai-tutor.credits.*') ? 'active' : '' }}">
                     <span aria-hidden="true">💳</span><span x-show="sidebarOpen">Rule &amp; Credit AI</span>

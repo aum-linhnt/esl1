@@ -14,6 +14,7 @@
 @section('content')
 <section aria-label="Writing Studio" class="tai-writing {{ $writingStandalone ? '' : 'tai-writing--embedded' }}"
       @if(!$writingStandalone) data-ai-tutor-root data-ai-tutor-theme="{{ config('ai-tutor.theme.default', 'system') }}" @endif data-tai-writing data-actor="{{ $actorId }}" data-draft="{{ $draftId }}"
+      @if(config('ai-tutor.ui.study_tracking', false)) data-study-source="writing" data-study-api="{{ url('/dashboard-v2/study-sessions') }}" @endif
       data-api="{{ url('/ai-tutor/api/v1/writing') }}" data-page="{{ url('/ai-tutor/writing') }}">
     @if($writingStandalone)
     <nav class="tai-writing-nav" aria-label="Điều hướng Writing">
@@ -22,7 +23,7 @@
         <button type="button" data-tai-theme aria-label="Đổi giao diện sáng hoặc tối">@include('ai-tutor::partials.icon', ['name' => 'sun']) <span>Sáng / Tối</span></button>
     </nav>
     @endif
-    @foreach(['arrow-right', 'chevron-left', 'chevron-right', 'chevron-up', 'chevron-down', 'document', 'check', 'warning', 'sparkles'] as $writingIcon)
+    @foreach(['arrow-right', 'chevron-left', 'chevron-right', 'chevron-up', 'chevron-down', 'document', 'check', 'warning', 'sparkles', 'history'] as $writingIcon)
         <template data-writing-icon="{{ $writingIcon }}">@include('ai-tutor::partials.icon', ['name' => $writingIcon, 'size' => 18])</template>
     @endforeach
     <header class="tai-writing-header">
@@ -41,6 +42,10 @@
             <section data-writing-start hidden class="tai-writing-card tai-writing-setup">
                 <div class="tai-writing-section-heading"><span class="tai-writing-step">01</span><div><h2>Thiết lập bài viết</h2><p>Chọn mục tiêu, bắt đầu từ một đề bài.</p></div></div>
                 <form data-writing-create>
+                    <div class="tai-writing-example-picker">
+                        <label>Ví dụ để test<select data-writing-example><option value="">Chọn ví dụ mẫu…</option></select></label>
+                        <p>Ví dụ có lỗi cố ý để kiểm tra góp ý. Chọn mẫu sẽ điền lại thiết lập, đề và bài viết phía dưới.</p>
+                    </div>
                     <div class="tai-writing-fields">
                         <label>Chương trình<select name="framework"><option value="cefr">CEFR</option><option value="ielts">IELTS</option><option value="toeic">TOEIC</option></select></label>
                         <label>Mục tiêu<select name="target"></select></label>
@@ -49,6 +54,7 @@
                     </div>
                     <label>Đề bài<textarea name="topic" rows="3" maxlength="5000" required placeholder="Nhập đề bài hoặc tình huống bạn muốn luyện viết."></textarea></label>
                     <p data-writing-task-hint hidden class="tai-writing-muted">IELTS Task 1: nhập đề và dữ liệu mô tả để AI có cơ sở đánh giá.</p>
+                    <label>Bài viết ban đầu <span class="tai-writing-muted">(không bắt buộc)</span><textarea name="content" rows="5" maxlength="20000" placeholder="Viết bài của bạn hoặc chọn ví dụ mẫu phía trên."></textarea></label>
                     <button type="submit">Bắt đầu viết</button>
                 </form>
             </section>
@@ -129,11 +135,11 @@
         </div>
         <div class="tai-writing-result-column">
         <aside class="tai-writing-card tai-writing-results" aria-label="Kết quả đánh giá bài viết">
-            <div class="tai-writing-result-heading"><span class="tai-writing-icon">@include('ai-tutor::partials.icon', ['name' => 'sparkles'])</span><div><h2>Kết quả đánh giá</h2><span class="tai-writing-muted">Góp ý theo từng tiêu chí</span></div></div>
+            <div class="tai-writing-result-heading"><span class="tai-writing-icon">@include('ai-tutor::partials.icon', ['name' => 'sparkles'])</span><div><h2>Kết quả đánh giá</h2><span class="tai-writing-muted">Góp ý theo từng tiêu chí</span></div><button type="button" data-writing-export hidden class="tai-writing-secondary tai-writing-export" title="Tải đề, bài đã chấm và góp ý của phiên bản đang xem. Không dùng credit.">@include('ai-tutor::partials.icon', ['name' => 'download', 'size' => 16]) <span>Tải báo cáo</span></button></div>
             <p data-writing-assessment-status role="status" aria-live="polite">Gửi bài để nhận góp ý theo từng tiêu chí.</p>
             <p data-writing-result-error hidden role="alert" class="tai-writing-result-error"></p>
             <div data-writing-scoreboard hidden class="tai-writing-scoreboard">
-                <div class="tai-writing-ring" data-writing-ring><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="tai-writing-ring-track" cx="60" cy="60" r="51"/><circle class="tai-writing-ring-value" data-writing-ring-value cx="60" cy="60" r="51" pathLength="100"/></svg><div><span>Điểm luyện tập</span><strong data-writing-overall>—</strong><small>trên 100 điểm</small></div></div>
+                <div class="tai-writing-ring" data-writing-ring><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="tai-writing-ring-track" cx="60" cy="60" r="51"/><circle class="tai-writing-ring-value" data-writing-ring-value cx="60" cy="60" r="51" pathLength="100"/></svg><div><span data-writing-score-label>Điểm luyện tập</span><strong data-writing-overall>—</strong><small data-writing-score-scale>trên 100 điểm</small></div></div>
                 <div data-writing-criteria class="tai-writing-criteria"><p class="tai-writing-muted">Điểm từng tiêu chí sẽ xuất hiện sau khi đánh giá.</p></div>
             </div>
             <p data-writing-score-note hidden class="tai-writing-score-note">Điểm AI mang tính tham khảo, không phải band IELTS chính thức.</p>
@@ -149,7 +155,7 @@
                     <div data-writing-overview-issues></div>
 
                 </section>
-                <div data-writing-empty class="tai-writing-empty">@include('ai-tutor::partials.icon', ['name' => 'robot', 'size' => 40])<h3 data-writing-empty-title>Mỗi bản nháp là một bước tiến</h3><p data-writing-empty-description>Viết bài rồi gửi đánh giá để xem điểm từng tiêu chí, nhận xét và gợi ý sửa câu.</p><ol data-writing-guide class="tai-writing-guide"><li><strong>Nhập đề bài</strong><span>Chọn chương trình và mục tiêu luyện tập.</span></li><li><strong>Viết bài của bạn</strong><span>Bản nháp tự lưu khi bạn ngừng gõ.</span></li><li><strong>Gửi đánh giá</strong><span>Nhận góp ý, sửa câu và chấm lại khi sẵn sàng.</span></li></ol></div>
+                <div data-writing-empty class="tai-writing-empty"><span class="tai-writing-loading-symbol">@include('ai-tutor::partials.icon', ['name' => 'robot', 'size' => 40])<span class="tai-writing-loading-orbit" aria-hidden="true"></span></span><h3 data-writing-empty-title>Mỗi bản nháp là một bước tiến</h3><p data-writing-empty-description>Viết bài rồi gửi đánh giá để xem điểm từng tiêu chí, nhận xét và gợi ý sửa câu.</p><ol data-writing-assessment-progress hidden class="tai-writing-assessment-progress" aria-label="Tiến trình đánh giá"><li><span>1</span>Gửi bài</li><li><span>2</span>Chờ chấm</li><li><span>3</span>Phân tích</li></ol><ol data-writing-guide class="tai-writing-guide"><li><strong>Nhập đề bài</strong><span>Chọn chương trình và mục tiêu luyện tập.</span></li><li><strong>Viết bài của bạn</strong><span>Bản nháp tự lưu khi bạn ngừng gõ.</span></li><li><strong>Gửi đánh giá</strong><span>Nhận góp ý, sửa câu và chấm lại khi sẵn sàng.</span></li></ol></div>
             </section>
             <section id="tai-writing-details" data-writing-tab-panel="details" role="tabpanel" aria-labelledby="tai-writing-tab-details" tabindex="0" hidden>
                 <p class="tai-writing-muted">Áp dụng từng gợi ý vào bản nháp, sau đó đọc lại để giữ đúng ý của bạn.</p>
