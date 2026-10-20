@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@include('partials.study-time', ['studySource' => 'speaking'])
 <div class="w-full space-y-6" x-data="aiSpeakingApp()">
     
     {{-- Header --}}

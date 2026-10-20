@@ -3,7 +3,12 @@
 namespace TDSoft\AiTutor\Core;
 
 use Illuminate\Database\Events\MigrationsStarted;
+use TDSoft\AiTutor\Assessment\PhaseFourSchema;
+use TDSoft\AiTutor\Billing\CreditAdminSchema;
+use TDSoft\AiTutor\Knowledge\PhaseThreeSchema;
+use TDSoft\AiTutor\Knowledge\SyncSchema;
 use TDSoft\AiTutor\Licensing\LicenseSchemaInspector;
+use TDSoft\AiTutor\Writing\WritingSchema;
 
 final class MigrationPreflight
 {
@@ -14,7 +19,7 @@ final class MigrationPreflight
         if ($event->method !== 'up') {
             return;
         }
-        foreach ([$this->foundation->inspect(), $this->license->inspect(), app(\TDSoft\AiTutor\Knowledge\PhaseThreeSchema::class)->inspect(), app(\TDSoft\AiTutor\Knowledge\SyncSchema::class)->inspect(), app(\TDSoft\AiTutor\Billing\CreditAdminSchema::class)->inspect()] as $result) {
+        foreach ([$this->foundation->inspect(), $this->license->inspect(), app(PhaseThreeSchema::class)->inspect(), app(SyncSchema::class)->inspect(), app(CreditAdminSchema::class)->inspect(), app(PhaseFourSchema::class)->inspect(), app(WritingSchema::class)->inspect()] as $result) {
             if (! in_array($result['state'], ['fresh', 'pending', 'installed'], true)) {
                 throw new \RuntimeException('AI Tutor preflight: '.$result['state'].'; '.implode(', ', $result['problems']));
             }

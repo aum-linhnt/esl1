@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/courses/{courseId}/lessons/{lessonId}/ai-policy', [\App\Http\Controllers\LessonAiPolicyController::class, 'edit'])->name('courses.lessons.ai-policy.edit');
     Route::put('/courses/{courseId}/lessons/{lessonId}/ai-policy', [\App\Http\Controllers\LessonAiPolicyController::class, 'update'])->name('courses.lessons.ai-policy.update');
+    Route::put('/teacher/ai-tutor/courses/{courseId}/lessons/{lessonId}/policy', [\App\Http\Controllers\Teacher\TutorDashboardController::class, 'updatePolicy'])->name('teacher.ai-tutor.policy.update');
+    Route::get('/teacher/ai-tutor', [\App\Http\Controllers\Teacher\TutorDashboardController::class, 'index'])->name('teacher.ai-tutor.index');
     Route::get('/teacher/ai-generator', [AiGeneratorController::class, 'index'])->name('teacher.ai_generator.index');
     Route::post('/teacher/ai-generator/generate', [AiGeneratorController::class, 'generate'])->name('teacher.ai_generator.generate');
     Route::post('/teacher/ai-generator/save', [AiGeneratorController::class, 'save'])->name('teacher.ai_generator.save');

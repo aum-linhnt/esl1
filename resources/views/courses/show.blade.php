@@ -42,6 +42,12 @@
             {{ $course->title }}
         </h1>
 
+        @if($course->slug === 'demo-ai-tutor-ielts')
+            <div role="status" class="mb-4 rounded-xl border border-indigo-400/30 bg-indigo-500/10 p-3 text-xs leading-relaxed text-indigo-200">
+                Khóa mẫu IELTS 6.5: tài liệu và bài luyện rút gọn để demo. Audio/video mẫu dùng giọng tổng hợp; bài Speaking của học viên hiện nộp dàn ý văn bản. Điểm phần trăm là điểm luyện tập, không phải band IELTS. Bài nộp được giáo viên nhận xét; hỏi Gia sư AI trực tiếp cần cấu hình AI và credit phù hợp.
+            </div>
+        @endif
+
         {{-- Description --}}
         @if($course->description)
             <p class="text-xs sm:text-sm text-gray-300 leading-relaxed mb-4 break-words">

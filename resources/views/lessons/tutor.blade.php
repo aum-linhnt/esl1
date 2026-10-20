@@ -1,5 +1,6 @@
 @extends('layouts.learning')
 @section('content')
+@if(!($isTrialMode ?? false))@include('partials.study-time', ['studySource' => 'lesson', 'studyContext' => $lesson->id])@endif
 @php
     $tabs = ['lesson' => ['play', 'Bài học'], 'vocabulary' => ['cards', 'Từ vựng'], 'practice' => ['clipboard', 'Bài tập'], 'resources' => ['document', 'Tài liệu']];
     $percent = $totalActivities > 0 ? round($completedCount / $totalActivities * 100) : 0;

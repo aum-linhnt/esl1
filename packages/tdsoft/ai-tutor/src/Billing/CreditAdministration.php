@@ -122,6 +122,10 @@ final class CreditAdministration
                             'status' => 'failed', 'error_code' => $code, 'updated_at' => now(),
                         ]);
                 }
+                if (Schema::hasTable('tutor_ai_writing_submissions')) {
+                    DB::table('tutor_ai_writing_submissions')->where('request_id', $requestId)->where('status', '!=', 'completed')
+                        ->update(['status' => 'failed', 'error_code' => $code, 'updated_at' => now()]);
+                }
 
                 return ['decision' => $decision, 'reason' => $reason, 'reserved_units' => $reserved,
                     'actual_units' => $decision === 'commit' ? $actualUnits : 0, 'user_id' => $record->user_id,

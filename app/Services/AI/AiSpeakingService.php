@@ -218,6 +218,8 @@ PROMPT;
      */
     protected function normalizeSpeechResponse(array $data, string $targetText): array
     {
+        $verified = ($data['success'] ?? true) === true && is_numeric($data['score'] ?? null)
+            && is_finite((float) $data['score']) && $data['score'] >= 0 && $data['score'] <= 100;
         $score = round((float)($data['score'] ?? 75), 1);
         $accuracy = round((float)($data['accuracy'] ?? $score), 1);
         $fluency = round((float)($data['fluency'] ?? 80), 1);
@@ -254,6 +256,7 @@ PROMPT;
 
         return [
             'success' => true,
+            'assessment_verified' => $verified,
             'processing_time_ms' => $data['processing_time_ms'] ?? 500,
             'score' => $score,
             'accuracy' => $accuracy,
@@ -282,6 +285,7 @@ PROMPT;
     {
         return [
             'success' => true,
+            'assessment_verified' => false,
             'processing_time_ms' => 120,
             'score' => 80.0,
             'accuracy' => 82.0,

@@ -1,5 +1,20 @@
 # Installation and upgrade
 
+## Phase 4 Writing backend (development only)
+
+Read [PHASE4.md](PHASE4.md) before rollout. New forward migrations 000007
+(English assessment tables) and 000008 (Writing execution snapshots) are required;
+no real database migration is part of implementation verification. Preserve all
+prior migrations. Provision versioned practice rubrics explicitly; migrations
+do not seed credit/rules or call providers. Configure AI_WRITING_MODEL and the
+writing_assessment/writing_recheck rules, then restart workers with
+ai-tutor-assessments included and retry_after greater than 60 seconds.
+Writing Studio now adds full editor/history/recovery pages; rebuild the website
+Vite entries to include the package Writing JS/SCSS. This UI follow-up requires
+no further migration. Hosts overriding the asset pipeline must import
+`resources/js/writing.js` and the package SCSS. Export/delete, legacy cutover,
+Speaking and release verification remain pending.
+
 ## Credit admin follow-up
 
 Apply new forward migration `2026_09_25_000005_create_tutor_ai_audit_logs.php`.

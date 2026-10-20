@@ -23,6 +23,14 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard & Renewal
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard-v2/credits', [\App\Http\Controllers\AiCreditOverviewController::class, 'index'])->name('dashboard.v2.credits');
+    Route::get('/dashboard-v2/study-progress', [\App\Http\Controllers\StudyTimeController::class, 'index'])->name('dashboard.v2.study');
+    Route::post('/dashboard-v2/study-sessions', [\App\Http\Controllers\StudyTimeController::class, 'store'])->middleware('throttle:30,1')->name('dashboard.v2.study.start');
+    Route::patch('/dashboard-v2/study-sessions/{id}', [\App\Http\Controllers\StudyTimeController::class, 'update'])->whereUuid('id')->middleware('throttle:120,1')->name('dashboard.v2.study.report');
+    Route::get('/dashboard-v2/goals', [\App\Http\Controllers\LearningGoalController::class, 'edit'])->name('dashboard.v2.goals.edit');
+    Route::put('/dashboard-v2/goals', [\App\Http\Controllers\LearningGoalController::class, 'update'])->name('dashboard.v2.goals.update');
+    Route::get('/dashboard-v2/skills', [\App\Http\Controllers\SkillHistoryController::class, 'index'])->name('dashboard.v2.skills');
+    Route::get('/dashboard-v2', [\App\Http\Controllers\DashboardV2Controller::class, 'index'])->name('dashboard.v2');
     Route::get('/renew', [DashboardController::class, 'renew'])->name('renew');
 
     // Courses (Menu: Học)

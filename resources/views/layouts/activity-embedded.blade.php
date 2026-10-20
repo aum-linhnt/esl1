@@ -7,7 +7,7 @@
     <title>{{ $activity->title }}</title>
     <base target="_top">
     @include('lessons.partials.theme-init')
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/css/learning.css', 'resources/js/learning.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/study-time.js', 'resources/css/learning.css', 'resources/js/learning.js'])
 </head>
 <body class="activity-embedded">
     @yield('content')

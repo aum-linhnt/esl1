@@ -12,7 +12,9 @@ class CourseController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        $filters = $request->validate(['level' => 'nullable|string|in:A1,A2,B1,B2,C1,C2']);
         $courses = Course::where('is_published', true)
+            ->when($filters['level'] ?? null, fn ($query, $level) => $query->where('level', $level))
             ->orderBy('order')
             ->withCount('lessons')
             ->get();

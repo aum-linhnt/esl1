@@ -1,0 +1,7 @@
+Receptionist: Good morning. How can I help you?
+Student: I would like to join the evening English course. My name is Maya Chen.
+Receptionist: The class normally starts at six, but next Tuesday it will begin at half past six.
+Student: Which room should I go to?
+Receptionist: Room twelve, on the second floor. Please bring a notebook. The course fee is eighty pounds.
+Student: Can I pay on the first day?
+Receptionist: Yes, but please register by Friday.

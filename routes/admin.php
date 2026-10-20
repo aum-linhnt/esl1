@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\Route;
 
 // ─── Dedicated Enterprise Admin Portal Routes ───
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/ai/usage', [\App\Http\Controllers\Admin\AiUsageController::class, 'index'])
+        ->middleware(\TDSoft\AiTutor\Http\RequireCreditAdministrator::class)->name('ai.usage');
+
     // Admin Dashboard
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [AdminDashboardController::class, 'index']);

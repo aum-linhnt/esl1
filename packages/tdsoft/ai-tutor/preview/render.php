@@ -17,7 +17,7 @@ use Illuminate\View\ViewServiceProvider;
 $page = $argv[1] ?? 'widget';
 $port = (int) ($argv[2] ?? 9013);
 $cache = $argv[3] ?? '';
-if (! in_array($page, ['widget', 'tutor', 'knowledge'], true) || ! is_dir($cache)
+if (! in_array($page, ['widget', 'tutor', 'knowledge', 'writing'], true) || ! is_dir($cache)
     || ! str_starts_with(realpath($cache), realpath(sys_get_temp_dir()).'/ai-tutor-preview-')) {
     exit(1);
 }
@@ -41,6 +41,7 @@ Facade::setFacadeApplication($app);
 $app->register(ViewServiceProvider::class);
 $app['view']->addNamespace('ai-tutor', __DIR__.'/../resources/views');
 $data = [
+    'draftId' => null,
     'actorId' => 'preview-learner-'.preg_replace('/[^a-zA-Z0-9-]/', '', $argv[4] ?? 'isolated'),
     'lesson' => new \TDSoft\AiTutor\Core\LessonContext('course-1', 'lesson-1', 'Present simple'),
     'settings' => ['position' => 'bottom-right', 'mode' => 'drawer', 'width' => 420, 'expand' => true],

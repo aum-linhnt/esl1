@@ -1,6 +1,11 @@
 # Kế hoạch Phase 4 — English MVP
 
-Ngày lập: 2026-10-05. Trạng thái: kế hoạch triển khai, chưa triển khai Phase 4.
+Ngày lập: 2026-10-05. Trạng thái: đã triển khai slice foundation (schema,
+English profile, rubric versions, state/result contracts và test guard).
+Writing đã có draft/revision, submit snapshots, queue, billing/recovery,
+session API và UI editor/autosave/feedback/history. Speaking chưa triển khai.
+Sự cố baseline MySQL đã khôi phục từ backup 10:52
+sau khi chủ sở hữu đồng ý; xem kết quả trong [PHASE4.md](PHASE4.md).
 
 ## 1. Mục tiêu và căn cứ
 
